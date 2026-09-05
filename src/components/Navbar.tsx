@@ -14,6 +14,7 @@ const Navbar: React.FC = () => {
   const isHomeActive = location.pathname === '/';
   const isBrowseActive = location.pathname === '/browse';
   const isAboutActive = location.pathname === '/about';
+  const isCreateListingActive = location.pathname === '/create-listing';
 
   return (
     <header className="navbar">
@@ -44,6 +45,12 @@ const Navbar: React.FC = () => {
             className={`nav-link ${isAboutActive ? 'active' : ''}`}
           >
             About
+          </Link>
+          <Link
+            to="/create-listing"
+            className={`nav-link ${isCreateListingActive ? 'active' : ''}`}
+          >
+            Sell an Item
           </Link>
         </nav>
 
@@ -83,6 +90,13 @@ const Navbar: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               About
+            </Link>
+            <Link
+              to="/create-listing"
+              className={`mobile-nav-link ${isCreateListingActive ? 'active' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Sell an Item
             </Link>
           </nav>
           <div className="mobile-actions">
