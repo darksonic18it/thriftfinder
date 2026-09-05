@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin, User } from 'lucide-react';
 import './ProductCard.css';
 
@@ -35,8 +36,14 @@ const getConditionClass = (condition: Product['condition']) => {
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggleFavorite }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/listing/${product.id}`);
+  };
+
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={handleCardClick}>
       {/* Image Container */}
       <div className="product-image-container">
         <img

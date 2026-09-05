@@ -5,7 +5,8 @@
       "PowerShell(npx create-vite@latest . --template react-ts -y)",
       "PowerShell(npm install *)",
       "PowerShell(npm run *)",
-      "PowerShell(npx tailwindcss init -p)"
+      "PowerShell(npx tailwindcss init -p)",
+      "Bash(npm run *)"
     ]
   }
 }
