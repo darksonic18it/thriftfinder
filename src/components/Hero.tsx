@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Tag, ShieldCheck, Heart } from 'lucide-react';
 import './Hero.css';
 
 const Hero: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="hero" id="home">
       <div className="hero-container">
@@ -23,11 +26,19 @@ const Hero: React.FC = () => {
           </p>
 
           <div className="hero-actions">
-            <button className="btn-primary">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => navigate('/browse')}
+            >
               <span>Start Exploring</span>
               <ArrowRight size={18} />
             </button>
-            <button className="btn-secondary">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => navigate('/create-listing')}
+            >
               <Tag size={18} />
               <span>Sell an Item</span>
             </button>

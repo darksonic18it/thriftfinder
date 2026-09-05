@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShoppingBag, Store } from 'lucide-react';
 import './CallToAction.css';
 
 const CallToAction: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="cta-section">
       <div className="cta-container">
@@ -16,12 +19,20 @@ const CallToAction: React.FC = () => {
               ThriftFinder connects you with a community that values sustainability and style.
             </p>
             <div className="cta-actions">
-              <button className="btn-cta-primary">
+              <button
+                type="button"
+                className="btn-cta-primary"
+                onClick={() => navigate('/browse')}
+              >
                 <ShoppingBag size={20} />
                 <span>Browse Items</span>
                 <ArrowRight size={18} />
               </button>
-              <button className="btn-cta-secondary">
+              <button
+                type="button"
+                className="btn-cta-secondary"
+                onClick={() => navigate('/create-listing')}
+              >
                 <Store size={20} />
                 <span>Start Selling</span>
               </button>
