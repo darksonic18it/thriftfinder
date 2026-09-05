@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm create *)",
+      "PowerShell(npx create-vite@latest . --template react-ts -y)",
+      "PowerShell(npm install *)",
+      "PowerShell(npm run *)",
+      "PowerShell(npx tailwindcss init -p)"
+    ]
+  }
+}

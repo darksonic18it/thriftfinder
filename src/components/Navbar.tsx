@@ -1,0 +1,98 @@
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ShoppingBag, Menu, X } from 'lucide-react';
+import './Navbar.css';
+
+const Navbar: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const isHomeActive = location.pathname === '/';
+  const isBrowseActive = location.pathname === '/browse';
+  const isAboutActive = location.pathname === '/about';
+
+  return (
+    <header className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">
+          <div className="logo-icon">
+            <ShoppingBag size={24} color="#ffffff" />
+          </div>
+          <span className="logo-text">Thrift<span className="logo-accent">Finder</span></span>
+        </Link>
+
+        {/* Desktop Navigation Links */}
+        <nav className="navbar-links">
+          <Link
+            to="/"
+            className={`nav-link ${isHomeActive ? 'active' : ''}`}
+          >
+            Home
+          </Link>
+          <Link
+            to="/browse"
+            className={`nav-link ${isBrowseActive ? 'active' : ''}`}
+          >
+            Browse
+          </Link>
+          <Link
+            to="/about"
+            className={`nav-link ${isAboutActive ? 'active' : ''}`}
+          >
+            About
+          </Link>
+        </nav>
+
+        {/* Desktop Action Buttons */}
+        <div className="navbar-actions">
+          <button className="btn-login">Log In</button>
+          <button className="btn-signup">Sign Up</button>
+        </div>
+
+        {/* Mobile Menu Toggle Button */}
+        <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle navigation menu">
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {isMenuOpen && (
+        <div className="mobile-menu">
+          <nav className="mobile-nav-links">
+            <Link
+              to="/"
+              className={`mobile-nav-link ${isHomeActive ? 'active' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              to="/browse"
+              className={`mobile-nav-link ${isBrowseActive ? 'active' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Browse
+            </Link>
+            <Link
+              to="/about"
+              className={`mobile-nav-link ${isAboutActive ? 'active' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+          </nav>
+          <div className="mobile-actions">
+            <button className="btn-login full-width">Log In</button>
+            <button className="btn-signup full-width">Sign Up</button>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default Navbar;

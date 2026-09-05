@@ -1,0 +1,329 @@
+.about-page {
+  min-height: 100vh;
+  background-color: var(--color-bg-main);
+}
+
+/* Hero Section */
+.about-hero {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  padding: 6rem 1.5rem 4rem;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-hero-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.about-hero-subtitle {
+  font-size: 1.25rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+/* Main Content Container */
+.about-content {
+  padding: 5rem 1.5rem;
+}
+
+.about-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.about-section {
+  margin-bottom: 5rem;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.section-text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.section-text.center {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+/* Problem Grid */
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.problem-card {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.problem-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.problem-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.25rem;
+  background-color: rgba(99, 102, 241, 0.08);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.problem-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.problem-card p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* How It Works Section */
+.how-it-works-section {
+  background-color: var(--color-bg-secondary);
+  padding: 4rem 2rem;
+  border-radius: var(--radius-2xl);
+  margin: 5rem 0;
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+  margin-top: 3rem;
+}
+
+.step-card {
+  text-align: center;
+}
+
+.step-number {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 800;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.step-description {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* Audience Grid */
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.audience-card {
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.audience-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.audience-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audience-card h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.audience-card p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* Vision Section */
+.vision-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 4rem 3rem;
+  border-radius: var(--radius-2xl);
+  text-align: center;
+}
+
+.vision-content {
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+.vision-icon {
+  margin: 0 auto 1.5rem;
+  width: fit-content;
+}
+
+/* Team Section */
+.team-section {
+  text-align: center;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.team-card {
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  max-width: 400px;
+  text-align: center;
+}
+
+.team-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-card h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.team-role {
+  font-size: 0.95rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.team-description {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .problem-grid,
+  .steps-container,
+  .audience-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 4rem 1.25rem 3rem;
+  }
+
+  .about-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .about-hero-subtitle {
+    font-size: 1.05rem;
+  }
+
+  .about-content {
+    padding: 3.5rem 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.85rem;
+  }
+
+  .section-text {
+    font-size: 1rem;
+  }
+
+  .how-it-works-section,
+  .vision-section {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-hero-title {
+    font-size: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.65rem;
+  }
+}
