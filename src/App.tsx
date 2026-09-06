@@ -10,6 +10,8 @@ import Browse from './pages/Browse';
 import ListingDetails from './pages/ListingDetails';
 import CreateListing from './pages/CreateListing';
 import UITest from './pages/UITest';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
 
@@ -37,6 +39,8 @@ function App() {
             <Route path="/browse" element={<Browse />} />
             <Route path="/listing/:id" element={<ListingDetails />} />
             <Route path="/create-listing" element={<CreateListing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/ui-test" element={<UITest />} />
           </Routes>
         </main>

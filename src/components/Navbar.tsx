@@ -56,8 +56,12 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Action Buttons */}
         <div className="navbar-actions">
-          <button className="btn-login">Log In</button>
-          <button className="btn-signup">Sign Up</button>
+          <Link to="/login" className="btn-login">
+            Log In
+          </Link>
+          <Link to="/signup" className="btn-signup">
+            Sign Up
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle Button */}
@@ -100,8 +104,12 @@ const Navbar: React.FC = () => {
             </Link>
           </nav>
           <div className="mobile-actions">
-            <button className="btn-login full-width">Log In</button>
-            <button className="btn-signup full-width">Sign Up</button>
+            <Link to="/login" className="btn-login full-width">
+              Log In
+            </Link>
+            <Link to="/signup" className="btn-signup full-width">
+              Sign Up
+            </Link>
           </div>
         </div>
       )}
