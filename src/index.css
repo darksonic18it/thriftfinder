@@ -2,24 +2,23 @@
 
 :root {
   /* Color Palette */
-  --color-primary: #6366f1;
+  --color-primary: #285943;
   --color-primary-dark: #4f46e5;
   --color-primary-light: #818cf8;
-  --color-secondary: #f59e0b;
-  --color-accent: #ec4899;
+  --color-secondary: #6B6B66;
 
-  --color-text-primary: #1e293b;
+  --color-text-primary: #1A1A1A;
   --color-text-secondary: #64748b;
   --color-text-muted: #94a3b8;
 
-  --color-bg-main: #ffffff;
+  --color-bg-main: #FAFAF8;
   --color-bg-secondary: #f8fafc;
   --color-bg-tertiary: #f1f5f9;
 
-  --color-border: #e2e8f0;
+  --color-border: #E5E5E0;
 
   /* Typography */
-  --font-heading: 'Outfit', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
 
   /* Spacing */
