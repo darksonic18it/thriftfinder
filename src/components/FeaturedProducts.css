@@ -1,5 +1,6 @@
+/* Popular Near You / Featured Products */
 .featured-products {
-  padding: 5rem 1.5rem;
+  padding: 4.5rem 1.5rem;
   background-color: var(--color-bg-secondary);
   width: 100%;
 }
@@ -10,9 +11,8 @@
   margin: 0 auto;
 }
 
-/* Header */
 .products-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.25rem;
 }
 
 .products-badge {
@@ -29,7 +29,7 @@
 }
 
 .products-title {
-  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  font-size: clamp(1.75rem, 3.5vw, 2.2rem);
   font-weight: 800;
   color: var(--color-text-primary);
   margin-bottom: 0.5rem;
@@ -39,302 +39,28 @@
 .products-subtitle {
   font-size: clamp(0.95rem, 2vw, 1.05rem);
   color: var(--color-text-secondary);
-  max-width: 600px;
-  line-height: 1.5;
+  max-width: 650px;
+  line-height: 1.55;
 }
 
-/* Grid Layout */
+.demo-label {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.5rem;
 }
 
-/* Product Card */
-.product-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  cursor: pointer;
-  height: 100%;
-}
-
-@media (hover: hover) {
-  .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-    border-color: #cbd5e1;
-  }
-
-  .product-card:hover .product-image {
-    transform: scale(1.05);
-  }
-
-  .product-heart-btn:hover {
-    background: #ffffff;
-    transform: scale(1.1);
-  }
-}
-
-/* Image Container */
-.product-image-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  background-color: var(--color-bg-tertiary);
-}
-
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.35s ease;
-}
-
-/* Tags & Badges on Image */
-.product-tag {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  background: rgba(15, 23, 42, 0.85);
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--radius-sm);
-  backdrop-filter: blur(4px);
-  letter-spacing: 0.02em;
-}
-
-/* Heart Button */
-.product-heart-btn {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  transition: all 0.2s ease;
-  z-index: 2;
-}
-
-.product-heart-btn.active {
-  background: #ffffff;
-}
-
-.heart-icon {
-  transition: transform 0.2s ease, fill 0.2s ease, color 0.2s ease;
-}
-
-.product-heart-btn:active .heart-icon {
-  transform: scale(1.2);
-}
-
-/* Product Card Body */
-.product-body {
-  padding: 1rem 1.15rem 1.15rem;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.product-meta-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
-}
-
-/* Condition Badges */
-.condition-pill {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.18rem 0.55rem;
-  border-radius: var(--radius-sm);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-
-.condition-like-new {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #047857;
-}
-
-.condition-excellent {
-  background-color: rgba(99, 102, 241, 0.12);
-  color: #4338ca;
-}
-
-.condition-good {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: #b45309;
-}
-
-.condition-fair {
-  background-color: rgba(100, 116, 139, 0.12);
-  color: #475569;
-}
-
-/* Name */
-.product-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 0.4rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
-  min-height: 2.6em;
-}
-
-/* Price */
-.product-price {
-  font-family: var(--font-heading);
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--color-primary-dark);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.01em;
-}
-
-/* Footer Info (Seller & Location) */
-.product-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-top: 0.65rem;
-  border-top: 1px solid var(--color-border);
-  margin-top: auto;
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
-}
-
-.product-seller,
-.product-location {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.product-seller span,
-.product-location span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.meta-icon {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-/* Large Desktop (1440px) */
-@media (min-width: 1200px) {
-  .products-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Desktop (1024px - 1199px) */
-@media (max-width: 1199px) {
-  .products-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-  }
-}
-
-/* Tablet (768px - 1023px) */
-@media (max-width: 1023px) {
-  .products-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Mobile & Small Tablet (480px - 767px) */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .featured-products {
-    padding: 3.5rem 1.25rem;
+    padding: 3.25rem 1.25rem;
   }
 
   .products-header {
-    margin-bottom: 2rem;
-  }
-
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .product-body {
-    padding: 0.85rem;
-  }
-
-  .product-name {
-    font-size: 0.95rem;
-    min-height: 2.4em;
-  }
-
-  .product-price {
-    font-size: 1.15rem;
-  }
-}
-
-/* Small Mobile (360px - 479px) */
-@media (max-width: 479px) {
-  .featured-products {
-    padding: 2.5rem 1rem;
-  }
-
-  .products-badge {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.7rem;
-  }
-
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .product-body {
-    padding: 0.75rem;
-  }
-
-  .product-name {
-    font-size: 0.88rem;
-    min-height: 2.2em;
-  }
-
-  .product-price {
-    font-size: 1.05rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .product-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-    font-size: 0.72rem;
-  }
-
-  .product-seller,
-  .product-location {
-    width: 100%;
+    margin-bottom: 1.75rem;
   }
 }

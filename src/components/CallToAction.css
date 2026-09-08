@@ -1,3 +1,4 @@
+/* Landing How it Works + Community + Final CTA */
 .cta-section {
   padding: 5rem 1.5rem;
   background-color: var(--color-bg-main);
@@ -10,206 +11,246 @@
   margin: 0 auto;
 }
 
-.cta-card {
-  position: relative;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-radius: var(--radius-2xl);
-  padding: 4rem 3rem;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  width: 100%;
+/* How it works */
+.how-it-works {
+  margin-bottom: 3.25rem;
 }
 
-.cta-content {
+.how-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 1.75rem;
+}
+
+.how-title {
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+  color: var(--color-text-primary);
+}
+
+.how-subtitle {
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.step-card {
+  border: 1px solid var(--color-border);
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: 1.2rem 1.15rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
   position: relative;
-  z-index: 2;
-  max-width: 750px;
+}
+
+.step-number {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.step-title {
+  font-weight: 800;
+  color: var(--color-text-primary);
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.step-description {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.step-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: rgba(99, 102, 241, 0.85);
+}
+
+/* Community */
+.community {
+  margin-bottom: 3rem;
+}
+
+.community-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, rgba(255, 255, 255, 1) 100%);
+  padding: 2.1rem 1.6rem;
+  text-align: center;
+}
+
+.community-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.community-copy {
+  color: var(--color-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 760px;
   margin: 0 auto;
+}
+
+/* Final CTA */
+.final-cta {
+  display: flex;
+  justify-content: center;
+}
+
+.final-card {
+  width: 100%;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  background: white;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.final-content {
+  padding: 3rem 2rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
-.cta-title {
-  font-size: clamp(1.85rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
+.final-title {
+  font-size: clamp(1.75rem, 4.4vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
 }
 
-.cta-description {
-  font-size: clamp(0.95rem, 2vw, 1.125rem);
-  color: #cbd5e1;
+.final-description {
+  color: var(--color-text-secondary);
   line-height: 1.7;
-  max-width: 650px;
+  font-size: 1.05rem;
+  max-width: 720px;
 }
 
 .cta-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
 }
 
-/* Primary CTA Button - Browse Items */
-.btn-cta-primary {
+.cta-btn-primary {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
+  font-weight: 600;
   font-size: 1.05rem;
-  font-weight: 700;
   padding: 0.875rem 2rem;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-  transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   min-height: 48px;
 }
 
-@media (hover: hover) {
-  .btn-cta-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-  }
-
-  .btn-cta-primary:hover::before {
-    left: 100%;
-  }
-
-  .btn-cta-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
-  }
-
-  .btn-cta-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
-  }
+.cta-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 26px rgba(99, 102, 241, 0.38);
 }
 
-.btn-cta-primary:active {
+.cta-btn-primary:active {
   transform: translateY(0);
 }
 
-/* Secondary CTA Button - Start Selling */
-.btn-cta-secondary {
+.cta-btn-secondary {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1.05rem;
+  gap: 0.55rem;
+  background: white;
+  color: var(--color-text-primary);
   font-weight: 700;
+  font-size: 1.05rem;
   padding: 0.875rem 2rem;
   border-radius: var(--radius-lg);
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  transition: all 0.25s ease;
+  border: 2px solid var(--color-border);
+  transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
   min-height: 48px;
 }
 
-.btn-cta-secondary:active {
+.cta-btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.6);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-primary);
+}
+
+.cta-btn-secondary:active {
   transform: translateY(0);
 }
 
-/* Background Decorative Elements */
-.cta-background {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
+@media (max-width: 900px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
 
-.cta-shape {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.25;
-}
+  .step-icon {
+    position: static;
+    align-self: flex-end;
+    margin-top: -0.5rem;
+  }
 
-.shape-1 {
-  top: -20%;
-  right: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.6), transparent);
-}
-
-.shape-2 {
-  bottom: -25%;
-  left: -15%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent);
-}
-
-.cta-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  opacity: 0.4;
-}
-
-/* Tablet (768px - 1024px) */
-@media (max-width: 1024px) {
-  .cta-card {
-    padding: 3.5rem 2.5rem;
+  .final-content {
+    padding: 2.5rem 1.5rem;
   }
 }
 
-/* Mobile & Small Tablet (768px and below) */
 @media (max-width: 768px) {
   .cta-section {
-    padding: 3.5rem 1.25rem;
+    padding: 3.25rem 1.25rem;
   }
 
-  .cta-card {
-    padding: 3rem 1.5rem;
-    border-radius: var(--radius-xl);
+  .community-card {
+    padding: 1.75rem 1.25rem;
   }
 
   .cta-actions {
     flex-direction: column;
-    width: 100%;
-    max-width: 360px;
+    max-width: 420px;
+    margin: 0 auto;
+    gap: 0.75rem;
   }
 
-  .btn-cta-primary,
-  .btn-cta-secondary {
+  .cta-btn-primary,
+  .cta-btn-secondary {
     width: 100%;
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
   }
 }
 
-/* Small Mobile (390px - 360px and below) */
-@media (max-width: 480px) {
-  .cta-section {
-    padding: 2.5rem 1rem;
-  }
-
-  .cta-card {
-    padding: 2.25rem 1.25rem;
+/* Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .cta-btn-primary,
+  .cta-btn-secondary {
+    transition: none;
   }
 }
