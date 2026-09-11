@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, X } from 'lucide-react';
+
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -28,10 +29,7 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Navigation Links */}
         <nav className="navbar-links">
-          <Link
-            to="/"
-            className={`nav-link ${isHomeActive ? 'active' : ''}`}
-          >
+          <Link to="/" className={`nav-link ${isHomeActive ? 'active' : ''}`}>
             Home
           </Link>
           <Link
@@ -65,7 +63,11 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Menu Toggle Button */}
-        <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle navigation menu">
+        <button
+          className="mobile-menu-btn"
+          onClick={toggleMenu}
+          aria-label="Toggle navigation menu"
+        >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
