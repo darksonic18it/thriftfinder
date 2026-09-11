@@ -79,6 +79,78 @@
   border-radius: 2px;
 }
 
+/* Desktop pill animation (no mobile changes) */
+.pill-desktop-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+  padding: 0 0.6rem;
+}
+
+.pill-desktop-item .pill-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  z-index: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.pill-label-wrap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  height: 1.2em;
+  overflow: hidden;
+}
+
+.pill-label-normal,
+.pill-label-hover {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+.pill-label-normal {
+  color: var(--color-text-secondary);
+}
+
+.pill-label-hover {
+  color: #ffffff;
+  transform: translateY(0);
+  opacity: 0;
+}
+
+.pill-desktop-item.active .pill-bg {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.pill-desktop-item.active .pill-label-normal {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.pill-desktop-item.active .pill-label-hover {
+  transform: translateY(0);
+  opacity: 1;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
