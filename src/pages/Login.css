@@ -35,7 +35,7 @@
 .login-card {
   width: 100%;
   max-width: 560px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-card-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   box-shadow: 0 20px 60px rgba(2, 6, 23, 0.08);
