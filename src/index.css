@@ -16,6 +16,7 @@
   --color-bg-tertiary: #f1f5f9;
 
   --color-border: #E5E5E0;
+  --color-nav-bg: rgba(255, 255, 255, 0.95);
 
   /* Typography */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
@@ -56,6 +57,7 @@
   --color-bg-tertiary: #111827;
 
   --color-border: #334155;
+  --color-nav-bg: rgba(15, 23, 42, 0.85);
 
   /* keep spacing/radius/shadow variables unchanged */
 }
