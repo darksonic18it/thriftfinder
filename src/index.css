@@ -17,6 +17,7 @@
 
   --color-border: #E5E5E0;
   --color-nav-bg: rgba(255, 255, 255, 0.95);
+  --color-card-bg: rgba(255, 255, 255, 0.9);
 
   /* Typography */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
@@ -58,6 +59,8 @@
 
   --color-border: #334155;
   --color-nav-bg: rgba(15, 23, 42, 0.85);
+
+  --color-card-bg: rgba(30, 41, 59, 0.9);
 
   /* keep spacing/radius/shadow variables unchanged */
 }
