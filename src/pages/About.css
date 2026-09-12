@@ -77,7 +77,7 @@
 }
 
 .problem-card {
-  background: white;
+  background: var(--color-bg-secondary);
   padding: 2rem;
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
@@ -171,7 +171,7 @@
 }
 
 .audience-card {
-  background: white;
+  background: var(--color-bg-secondary);
   padding: 2.5rem 2rem;
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
@@ -211,6 +211,13 @@
 /* Vision Section */
 .vision-section {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+[data-theme='dark'] .vision-section {
+  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
+}
+
+.vision-section {
   padding: 4rem 3rem;
   border-radius: var(--radius-2xl);
   text-align: center;
@@ -238,7 +245,7 @@
 }
 
 .team-card {
-  background: white;
+  background: var(--color-bg-secondary);
   padding: 2.5rem 2rem;
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
