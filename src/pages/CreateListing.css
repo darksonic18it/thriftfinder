@@ -5,7 +5,7 @@
 }
 
 .create-listing-topbar {
-  background: white;
+  background: var(--color-bg-main);
   border-bottom: 1px solid var(--color-border);
   padding: 1.25rem 1.5rem;
 }
@@ -35,7 +35,7 @@
 }
 
 .create-listing-form-panel {
-  background: white;
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: 2rem;
@@ -325,7 +325,7 @@
 }
 
 .create-listing-preview-card {
-  background: white;
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
