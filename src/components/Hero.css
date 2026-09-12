@@ -3,7 +3,7 @@
   min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
-  background: linear-gradient(180deg, #fefefe 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, var(--color-bg-main) 0%, var(--color-bg-secondary) 100%);
   padding: 4rem 1.5rem;
   position: relative;
   overflow: hidden;
@@ -79,9 +79,45 @@
   font-size: 1rem;
   padding: 0.875rem 1.75rem;
   border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.22);
   transition: all 0.25s ease;
   min-height: 48px;
+
+  --shine-angle: 120deg;
+  --shine-opacity: 0.55;
+}
+
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(255, 255, 255, var(--shine-opacity)) 50%,
+    transparent 70%
+  );
+  transform: skewX(-20deg);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  will-change: left;
+}
+
+.btn-primary > * {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-primary:hover::after {
+  left: 110%;
+  transition: left 0.7s ease;
 }
 
 .btn-primary:hover {
@@ -98,15 +134,48 @@
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  background: white;
+  background: var(--color-bg-secondary);
   color: var(--color-text-primary);
   font-weight: 600;
   font-size: 1rem;
   padding: 0.875rem 1.75rem;
   border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
   border: 2px solid var(--color-border);
   transition: all 0.25s ease;
   min-height: 48px;
+
+}
+
+.btn-secondary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(40, 89, 67, var(--shine-opacity)) 50%,
+    transparent 70%
+  );
+  transform: skewX(-20deg);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  will-change: left;
+}
+
+.btn-secondary > * {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-secondary:hover::after {
+  left: 110%;
+  transition: left 0.7s ease;
 }
 
 .btn-secondary:hover {
@@ -136,7 +205,7 @@
 .hero-card {
   position: relative;
   z-index: 2;
-  background: white;
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08);
@@ -172,7 +241,7 @@
   right: 1rem;
   width: 40px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-bg-secondary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -185,7 +254,7 @@
 
 .like-btn:hover {
   transform: scale(1.06);
-  background: white;
+  background: var(--color-bg-secondary);
 }
 
 .card-info {
@@ -228,7 +297,7 @@
   left: -0.75rem;
   bottom: 1.5rem;
   z-index: 3;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 0.75rem 0.85rem;
@@ -355,5 +424,24 @@
 
   .hero-card:hover .card-image {
     transform: none;
+  }
+
+  .btn-primary::after,
+  .btn-secondary::after {
+    transition: none;
+  }
+
+  .btn-primary::after {
+    left: -75%;
+  }
+
+  .btn-secondary::after {
+    left: -75%;
+  }
+
+  .btn-primary:hover::after,
+  .btn-secondary:hover::after {
+    left: -75%;
+    transition: none;
   }
 }

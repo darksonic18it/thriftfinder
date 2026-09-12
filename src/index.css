@@ -44,6 +44,22 @@
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 
+[data-theme='dark'] {
+  /* Color Palette */
+
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-bg-main: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #111827;
+
+  --color-border: #334155;
+
+  /* keep spacing/radius/shadow variables unchanged */
+}
+
 * {
   margin: 0;
   padding: 0;

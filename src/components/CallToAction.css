@@ -42,9 +42,10 @@
   gap: 1.25rem;
 }
 
+
 .step-card {
   border: 1px solid var(--color-border);
-  background: white;
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-2xl);
   padding: 1.2rem 1.15rem;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
@@ -120,7 +121,7 @@
   width: 100%;
   border-radius: var(--radius-2xl);
   border: 1px solid var(--color-border);
-  background: white;
+  background: var(--color-bg-secondary);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
@@ -171,7 +172,44 @@
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.28);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   min-height: 48px;
+
+  position: relative;
+  overflow: hidden;
+
+  --shine-angle: 120deg;
+  --shine-opacity: 0.55;
 }
+
+.cta-btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(255, 255, 255, var(--shine-opacity)) 50%,
+    transparent 70%
+  );
+  transform: skewX(-20deg);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  will-change: left;
+}
+
+.cta-btn-primary > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-btn-primary:hover::after {
+  left: 110%;
+  transition: left 0.7s ease;
+}
+
 
 .cta-btn-primary:hover {
   transform: translateY(-2px);
@@ -187,7 +225,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  background: white;
+  background: var(--color-bg-secondary);
   color: var(--color-text-primary);
   font-weight: 700;
   font-size: 1.05rem;
@@ -196,6 +234,42 @@
   border: 2px solid var(--color-border);
   transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
   min-height: 48px;
+
+  position: relative;
+  overflow: hidden;
+
+  --shine-angle: 120deg;
+  --shine-opacity: 0.7;
+}
+
+.cta-btn-secondary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(40, 89, 67, var(--shine-opacity)) 50%,
+    transparent 70%
+  );
+  transform: skewX(-20deg);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  will-change: left;
+}
+
+.cta-btn-secondary > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-btn-secondary:hover::after {
+  left: 110%;
+  transition: left 0.7s ease;
 }
 
 .cta-btn-secondary:hover {
@@ -252,5 +326,18 @@
   .cta-btn-primary,
   .cta-btn-secondary {
     transition: none;
+  }
+
+  .cta-btn-primary::after,
+  .cta-btn-secondary::after {
+    transition: none;
+  }
+
+  .cta-btn-primary::after {
+    left: -75%;
+  }
+
+  .cta-btn-secondary::after {
+    left: -75%;
   }
 }

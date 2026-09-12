@@ -4,6 +4,7 @@ import { ShoppingBag, Menu, X } from 'lucide-react';
 import { gsap } from 'gsap';
 
 import './Navbar.css';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -192,6 +193,7 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Action Buttons */}
         <div className="navbar-actions">
+          <ThemeToggle />
           <Link to="/login" className="btn-login">
             Log In
           </Link>
