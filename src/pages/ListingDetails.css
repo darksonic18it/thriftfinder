@@ -7,7 +7,7 @@
 
 /* Breadcrumb */
 .breadcrumb-container {
-  background: white;
+  background: var(--color-bg-main);
   border-bottom: 1px solid var(--color-border);
   padding: 1.25rem 1.5rem;
 }
@@ -111,7 +111,7 @@
 
 /* Right Column - Info */
 .listing-info {
-  background: white;
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: 2rem;
