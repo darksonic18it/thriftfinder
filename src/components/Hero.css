@@ -10,6 +10,19 @@
   width: 100%;
 }
 
+.hero-waves {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-waves-fade {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.25s ease;
+}
+
 .hero::before {
   content: '';
   position: absolute;
@@ -23,6 +36,8 @@
 }
 
 .hero-container {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -35,13 +50,13 @@
 .hero-content {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.1rem;
 }
 
 .hero-title {
-  font-size: clamp(2.15rem, 5vw, 3.35rem);
+  font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 0.93;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
