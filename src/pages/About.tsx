@@ -163,19 +163,20 @@ const About: React.FC = () => {
               <div className="team-card">
                 <div className="team-member-avatar-ring">
                   <div className="team-member-avatar">
-                    <User size={40} className="team-member-avatar-icon" />
+                    <img src="/team/CYRUS.jpg" alt="cyrus"></img>
                   </div>
                 </div>
 
-                <h3 className="team-member-name">Member One</h3>
+                <h3 className="team-member-name">Cyrus Azhly Petalino</h3>
                 <p className="team-role">UI/UX DEVELOPER</p>
 
                 <div className="team-social-row" aria-label="Member social links">
                   <a
                     className="team-social-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    aria-label="Github"
+                    href="https://www.facebook.com/cyruuu.o"
+                    target="_blank"
+                    rel="noopener nonreferer"
+                    aria-label="Facebook"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
                       <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-1.02-.028-1.985.135-1.985 1.55v1.421h2.607l-.362 3.666h-2.245V23.691H14.5v-.001c-.02.004-.038-.001-.06-.001-.15.001-.302.017-.454.017h-.001c-.32 0-.652-.031-.983-.079C11.4 23.507 9.101 23.691 9.101 23.691z" />
@@ -205,19 +206,20 @@ const About: React.FC = () => {
               <div className="team-card">
                 <div className="team-member-avatar-ring">
                   <div className="team-member-avatar">
-                    <User size={40} className="team-member-avatar-icon" />
+                    <img src="/team/khimjay.jpg" alt="khimjay"></img>
                   </div>
                 </div>
 
-                <h3 className="team-member-name">Member Two</h3>
+                <h3 className="team-member-name">Khim Jay Evedientes</h3>
                 <p className="team-role">PROJECT MANAGER / BACKEND DEVELOPER</p>
 
                 <div className="team-social-row" aria-label="Member social links">
                   <a
                     className="team-social-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    aria-label="Github"
+                    href="https://www.facebook.com/khimjay1234/"
+                    target="_blank"
+                    rel="noopener noreferer"
+                    aria-label="Facebook"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
                       <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-1.02-.028-1.985.135-1.985 1.55v1.421h2.607l-.362 3.666h-2.245V23.691H14.5v-.001c-.02.004-.038-.001-.06-.001-.15.001-.302.017-.454.017h-.001c-.32 0-.652-.031-.983-.079C11.4 23.507 9.101 23.691 9.101 23.691z" />
@@ -225,8 +227,9 @@ const About: React.FC = () => {
                   </a>
                   <a
                     className="team-social-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    href="https://www.linkedin.com/in/khim-jay-evedientes-361577413/"
+                    target="_blank"
+                    rel="noopener noreferer"
                     aria-label="LinkedIn"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
@@ -235,8 +238,9 @@ const About: React.FC = () => {
                   </a>
                   <a
                     className="team-social-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=khimjayevedientes@gmail.com"
+                    target="_blank"
+                    rel="noopener nonreferer"
                     aria-label="Email"
                   >
                     <Mail size={18} />
