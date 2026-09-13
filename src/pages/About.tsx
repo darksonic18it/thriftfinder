@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Users, Heart, ShoppingBag, Store, Search } from 'lucide-react';
+import { Target, Heart, ShoppingBag, Store, Search, User, Mail } from 'lucide-react';
 import './About.css';
 
 const About: React.FC = () => {
@@ -161,15 +161,87 @@ const About: React.FC = () => {
             </p>
             <div className="team-grid">
               <div className="team-card">
-                <div className="team-avatar">
-                  <Users size={32} color="#6366f1" />
+                <div className="team-member-avatar-ring">
+                  <div className="team-member-avatar">
+                    <User size={40} className="team-member-avatar-icon" />
+                  </div>
                 </div>
-                <h3>Development Team</h3>
-                <p className="team-role">Capstone Project</p>
-                <p className="team-description">
-                  A collaborative team of developers building ThriftFinder as part of our
-                  final capstone project.
-                </p>
+
+                <h3 className="team-member-name">Member One</h3>
+                <p className="team-role">UI/UX DEVELOPER</p>
+
+                <div className="team-social-row" aria-label="Member social links">
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="Github"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                      <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-1.02-.028-1.985.135-1.985 1.55v1.421h2.607l-.362 3.666h-2.245V23.691H14.5v-.001c-.02.004-.038-.001-.06-.001-.15.001-.302.017-.454.017h-.001c-.32 0-.652-.031-.983-.079C11.4 23.507 9.101 23.691 9.101 23.691z" />
+                    </svg>
+                  </a>
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="LinkedIn"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z" />
+                    </svg>
+                  </a>
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="Email"
+                  >
+                    <Mail size={18} />
+                  </a>
+                </div>
+              </div>
+
+              <div className="team-card">
+                <div className="team-member-avatar-ring">
+                  <div className="team-member-avatar">
+                    <User size={40} className="team-member-avatar-icon" />
+                  </div>
+                </div>
+
+                <h3 className="team-member-name">Member Two</h3>
+                <p className="team-role">PROJECT MANAGER / BACKEND DEVELOPER</p>
+
+                <div className="team-social-row" aria-label="Member social links">
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="Github"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                      <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-1.02-.028-1.985.135-1.985 1.55v1.421h2.607l-.362 3.666h-2.245V23.691H14.5v-.001c-.02.004-.038-.001-.06-.001-.15.001-.302.017-.454.017h-.001c-.32 0-.652-.031-.983-.079C11.4 23.507 9.101 23.691 9.101 23.691z" />
+                    </svg>
+                  </a>
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="LinkedIn"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z" />
+                    </svg>
+                  </a>
+                  <a
+                    className="team-social-link"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="Email"
+                  >
+                    <Mail size={18} />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
