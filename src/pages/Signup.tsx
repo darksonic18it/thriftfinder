@@ -100,9 +100,9 @@ const Signup: React.FC = () => {
                 <Button
                   type="button"
                   className="signup-submit-btn"
-                  onClick={() => navigate('/browse')}
+                  onClick={() => navigate('/dashboard', { state: { isNewUser: true } })}
                 >
-                  Continue to Browse
+                  Get started
                 </Button>
                 <Button
                   type="button"

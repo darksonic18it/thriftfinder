@@ -12,6 +12,7 @@ import CreateListing from './pages/CreateListing';
 import UITest from './pages/UITest';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
 
@@ -37,6 +38,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/browse" element={<Browse />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/listing/:id" element={<ListingDetails />} />
             <Route path="/create-listing" element={<CreateListing />} />
             <Route path="/login" element={<Login />} />

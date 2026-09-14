@@ -131,9 +131,9 @@ const Login: React.FC = () => {
                 <Button
                   type="button"
                   className="login-submit-btn"
-                  onClick={() => navigate('/browse')}
+                  onClick={() => navigate('/dashboard', { state: { isNewUser: false } })}
                 >
-                  Continue to Browse
+                  Continue
                 </Button>
                 <Button
                   type="button"
