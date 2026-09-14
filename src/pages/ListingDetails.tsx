@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, MapPin, Star, Package } from 'lucide-react';
 import { Product } from '../components/ProductCard';
 import {
@@ -195,6 +195,9 @@ const getConditionClass = (condition: Product['condition']) => {
 };
 
 const ListingDetails: React.FC = () => {
+  const location = useLocation();
+  const backTo = (location.state as { from?: string } | null)?.from || '/browse';
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
@@ -211,7 +214,7 @@ const ListingDetails: React.FC = () => {
           <Package size={64} className="not-found-icon" />
           <h1>Listing not found</h1>
           <p>Sorry, we couldn't find the listing you're looking for.</p>
-          <Button onClick={() => navigate('/browse')} className="back-to-browse-btn">
+          <Button onClick={() => navigate(backTo)} className="back-to-browse-btn">
             Back to Browse
           </Button>
         </div>
@@ -242,7 +245,7 @@ const ListingDetails: React.FC = () => {
     <div className="listing-details-page">
       {/* Breadcrumb Navigation */}
       <div className="breadcrumb-container">
-        <Link to="/browse" className="breadcrumb-link">
+        <Link to={backTo} className="breadcrumb-link">
           <ArrowLeft size={18} />
           <span>Back to Browse</span>
         </Link>

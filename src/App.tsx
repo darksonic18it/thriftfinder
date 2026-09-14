@@ -32,11 +32,15 @@ function LandingPage() {
 
 function AppShell() {
   const location = useLocation();
-  const onDashboard = location.pathname === '/dashboard';
+
+  const isAppShell =
+    location.pathname === '/dashboard' ||
+    (location.pathname.startsWith('/listing/') &&
+      (location.state as { from?: string } | null)?.from === '/dashboard');
 
   return (
     <div className="app">
-      {onDashboard ? <AppNavbar /> : <Navbar />}
+      {isAppShell ? <AppNavbar /> : <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -50,7 +54,7 @@ function AppShell() {
           <Route path="/ui-test" element={<UITest />} />
         </Routes>
       </main>
-      {!onDashboard ? <Footer /> : null}
+      {!isAppShell ? <Footer /> : null}
     </div>
   );
 }

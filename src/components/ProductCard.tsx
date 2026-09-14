@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Heart, MapPin, User } from 'lucide-react';
 import './ProductCard.css';
 
@@ -37,9 +37,10 @@ const getConditionClass = (condition: Product['condition']) => {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggleFavorite }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleCardClick = () => {
-    navigate(`/listing/${product.id}`);
+    navigate(`/listing/${product.id}`, { state: { from: location.pathname } });
   };
 
   return (
