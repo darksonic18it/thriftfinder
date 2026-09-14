@@ -140,11 +140,11 @@ const Dashboard: React.FC = () => {
 
             <div className="dashboard-header-text">
               <h1 className="dashboard-heading">
-                {isNewUser ? 'Welcome to ThriftFinder, Juan!' : 'Welcome back, Juan'}
+                {isNewUser ? 'Welcome to ThriftFinder, Khim Jay!' : 'Welcome back, Khim Jay'}
               </h1>
               <div className="dashboard-location">
                 <MapPin size={14} className="dashboard-location-icon" />
-                <span>Quezon City</span>
+                <span>Pagadian City</span>
               </div>
             </div>
           </div>
