@@ -218,18 +218,50 @@
 }
 
 .hero-card {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   background: var(--color-bg-secondary);
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--color-border);
-  transition: transform 0.3s ease;
 }
 
-.hero-card:hover {
-  transform: translateY(-4px);
+/* Ensure stacked fan spread has enough room */
+.hero-card[data-stack-index='0'] {
+  transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+  z-index: 3;
+  opacity: 1;
+}
+
+/* Ensure stacked fan spread has enough room */
+.hero-card-wrap {
+  height: 350px;
+}
+
+@media (max-width: 768px) {
+  .hero-card-wrap {
+    height: 320px;
+  }
+}
+
+.hero-card[data-stack-index='1'] {
+  transform: translateY(14px) translateX(18px) rotate(4deg) scale(0.96);
+  z-index: 2;
+  opacity: 0.9;
+}
+
+.hero-card[data-stack-index='2'] {
+  transform: translateY(28px) translateX(36px) rotate(8deg) scale(0.92);
+  z-index: 1;
+  opacity: 0.75;
+}
+
+/* Prevent CSS transition from fighting GSAP */
+.hero-card {
+  transition: none;
 }
 
 .image-wrapper {
@@ -237,6 +269,10 @@
   width: 100%;
   height: 280px;
   overflow: hidden;
+}
+
+.card-image {
+  will-change: transform;
 }
 
 .card-image {
@@ -310,8 +346,8 @@
 .local-info-card {
   position: absolute;
   left: -0.75rem;
-  bottom: 1.5rem;
-  z-index: 3;
+  bottom: -1.5rem;
+  z-index: 10;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -366,8 +402,9 @@
     left: 0;
     right: 0;
     margin: 0 auto;
-    bottom: -1.25rem;
+    bottom: -2.0rem;
     width: fit-content;
+    z-index: 10;
   }
 }
 
@@ -393,7 +430,8 @@
   }
 
   .local-info-card {
-    bottom: -1.1rem;
+    bottom: -1.6rem;
+    z-index: 10;
   }
 }
 
