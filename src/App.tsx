@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FeaturedCategories from './components/FeaturedCategories';
@@ -12,8 +13,10 @@ import CreateListing from './pages/CreateListing';
 import UITest from './pages/UITest';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
 import ScrollToTop from './components/ScrollToTop';
+
+import AppNavbar from './components/AppNavbar';
+
 import './App.css';
 
 function LandingPage() {
@@ -27,36 +30,36 @@ function LandingPage() {
   );
 }
 
-function NavbarVisibility() {
+function AppShell() {
   const location = useLocation();
-  const hideLandingNavbar = location.pathname === '/dashboard';
+  const onDashboard = location.pathname === '/dashboard';
 
-  if (hideLandingNavbar) return null;
-
-  return <Navbar />;
+  return (
+    <div className="app">
+      {onDashboard ? <AppNavbar /> : <Navbar />}
+      <main>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/browse" element={<Browse />} />
+          <Route path="/dashboard" element={<Browse />} />
+          <Route path="/listing/:id" element={<ListingDetails />} />
+          <Route path="/create-listing" element={<CreateListing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/ui-test" element={<UITest />} />
+        </Routes>
+      </main>
+      {!onDashboard ? <Footer /> : null}
+    </div>
+  );
 }
 
 function App() {
   return (
     <Router>
       <ScrollToTop />
-      <div className="app">
-        <NavbarVisibility />
-        <main>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/browse" element={<Browse />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/listing/:id" element={<ListingDetails />} />
-            <Route path="/create-listing" element={<CreateListing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/ui-test" element={<UITest />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <AppShell />
     </Router>
   );
 }
