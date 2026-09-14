@@ -107,3 +107,25 @@
     min-height: 155px;
   }
 }
+
+/* AccordionGallery tweaks for Browse-by-Categories */
+.categories-accordion {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.featured-categories .ag-panel__label {
+  left: auto;
+  right: 20px;
+  bottom: 20px;
+}
+
+.featured-categories .ag-panel__text {
+  white-space: pre-line;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.featured-categories .ag-panel__text::first-line {
+  font-weight: 800;
+}

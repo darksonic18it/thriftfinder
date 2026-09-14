@@ -1,82 +1,81 @@
 import React from 'react';
-import {
-  Shirt,
-  ShoppingBag,
-  Watch,
-  Zap,
-  Trophy,
-  PackageOpen,
-  Sparkles,
-  MoreHorizontal,
-} from 'lucide-react';
+
+import type { ListingCategory } from '../types/database';
+
+import AccordionGallery, { type AccordionGalleryItem } from './AccordionGallery';
 import './FeaturedCategories.css';
 
-interface Category {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-  accent: string;
-}
-
-const categories: Category[] = [
-  {
-    id: 'clothing',
-    name: 'Clothing',
-    icon: <Shirt size={28} />,
-    description: 'Everyday styles & thrift finds',
-    accent: '#6366f1',
-  },
-  {
-    id: 'shoes',
-    name: 'Shoes',
-    icon: <ShoppingBag size={28} />,
-    description: 'Sneakers, boots & more',
-    accent: '#8b5cf6',
-  },
-  {
-    id: 'accessories',
-    name: 'Accessories',
-    icon: <Watch size={28} />,
-    description: 'Small upgrades, big personality',
-    accent: '#ec4899',
-  },
-  {
-    id: 'electronics',
-    name: 'Electronics',
-    icon: <Zap size={28} />,
-    description: 'Retro tech & daily gadgets',
-    accent: '#f59e0b',
-  },
-  {
-    id: 'collectibles',
-    name: 'Collectibles',
-    icon: <Trophy size={28} />,
-    description: 'Games, posters, and keepsakes',
-    accent: '#10b981',
-  },
-  {
-    id: 'bags',
-    name: 'Bags',
-    icon: <PackageOpen size={28} />,
-    description: 'Carry it your way',
-    accent: '#ef4444',
-  },
-  {
-    id: 'vintage',
-    name: 'Vintage',
-    icon: <Sparkles size={28} />,
-    description: 'Old-school charm & classics',
-    accent: '#06b6d4',
-  },
-  {
-    id: 'others',
-    name: 'Others',
-    icon: <MoreHorizontal size={28} />,
-    description: 'Unlisted finds we love',
-    accent: '#64748b',
-  },
+const CATEGORY_ORDER: ListingCategory[] = [
+  'Clothing',
+  'Shoes',
+  'Accessories',
+  'Electronics',
+  'Collectibles',
+  'Bags',
+  'Vintage',
+  'Furniture',
+  'Books',
+  'Sports',
+  'Others',
 ];
+
+const CATEGORY_META: Record<ListingCategory, { description: string; imageUrl: string }> = {
+  Clothing: {
+    description: 'Pre-loved styles for every wardrobe.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?clothing,thrift&sig=201',
+  },
+  Shoes: {
+    description: 'Sneakers, boots & pre-owned pairs.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?shoes,sneakers&sig=202',
+  },
+  Accessories: {
+    description: 'Small upgrades with big personality.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?accessories,jewelry&sig=203',
+  },
+  Electronics: {
+    description: 'Retro tech and everyday gadgets.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?electronics,technology&sig=204',
+  },
+  Collectibles: {
+    description: 'Games, memorabilia, and keepsakes.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?collectibles,vintage&sig=205',
+  },
+  Bags: {
+    description: 'Totes, bags, and carry essentials.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?bag,handbag&sig=206',
+  },
+  Vintage: {
+    description: 'Old-school charm and classic finds.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?vintage,antique&sig=207',
+  },
+  Furniture: {
+    description: 'Secondhand pieces for better living.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?furniture,interior&sig=208',
+  },
+  Books: {
+    description: 'Pre-loved reads for every mood.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?books,bookstore&sig=209',
+  },
+  Sports: {
+    description: 'Gear up with used sports essentials.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?sports,equipment&sig=210',
+  },
+  Others: {
+    description: 'Unexpected finds worth bringing home.',
+    imageUrl: 'https://source.unsplash.com/featured/1200x900?thrift,market&sig=211',
+  },
+};
+
+const galleryItems: AccordionGalleryItem[] = CATEGORY_ORDER.map((category) => {
+  const { description, imageUrl } = CATEGORY_META[category];
+
+  return {
+    image: imageUrl,
+    alt: category,
+    link: undefined,
+    label: `${category}\n${description}`,
+  };
+});
 
 const FeaturedCategories: React.FC = () => {
   return (
@@ -91,24 +90,17 @@ const FeaturedCategories: React.FC = () => {
           </div>
         </div>
 
-        <div className="categories-grid" aria-label="Category discovery">
-          {categories.map((category) => (
-            <div key={category.id} className="category-card">
-              <div
-                className="category-icon-badge"
-                style={{ borderColor: `${category.accent}33`, backgroundColor: `${category.accent}12` }}
-              >
-                <span style={{ color: category.accent, display: 'flex' }}>
-                  {category.icon}
-                </span>
-              </div>
-
-              <h3 className="category-name">{category.name}</h3>
-              <p className="category-description">{category.description}</p>
-
-              <span className="category-cta">Explore</span>
-            </div>
-          ))}
+        <div className="categories-accordion" aria-label="Category discovery">
+          <AccordionGallery
+            items={galleryItems}
+            height={460}
+            gap={10}
+            radius={16}
+            expandRatio={0.48}
+            trigger="hover"
+            showLabels
+            grayscale={false}
+          />
         </div>
       </div>
     </section>
