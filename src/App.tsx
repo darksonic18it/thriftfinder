@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FeaturedCategories from './components/FeaturedCategories';
@@ -27,12 +27,21 @@ function LandingPage() {
   );
 }
 
+function NavbarVisibility() {
+  const location = useLocation();
+  const hideLandingNavbar = location.pathname === '/dashboard';
+
+  if (hideLandingNavbar) return null;
+
+  return <Navbar />;
+}
+
 function App() {
   return (
     <Router>
       <ScrollToTop />
       <div className="app">
-        <Navbar />
+        <NavbarVisibility />
         <main>
           <Routes>
             <Route path="/" element={<LandingPage />} />
