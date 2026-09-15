@@ -101,6 +101,7 @@
   overflow-x: auto;
   padding-bottom: 0.25rem;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .category-filter::-webkit-scrollbar {

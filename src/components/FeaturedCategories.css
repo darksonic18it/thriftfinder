@@ -111,7 +111,13 @@
 /* AccordionGallery tweaks for Browse-by-Categories */
 .categories-accordion {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.categories-accordion::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Brave */
 }
 
 .featured-categories .ag-panel__label {

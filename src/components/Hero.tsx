@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Tag, Heart, MapPin } from 'lucide-react';
+import { ArrowRight, Tag, Heart } from 'lucide-react';
 
 import GradientWaves from './GradientWaves';
 import { useTheme } from '../context/ThemeContext';
@@ -326,15 +326,6 @@ const Hero: React.FC = () => {
                 </div>
               </div>
             ))}
-
-            {/* Local Discovery Card (demo) */}
-            <aside className="local-info-card" aria-label="Nearby listings demo location">
-              <MapPin size={16} className="local-icon" />
-              <div className="local-info-text">
-                <div className="local-info-title">Cagayan de Oro</div>
-                <div className="local-info-subtitle">Nearby listings (demo)</div>
-              </div>
-            </aside>
           </div>
         </div>
       </div>

@@ -13,6 +13,12 @@
   max-width: 100%;
   perspective: 1400px;
   perspective-origin: 50% 50%;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.accordion-gallery::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Brave */
 }
 
 .accordion-gallery--vertical {
