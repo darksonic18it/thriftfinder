@@ -18,9 +18,45 @@ type LoginErrors = Partial<Record<'email' | 'password', string>>;
 
 type ForgotErrors = Partial<Record<'email', string>>;
 
+type StoredUser = {
+  name: string;
+  email: string;
+  isFirstLogin: boolean;
+};
+
+const USER_STORAGE_KEY = 'thriftfinder_user';
+
 function isValidEmail(email: string) {
   // Simple, good-enough MVP validation.
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function readStoredUser(): StoredUser | null {
+  if (typeof window === 'undefined') return null;
+
+  const raw = window.localStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredUser>;
+
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!parsed.name || typeof parsed.name !== 'string') return null;
+    if (!parsed.email || typeof parsed.email !== 'string') return null;
+    if (typeof parsed.isFirstLogin !== 'boolean') return null;
+
+    return {
+      name: parsed.name,
+      email: parsed.email,
+      isFirstLogin: parsed.isFirstLogin,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredUser(next: StoredUser) {
+  window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(next));
 }
 
 const Login: React.FC = () => {
@@ -33,6 +69,7 @@ const Login: React.FC = () => {
 
   const [errors, setErrors] = useState<LoginErrors>({});
   const [success, setSuccess] = useState(false);
+  const [welcomeTitle, setWelcomeTitle] = useState<string>('');
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -53,14 +90,33 @@ const Login: React.FC = () => {
     return next;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    // Frontend-only MVP demo success.
+    const normalizedEmail = email.trim().toLowerCase();
+    const storedUser = readStoredUser();
+
+    if (storedUser) {
+      const name = storedUser.name.trim();
+      setWelcomeTitle(
+        storedUser.isFirstLogin ? `Welcome, ${name}!` : `Welcome back, ${name}!`
+      );
+      // After the first login, flip the greeting to "back".
+
+      writeStoredUser({
+        ...storedUser,
+        email: normalizedEmail,
+        isFirstLogin: false,
+      });
+    } else {
+      // No stored profile yet (rare in this MVP).
+      setWelcomeTitle('Welcome back!');
+    }
+
     setSuccess(true);
   };
 
@@ -94,149 +150,173 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page">
-      <div className="login-shell">
-        <div className="login-back">
-          <Link to="/browse" className="login-back-link">
-            <ArrowLeft size={18} />
-            <span>Back to Browse</span>
-          </Link>
-        </div>
-
-        <div className="login-card" role="region" aria-label="Login">
-          <div className="login-brand">
-            <div className="login-brand-icon" aria-hidden="true">
-              <ShoppingBag size={22} color="#ffffff" />
-            </div>
-            <div className="login-brand-text">
-              <span className="login-brand-name">Thrift</span>
-              <span className="login-brand-accent">Finder</span>
-            </div>
-          </div>
-
-          <h1 className="login-title">Welcome back</h1>
-          <p className="login-subtitle">
-            Sign in to continue finding great secondhand items near you.
-          </p>
-
-          {success ? (
-            <div className="login-success" role="status" aria-live="polite">
-              <div className="login-success-icon" aria-hidden="true">
-                ✓
-              </div>
-              <h2 className="login-success-title">You’re signed in (MVP demo)</h2>
-              <p className="login-success-desc">
-                This is a frontend-only flow. Next, you’ll explore listings and manage your account in the full implementation.
-              </p>
-              <div className="login-success-actions">
-                <Button
-                  type="button"
-                  className="login-submit-btn"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  Continue
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="login-secondary-btn"
-                  onClick={() => setSuccess(false)}
-                >
-                  Sign out (demo)
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <form className="login-form" onSubmit={handleSubmit} aria-describedby={errorSummaryId}>
-              <div id={errorSummaryId} className="sr-only" aria-live="polite">
-                {errors.email || errors.password ? 'Please fix the errors below.' : ''}
-              </div>
-
-              <div className="login-field">
-                <Label htmlFor="login-email">Email</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  aria-invalid={errors.email ? true : undefined}
-                  aria-describedby={errors.email ? 'login-email-error' : undefined}
-                  className={errors.email ? 'login-input-error' : undefined}
-                />
-                {errors.email ? (
-                  <div id="login-email-error" className="login-error" role="alert">
-                    {errors.email}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="login-field">
-                <Label htmlFor="login-password">Password</Label>
-
-                <div className="login-password-wrap">
-                  <Input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    aria-invalid={errors.password ? true : undefined}
-                    aria-describedby={errors.password ? 'login-password-error' : undefined}
-                    className={errors.password ? 'login-input-error' : undefined}
-                  />
-
-                  <button
-                    type="button"
-                    className="login-password-toggle"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+      <div className="login-auth-shell">
+        <div className="login-auth-grid">
+          <aside className="login-auth-aside" aria-hidden="true">
+            <div className="login-auth-aside-inner">
+              <div className="login-auth-brand">
+                <div className="login-auth-brand-icon">
+                  <ShoppingBag size={22} color="#ffffff" />
                 </div>
-
-                {errors.password ? (
-                  <div id="login-password-error" className="login-error" role="alert">
-                    {errors.password}
-                  </div>
-                ) : null}
+                <div className="login-auth-brand-text">
+                  <span className="login-auth-brand-name">Thrift</span>
+                  <span className="login-auth-brand-accent">Finder</span>
+                </div>
               </div>
 
-              <div className="login-row">
-                <label className="login-remember">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="login-checkbox"
-                  />
-                  <span>Remember me</span>
-                </label>
+              <div className="login-auth-aside-copy">
+                <h2 className="login-auth-aside-title">Secondhand, sorted—near you.</h2>
+                <p className="login-auth-aside-desc">
+                  Sign in to keep track of listings and save deals for later.
+                </p>
               </div>
+            </div>
+          </aside>
 
-              <div className="login-forgot-row">
-                <button type="button" className="login-link" onClick={openForgot}>
-                  Forgot password?
-                </button>
-              </div>
-
-              <div className="login-submit-row">
-                <Button type="submit" className="login-submit-btn">
-                  Log In
-                </Button>
-              </div>
-
-              <div className="login-signup">
-                <span>Don’t have an account? </span>
-                <Link to="/signup" className="login-signup-link">
-                  Sign up
+          <main className="login-auth-main">
+            <div className="login-card" role="region" aria-label="Login">
+              <div className="login-card-header">
+                <Link to="/browse" className="login-back-link">
+                  <ArrowLeft size={18} />
+                  <span>Back to Browse</span>
                 </Link>
               </div>
-            </form>
-          )}
+
+              {!success ? (
+                <form
+                  className="login-form"
+                  onSubmit={handleSubmit}
+                  aria-describedby={errorSummaryId}
+                >
+                  <div id={errorSummaryId} className="sr-only" aria-live="polite">
+                    {errors.email || errors.password ? 'Please fix the errors below.' : ''}
+                  </div>
+
+                  <h1 className="login-title">Sign in</h1>
+                  <p className="login-subtitle">
+                    Pick up where you left off and find quality secondhand items.
+                  </p>
+
+                  <div className="login-field">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      aria-invalid={errors.email ? true : undefined}
+                      aria-describedby={errors.email ? 'login-email-error' : undefined}
+                      className={errors.email ? 'login-input-error' : undefined}
+                    />
+                    {errors.email ? (
+                      <div id="login-email-error" className="login-error" role="alert">
+                        {errors.email}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="login-field">
+                    <Label htmlFor="login-password">Password</Label>
+
+                    <div className="login-password-wrap">
+                      <Input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        aria-invalid={errors.password ? true : undefined}
+                        aria-describedby={errors.password ? 'login-password-error' : undefined}
+                        className={errors.password ? 'login-input-error' : undefined}
+                      />
+
+                      <button
+                        type="button"
+                        className="login-password-toggle"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+
+                    {errors.password ? (
+                      <div id="login-password-error" className="login-error" role="alert">
+                        {errors.password}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="login-row">
+                    <label className="login-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="login-checkbox"
+                      />
+                      <span>Remember me</span>
+                    </label>
+                  </div>
+
+                  <div className="login-forgot-row">
+                    <button type="button" className="login-link" onClick={openForgot}>
+                      Forgot password?
+                    </button>
+                  </div>
+
+                  <div className="login-submit-row">
+                    <Button type="submit" className="login-submit-btn">
+                      Log In
+                    </Button>
+                  </div>
+
+                  <div className="login-signup">
+                    <span>Don’t have an account? </span>
+                    <Link to="/signup" className="login-signup-link">
+                      Sign up
+                    </Link>
+                  </div>
+                </form>
+              ) : (
+                <div className="login-success" role="status" aria-live="polite">
+                  <div className="login-success-icon" aria-hidden="true">
+                    ✓
+                  </div>
+
+                  <h2 className="login-success-title">{welcomeTitle || "Welcome back!"}</h2>
+                  <p className="login-success-desc">
+                    Continue to your dashboard to manage listings and track activity.
+                  </p>
+
+                  <div className="login-success-actions">
+                    <Button
+                      type="button"
+                      className="login-submit-btn"
+                      onClick={() => navigate('/dashboard')}
+                    >
+                      Continue
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="login-secondary-btn"
+                      onClick={() => {
+                        setSuccess(false);
+                        setWelcomeTitle('');
+                      }}
+                    >
+                      Sign out (demo)
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </main>
         </div>
       </div>
 
@@ -273,10 +353,18 @@ const Login: React.FC = () => {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setForgotOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="button" className="login-submit-btn" onClick={handleForgotSend}>
+                <Button
+                  type="button"
+                  className="login-submit-btn"
+                  onClick={handleForgotSend}
+                >
                   Send recovery email
                 </Button>
               </DialogFooter>
