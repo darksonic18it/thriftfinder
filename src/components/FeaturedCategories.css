@@ -129,3 +129,7 @@
 .featured-categories .ag-panel__text::first-line {
   font-weight: 800;
 }
+
+.featured-categories .ag-panel__bar {
+  display: none !important;
+}

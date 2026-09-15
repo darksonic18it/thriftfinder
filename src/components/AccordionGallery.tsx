@@ -242,35 +242,37 @@ const AccordionGallery = ({
             aria-current={isActive ? 'true' : undefined}
             aria-label={item.label}
           >
-            <span className="ag-panel__frame">
-              <span
-                className="ag-panel__media"
-                ref={(el: HTMLElement | null) => {
-                  mediaRefs.current[i] = el;
-                }}
-              >
-                <img src={item.image} alt={item.alt || item.label || ''} draggable={false} />
-              </span>
-              <span className="ag-panel__overlay" aria-hidden="true" />
-            </span>
-            {showLabels && (
-              <span className="ag-panel__label" aria-hidden="true">
+            <span className="ag-panel__inner" style={{ borderRadius: `${radius}px` }}>
+              <span className="ag-panel__frame">
                 <span
-                  className="ag-panel__bar"
+                  className="ag-panel__media"
                   ref={(el: HTMLElement | null) => {
-                    barRefs.current[i] = el;
-                  }}
-                />
-                <span
-                  className="ag-panel__text"
-                  ref={(el: HTMLElement | null) => {
-                    textRefs.current[i] = el;
+                    mediaRefs.current[i] = el;
                   }}
                 >
-                  {item.label}
+                  <img src={item.image} alt={item.alt || item.label || ''} draggable={false} />
                 </span>
+                <span className="ag-panel__overlay" aria-hidden="true" />
               </span>
-            )}
+              {showLabels && (
+                <span className="ag-panel__label" aria-hidden="true">
+                  <span
+                    className="ag-panel__bar"
+                    ref={(el: HTMLElement | null) => {
+                      barRefs.current[i] = el;
+                    }}
+                  />
+                  <span
+                    className="ag-panel__text"
+                    ref={(el: HTMLElement | null) => {
+                      textRefs.current[i] = el;
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </span>
+              )}
+            </span>
           </Tag>
         );
       })}
