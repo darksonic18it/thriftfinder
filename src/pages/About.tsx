@@ -184,8 +184,9 @@ const About: React.FC = () => {
                   </a>
                   <a
                     className="team-social-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    href="https://www.linkedin.com/in/cyrus-azhly-petalino-338a58436/"
+                    target="_blank"
+                    rel="noopener nonreferer"
                     aria-label="LinkedIn"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
