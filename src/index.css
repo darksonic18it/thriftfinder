@@ -102,3 +102,11 @@ img {
   max-width: 100%;
   display: block;
 }
+
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
