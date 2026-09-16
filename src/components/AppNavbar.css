@@ -17,7 +17,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+}
+
+.app-navbar-left {
+  flex: 0 0 auto;
+}
+
+.app-navbar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 1rem;
+}
+
+.app-navbar-right {
+  flex: 0 0 auto;
 }
 
 .app-navbar-logo {
@@ -50,14 +69,6 @@
 
 .app-navbar .logo-accent {
   color: var(--color-primary);
-}
-
-.app-navbar-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  flex: 1;
 }
 
 .app-navbar-icon-row {
@@ -96,14 +107,32 @@
 }
 
 .app-navbar-profile-pill {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  padding: 0.45rem 0.7rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.45rem 0.7rem;
-  border-radius: 9999px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  /* Keep footprint stable so the center group doesn't shift */
+  width: 148px;
+}
+
+.app-navbar-profile-pill:hover {
+  background: color-mix(in srgb, var(--color-bg-secondary) 78%, var(--color-primary) 22%);
+}
+
+.app-navbar-profile-pill:focus {
+  outline: none;
+}
+
+.app-navbar-profile-pill:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
 }
 
 .app-navbar-profile-avatar-ring {
@@ -130,11 +159,229 @@
   color: var(--color-primary);
 }
 
+.app-navbar-profile-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+
+  /* Fixed width container; reveal/hide via clip-path so layout doesn't change */
+  width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity 160ms ease,
+    transform 220ms ease,
+    clip-path 220ms ease;
+
+  will-change: opacity, transform, clip-path;
+}
+
+.app-navbar-profile-pill[data-open='true'] .app-navbar-profile-meta {
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  clip-path: inset(0 0 0 0);
+}
+
 .app-navbar-profile-name {
   font-weight: 800;
   color: var(--color-text-primary);
   font-size: 0.95rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-navbar-profile-caret {
+  color: var(--color-text-secondary);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.app-navbar-profile-pill[data-open='true'] .app-navbar-profile-caret {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.app-navbar-profile-menu {
+  background: var(--color-card-bg) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0.35rem;
+
+  /* Prevent Radix from hard-clipping menu items when it constrains height */
+  overflow: visible !important;
+  max-height: none !important;
+  z-index: 1000;
+  transform-origin: top right;
+}
+
+.app-navbar-profile-menu[data-state='open'] {
+  animation: app-navbar-dropdown-in 170ms ease-out both;
+}
+
+.app-navbar-profile-menu[data-state='closed'] {
+  animation: app-navbar-dropdown-out 120ms ease-in both;
+}
+
+@keyframes app-navbar-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes app-navbar-dropdown-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+/* If Radix content is constrained, allow inner items to paint beyond */
+.app-navbar-profile-menu > * {
+  overflow: visible;
+}
+
+@keyframes app-navbar-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes app-navbar-dropdown-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+/* Radix/shadcn sets data-state on the portal content element */
+.app-navbar-profile-menu[data-state='open'] {
+  animation: app-navbar-dropdown-in 160ms ease-out both;
+}
+
+.app-navbar-profile-menu[data-state='closed'] {
+  animation: app-navbar-dropdown-out 120ms ease-in both;
+}
+
+.app-navbar-profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.65rem 0.7rem;
+  background: color-mix(in srgb, var(--color-bg-tertiary) 60%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.25rem;
+  border-radius: 0.45rem;
+}
+
+.app-navbar-profile-menu-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-bg-main);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.app-navbar-profile-menu-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.app-navbar-profile-menu-name {
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-navbar-profile-menu-email {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-navbar-profile-menu-separator {
+  background: var(--color-border) !important;
+  margin: 0.25rem 0;
+}
+
+.app-navbar-profile-menu-item {
+  color: var(--color-text-primary) !important;
+  font-weight: 850 !important;
+  border-radius: 0.55rem !important;
+  padding: 0.55rem 0.65rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-navbar-profile-menu-item svg {
+  color: currentColor;
+}
+
+.app-navbar-profile-menu-item:hover,
+.app-navbar-profile-menu-item:focus-visible {
+  background: color-mix(in srgb, var(--color-bg-tertiary) 80%, var(--color-primary) 20%) !important;
+  transition: background-color 160ms ease;
+}
+
+.app-navbar-profile-menu-item:active {
+  transform: translateY(1px);
+  transition: transform 80ms ease;
+}
+
+.app-navbar-profile-menu-item--danger {
+  color: #dc2626 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-navbar-profile-meta {
+    transition: none !important;
+  }
+
+  .app-navbar-profile-caret {
+    transition: none !important;
+  }
+
+  .app-navbar-profile-menu {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -142,11 +389,17 @@
     padding: 0.75rem 1rem;
   }
 
-  .app-navbar-profile-name {
+  .app-navbar-center {
+    position: static;
+    transform: none;
+  }
+
+  .app-navbar-profile-meta {
     display: none;
   }
 
   .app-navbar-profile-pill {
+    width: auto;
     padding: 0.45rem;
   }
 }

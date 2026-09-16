@@ -13,6 +13,7 @@ import CreateListing from './pages/CreateListing';
 import UITest from './pages/UITest';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 
 import AppNavbar from './components/AppNavbar';
@@ -35,6 +36,7 @@ function AppShell() {
 
   const isAppShell =
     location.pathname === '/dashboard' ||
+    location.pathname === '/profile' ||
     (location.pathname.startsWith('/listing/') &&
       (location.state as { from?: string } | null)?.from === '/dashboard');
 
@@ -52,6 +54,7 @@ function AppShell() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/ui-test" element={<UITest />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
       {!isAppShell ? <Footer /> : null}
