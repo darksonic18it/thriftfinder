@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Bell,
@@ -37,6 +38,9 @@ const USER_STORAGE_KEY = 'thriftfinder_user'
 const PROFILE_NAME_CHIP_REVEAL_MS = 220
 const DROPDOWN_CLOSE_DURATION_FALLBACK_MS = 120
 
+const NAV_SCROLL_DELTA_PX = 10
+const NAV_TOGGLE_COOLDOWN_MS = 140
+
 function readStoredUser(): StoredUser | null {
   if (typeof window === 'undefined') return null
 
@@ -62,12 +66,19 @@ function readStoredUser(): StoredUser | null {
 }
 
 const AppNavbar: React.FC = () => {
+  const [navHidden, setNavHidden] = useState(false)
+  const navHiddenRef = useRef(navHidden)
+  const profileMenuOpenRef = useRef(false)
+  const profileNameRevealRef = useRef(false)
   const navigate = useNavigate()
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [profileNameReveal, setProfileNameReveal] = useState(false)
 
-  const prefersReducedMotionRef = useRef(false)
+  const prefersReducedMotionRef = useRef(
+    typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 
   const nameChipRef = useRef<HTMLSpanElement | null>(null)
 
@@ -82,6 +93,79 @@ const AppNavbar: React.FC = () => {
     prefersReducedMotionRef.current =
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
   }, [])
+
+  useEffect(() => {
+    navHiddenRef.current = navHidden
+  }, [navHidden])
+
+  useEffect(() => {
+    profileMenuOpenRef.current = profileMenuOpen
+    profileNameRevealRef.current = profileNameReveal
+
+    if (profileMenuOpen || profileNameReveal) {
+      navHiddenRef.current = false
+      setNavHidden(false)
+    }
+  }, [profileMenuOpen, profileNameReveal])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    if (prefersReducedMotionRef.current) {
+      setNavHidden(false)
+      return
+    }
+
+    let lastScrollY = window.scrollY
+    let lastToggleAt = 0
+    let rafId: number | null = null
+
+    const onScroll = () => {
+      if (rafId !== null) return
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null
+
+        // If profile is open/revealing, keep navbar visible and don't interpret the scroll direction.
+        if (profileMenuOpenRef.current || profileNameRevealRef.current) {
+          lastScrollY = window.scrollY
+          return
+        }
+
+        const currentY = window.scrollY
+        const deltaY = currentY - lastScrollY
+        lastScrollY = currentY
+
+        if (Math.abs(deltaY) < NAV_SCROLL_DELTA_PX) return
+
+        const now = Date.now()
+        if (now - lastToggleAt < NAV_TOGGLE_COOLDOWN_MS) return
+
+        // Scroll down → hide. Scroll up → reveal.
+        if (deltaY > 0) {
+          if (!navHiddenRef.current) {
+            setNavHidden(true)
+            lastToggleAt = now
+          }
+        } else {
+          if (navHiddenRef.current) {
+            setNavHidden(false)
+            lastToggleAt = now
+          }
+        }
+      })
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (rafId !== null) window.cancelAnimationFrame(rafId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Keep this handler side-effect-only; the scroll hide/show effect
+  // handles reduced-motion and profile gating.
 
   const getDropdownCloseDurationMs = () => {
     const raw = window
@@ -286,7 +370,10 @@ const AppNavbar: React.FC = () => {
   }
 
   return (
-    <header className="app-navbar" role="banner">
+    <header
+      className={`app-navbar ${navHidden ? 'app-navbar--hidden' : ''}`}
+      role="banner"
+    >
       <div className="app-navbar-container">
         <div className="app-navbar-left">
           <Link to="/dashboard" className="app-navbar-logo" aria-label="ThriftFinder">

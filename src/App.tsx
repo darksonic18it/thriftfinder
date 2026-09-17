@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FeaturedCategories from './components/FeaturedCategories';
@@ -48,7 +47,14 @@ function AppShell() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/browse" element={<Browse />} />
-          <Route path="/dashboard" element={<Browse />} />
+          <Route
+            path="/dashboard"
+            element={
+              <div className="dashboard-browse-route">
+                <Browse />
+              </div>
+            }
+          />
           <Route path="/listing/:id" element={<ListingDetails />} />
           <Route path="/create-listing" element={<CreateListing />} />
           <Route path="/login" element={<Login />} />

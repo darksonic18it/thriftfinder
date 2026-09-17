@@ -163,3 +163,11 @@
     font-size: 0.85rem;
   }
 }
+
+/* Dashboard-only: Browse search + category controls should scroll normally (not sticky). */
+.dashboard-browse-route .browse-controls {
+  position: static;
+  top: auto;
+  z-index: auto;
+  box-shadow: none;
+}

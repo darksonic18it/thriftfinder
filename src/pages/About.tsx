@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Heart, ShoppingBag, Store, Search, User, Mail } from 'lucide-react';
+import { Target, Heart, ShoppingBag, Store, Search, Mail } from 'lucide-react';
 import './About.css';
 
 const About: React.FC = () => {
