@@ -1,19 +1,20 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Bell,
   Heart,
+  LifeBuoy,
   LogOut,
+  ListOrdered,
   MessageSquare,
   Search,
   Settings,
   SquarePlus,
   ShoppingBag,
   User,
-  ChevronDown,
-  ListOrdered,
-  LifeBuoy,
 } from 'lucide-react'
+
+import { gsap } from 'gsap'
 
 import ThemeToggle from './ThemeToggle'
 import './AppNavbar.css'
@@ -33,6 +34,8 @@ type StoredUser = {
 }
 
 const USER_STORAGE_KEY = 'thriftfinder_user'
+const PROFILE_NAME_CHIP_REVEAL_MS = 220
+const DROPDOWN_CLOSE_DURATION_FALLBACK_MS = 120
 
 function readStoredUser(): StoredUser | null {
   if (typeof window === 'undefined') return null
@@ -60,13 +63,217 @@ function readStoredUser(): StoredUser | null {
 
 const AppNavbar: React.FC = () => {
   const navigate = useNavigate()
+
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [profileNameReveal, setProfileNameReveal] = useState(false)
+
+  const prefersReducedMotionRef = useRef(false)
+
+  const nameChipRef = useRef<HTMLSpanElement | null>(null)
+
+  const openTimerRef = useRef<number | null>(null)
+  const closeTimerRef = useRef<number | null>(null)
+  const closeByHandlerRef = useRef(false)
+
+  const sequenceIdRef = useRef(0)
+  const prevMenuOpenRef = useRef(false)
+
+  useEffect(() => {
+    prefersReducedMotionRef.current =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }, [])
+
+  const getDropdownCloseDurationMs = () => {
+    const raw = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue('--profile-dropdown-close-duration')
+      .trim()
+
+    const ms = parseFloat(raw)
+    if (!Number.isFinite(ms) || ms <= 0) return DROPDOWN_CLOSE_DURATION_FALLBACK_MS
+
+    return ms
+  }
+
+  const killChipTweens = () => {
+    const el = nameChipRef.current
+    if (!el) return
+    gsap.killTweensOf(el)
+  }
+
+  const clearTimers = () => {
+    if (openTimerRef.current) {
+      window.clearTimeout(openTimerRef.current)
+      openTimerRef.current = null
+    }
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }
+
+  const startChipIn = (seqId: number) => {
+    const el = nameChipRef.current
+    if (!el) {
+      setProfileNameReveal(true)
+      return
+    }
+
+    killChipTweens()
+
+    // Keep CSS in a hidden state during the animation; GSAP provides the motion.
+    gsap.set(el, {
+      opacity: 0,
+      scaleX: 0,
+      x: 12,
+      yPercent: -50,
+      transformOrigin: '100% 50%',
+    })
+
+    gsap.to(el, {
+      opacity: 1,
+      scaleX: 1,
+      x: 0,
+      duration: PROFILE_NAME_CHIP_REVEAL_MS / 1000,
+      ease: 'power3.out',
+      onComplete: () => {
+        if (seqId !== sequenceIdRef.current) return
+        setProfileNameReveal(true)
+        // Let CSS own the final transform/opacity (prevents stale inline styles).
+        gsap.set(el, { clearProps: 'transform,x,scaleX,opacity' } as unknown as Parameters<typeof gsap.set>[1])
+      },
+    })
+  }
+
+  const startChipOut = (seqId: number) => {
+    const el = nameChipRef.current
+    if (!el) {
+      setProfileNameReveal(false)
+      return
+    }
+
+    killChipTweens()
+
+    gsap.to(el, {
+      opacity: 0,
+      scaleX: 0,
+      x: 12,
+      yPercent: -50,
+      duration: PROFILE_NAME_CHIP_REVEAL_MS / 1000,
+      ease: 'power3.in',
+      onComplete: () => {
+        if (seqId !== sequenceIdRef.current) return
+        setProfileNameReveal(false)
+        gsap.set(el, { clearProps: 'transform,x,scaleX,opacity' } as unknown as Parameters<typeof gsap.set>[1])
+      },
+    })
+  }
+
+  const handleProfileMenuOpenChange = (nextOpen: boolean) => {
+    clearTimers()
+    killChipTweens()
+
+    // Increment to invalidate any pending timers or callbacks.
+    sequenceIdRef.current += 1
+    const seqId = sequenceIdRef.current
+
+    if (prefersReducedMotionRef.current) {
+      // Skip the two-phase choreography entirely.
+      setProfileNameReveal(nextOpen)
+      setProfileMenuOpen(nextOpen)
+      closeByHandlerRef.current = !nextOpen
+      return
+    }
+
+    if (nextOpen) {
+      closeByHandlerRef.current = false
+
+      // 1) Reveal the name chip first.
+      // 2) Open the dropdown only after the chip finishes.
+      setProfileMenuOpen(false)
+      setProfileNameReveal(false)
+      startChipIn(seqId)
+
+      openTimerRef.current = window.setTimeout(() => {
+        if (seqId !== sequenceIdRef.current) return
+        setProfileMenuOpen(true)
+        openTimerRef.current = null
+      }, PROFILE_NAME_CHIP_REVEAL_MS)
+
+      return
+    }
+
+    // Closing: dropdown closes first, then the chip slides back.
+    closeByHandlerRef.current = true
+
+    const dropdownWasOpen = profileMenuOpen
+    setProfileMenuOpen(false)
+
+    const startOut = () => {
+      if (seqId !== sequenceIdRef.current) return
+      startChipOut(seqId)
+    }
+
+    if (!dropdownWasOpen) {
+      startOut()
+      return
+    }
+
+    const closeMs = getDropdownCloseDurationMs()
+    closeTimerRef.current = window.setTimeout(() => {
+      startOut()
+      closeTimerRef.current = null
+    }, closeMs)
+  }
+
+  // Menu can also close via menu item clicks (we set state directly),
+  // so we schedule the chip-out here when the dropdown transitions from open → closed.
+  useEffect(() => {
+    const prevOpen = prevMenuOpenRef.current
+    prevMenuOpenRef.current = profileMenuOpen
+
+    if (!prevOpen || profileMenuOpen) return
+
+    // If this closure was initiated by Radix's onOpenChange handler,
+    // that handler already scheduled the chip-out.
+    if (closeByHandlerRef.current) {
+      closeByHandlerRef.current = false
+      return
+    }
+
+    if (prefersReducedMotionRef.current) {
+      setProfileNameReveal(false)
+      return
+    }
+
+    sequenceIdRef.current += 1
+    const seqId = sequenceIdRef.current
+
+    const closeMs = getDropdownCloseDurationMs()
+    closeTimerRef.current = window.setTimeout(() => {
+      if (seqId !== sequenceIdRef.current) return
+      startChipOut(seqId)
+      closeTimerRef.current = null
+    }, closeMs)
+  }, [profileMenuOpen])
+
+  useEffect(() => {
+    return () => {
+      clearTimers()
+      const el = nameChipRef.current
+      if (el) gsap.killTweensOf(el)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const storedUser = useMemo(() => readStoredUser(), [])
   const displayName = storedUser?.name?.trim() || 'Juan D.'
   const displayEmail = storedUser?.email?.trim() || 'you@example.com'
 
   const handleLogout = () => {
+    clearTimers()
+    killChipTweens()
+
     try {
       window.localStorage.removeItem(USER_STORAGE_KEY)
     } catch {
@@ -74,6 +281,7 @@ const AppNavbar: React.FC = () => {
     }
 
     setProfileMenuOpen(false)
+    setProfileNameReveal(false)
     navigate('/login')
   }
 
@@ -137,7 +345,7 @@ const AppNavbar: React.FC = () => {
         <div className="app-navbar-right" aria-label="User profile">
           <DropdownMenu
             open={profileMenuOpen}
-            onOpenChange={setProfileMenuOpen}
+            onOpenChange={handleProfileMenuOpenChange}
             modal={false}
           >
             <DropdownMenuTrigger asChild>
@@ -145,6 +353,7 @@ const AppNavbar: React.FC = () => {
                 type="button"
                 className="app-navbar-profile-pill"
                 data-open={profileMenuOpen ? 'true' : 'false'}
+                data-reveal={profileNameReveal ? 'true' : 'false'}
                 aria-label="Open profile menu"
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
@@ -177,13 +386,12 @@ const AppNavbar: React.FC = () => {
                   </div>
                 </div>
 
-                <span className="app-navbar-profile-meta" aria-hidden="true">
-                  <span className="app-navbar-profile-name">{displayName}</span>
-                  <ChevronDown
-                    size={16}
-                    className="app-navbar-profile-caret"
-                    aria-hidden="true"
-                  />
+                <span
+                  ref={nameChipRef}
+                  className="app-navbar-profile-name-chip"
+                  aria-hidden="true"
+                >
+                  {displayName}
                 </span>
               </button>
             </DropdownMenuTrigger>
@@ -220,7 +428,6 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  // Demo navigation placeholder.
                   navigate('/dashboard')
                 }}
                 className="app-navbar-profile-menu-item"
@@ -232,7 +439,6 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  // Demo placeholder.
                   navigate('/dashboard')
                 }}
                 className="app-navbar-profile-menu-item"
@@ -244,7 +450,6 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  // Demo placeholder.
                   navigate('/dashboard')
                 }}
                 className="app-navbar-profile-menu-item"
@@ -256,7 +461,6 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  // Demo placeholder.
                   navigate('/dashboard')
                 }}
                 className="app-navbar-profile-menu-item"
@@ -268,7 +472,6 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  // Demo placeholder.
                   navigate('/dashboard')
                 }}
                 className="app-navbar-profile-menu-item"
