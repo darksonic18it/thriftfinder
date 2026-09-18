@@ -25,3 +25,4 @@ dist-ssr
 .claude/settings.local.json
 *.tsconfig
 .temp_verify/
+.env
