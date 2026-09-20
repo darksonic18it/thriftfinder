@@ -4,55 +4,19 @@ import { ArrowLeft, Eye, EyeOff, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { useAuth } from '../context/AuthContext';
 import './Signup.css';
 
-type SignupErrors = Partial<
-  Record<'fullName' | 'email' | 'password' | 'confirmPassword' | 'terms', string>
->;
-
-type StoredUser = {
-  name: string;
-  email: string;
-  isFirstLogin: boolean;
-};
-
-const USER_STORAGE_KEY = 'thriftfinder_user';
+type SignupErrors = Partial<Record<'fullName' | 'email' | 'password' | 'confirmPassword' | 'terms', string>>;
 
 function isValidEmail(email: string) {
   // Simple, good-enough MVP validation.
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function readStoredUser(): StoredUser | null {
-  if (typeof window === 'undefined') return null;
-
-  const raw = window.localStorage.getItem(USER_STORAGE_KEY);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<StoredUser>;
-
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (!parsed.name || typeof parsed.name !== 'string') return null;
-    if (!parsed.email || typeof parsed.email !== 'string') return null;
-    if (typeof parsed.isFirstLogin !== 'boolean') return null;
-
-    return {
-      name: parsed.name,
-      email: parsed.email,
-      isFirstLogin: parsed.isFirstLogin,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredUser(next: StoredUser) {
-  window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(next));
-}
-
 const Signup: React.FC = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -64,6 +28,7 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState<SignupErrors>({});
+  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [welcomeTitle, setWelcomeTitle] = useState<string>('');
 
@@ -90,32 +55,28 @@ const Signup: React.FC = () => {
     return next;
   };
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
+
     const nextErrors = validate();
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
 
     const normalizedName = fullName.trim();
-    const normalizedEmail = email.trim().toLowerCase();
 
-    // Frontend-only MVP demo success.
-    // Persist only non-sensitive profile basics.
-    const existing = readStoredUser();
+    setSubmitting(true);
+    const { error } = await signUp(email, password, normalizedName);
+    setSubmitting(false);
 
-    const stored: StoredUser = {
-      name: normalizedName,
-      email: normalizedEmail,
-      isFirstLogin: existing ? false : true,
-    };
+    if (error) {
+      // Surface the server error in the existing email error slot.
+      setErrors({ email: error });
+      return;
+    }
 
-    writeStoredUser(stored);
-
-    setWelcomeTitle(
-      stored.isFirstLogin ? `Welcome, ${normalizedName}!` : `Welcome back, ${normalizedName}!`
-    );
-
+    setWelcomeTitle(`Welcome, ${normalizedName}!`);
     setSuccess(true);
   };
 
@@ -318,7 +279,7 @@ const Signup: React.FC = () => {
                   </div>
 
                   <div className="signup-submit-row">
-                    <Button type="submit" className="signup-submit-btn">
+                    <Button type="submit" className="signup-submit-btn" disabled={submitting}>
                       Sign Up
                     </Button>
                   </div>

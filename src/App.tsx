@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
+import RequireAuth from './components/RequireAuth';
 
 import AppNavbar from './components/AppNavbar';
 
@@ -51,17 +52,33 @@ function AppShell() {
           <Route
             path="/dashboard"
             element={
-              <div className="dashboard-browse-route">
-                <Browse />
-              </div>
+              <RequireAuth>
+                <div className="dashboard-browse-route">
+                  <Browse />
+                </div>
+              </RequireAuth>
             }
           />
           <Route path="/listing/:id" element={<ListingDetails />} />
-          <Route path="/create-listing" element={<CreateListing />} />
+          <Route
+            path="/create-listing"
+            element={
+              <RequireAuth>
+                <CreateListing />
+              </RequireAuth>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/ui-test" element={<UITest />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </main>
       {!isAppShell && !isProfileRoute ? <Footer /> : null}

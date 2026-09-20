@@ -12,55 +12,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 type LoginErrors = Partial<Record<'email' | 'password', string>>;
 
 type ForgotErrors = Partial<Record<'email', string>>;
 
-type StoredUser = {
-  name: string;
-  email: string;
-  isFirstLogin: boolean;
-};
-
-const USER_STORAGE_KEY = 'thriftfinder_user';
-
 function isValidEmail(email: string) {
   // Simple, good-enough MVP validation.
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function readStoredUser(): StoredUser | null {
-  if (typeof window === 'undefined') return null;
-
-  const raw = window.localStorage.getItem(USER_STORAGE_KEY);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<StoredUser>;
-
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (!parsed.name || typeof parsed.name !== 'string') return null;
-    if (!parsed.email || typeof parsed.email !== 'string') return null;
-    if (typeof parsed.isFirstLogin !== 'boolean') return null;
-
-    return {
-      name: parsed.name,
-      email: parsed.email,
-      isFirstLogin: parsed.isFirstLogin,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredUser(next: StoredUser) {
-  window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(next));
-}
-
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn, signOut, sendPasswordReset, displayName } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -68,12 +34,14 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [errors, setErrors] = useState<LoginErrors>({});
+  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [welcomeTitle, setWelcomeTitle] = useState<string>('');
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotErrors, setForgotErrors] = useState<ForgotErrors>({});
+  const [forgotSending, setForgotSending] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
 
   const errorSummaryId = useMemo(() => 'login-error-summary', []);
@@ -90,33 +58,26 @@ const Login: React.FC = () => {
     return next;
   };
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
+
     const nextErrors = validate();
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const storedUser = readStoredUser();
+    setSubmitting(true);
+    const { error } = await signIn(email, password);
+    setSubmitting(false);
 
-    if (storedUser) {
-      const name = storedUser.name.trim();
-      setWelcomeTitle(
-        storedUser.isFirstLogin ? `Welcome, ${name}!` : `Welcome back, ${name}!`
-      );
-      // After the first login, flip the greeting to "back".
-
-      writeStoredUser({
-        ...storedUser,
-        email: normalizedEmail,
-        isFirstLogin: false,
-      });
-    } else {
-      // No stored profile yet (rare in this MVP).
-      setWelcomeTitle('Welcome back!');
+    if (error) {
+      // Surface the server error in the existing password error slot.
+      setErrors({ password: error });
+      return;
     }
 
+    setWelcomeTitle(displayName ? `Welcome back, ${displayName}!` : 'Welcome back!');
     setSuccess(true);
   };
 
@@ -124,6 +85,7 @@ const Login: React.FC = () => {
     setForgotEmail('');
     setForgotErrors({});
     setForgotSent(false);
+    setForgotSending(false);
   };
 
   const openForgot = () => {
@@ -139,13 +101,31 @@ const Login: React.FC = () => {
     return next;
   };
 
-  const handleForgotSend = () => {
+  const handleForgotSend = async () => {
+    if (forgotSending) return;
+
     const nextErrors = validateForgot();
     setForgotErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    // Frontend-only demo state.
+    setForgotSending(true);
+    const { error } = await sendPasswordReset(forgotEmail);
+    setForgotSending(false);
+
+    if (error) {
+      setForgotErrors({ email: error });
+      return;
+    }
+
     setForgotSent(true);
+  };
+
+  const handleDemoSignOut = async () => {
+    await signOut();
+    setSuccess(false);
+    setWelcomeTitle('');
+    setEmail('');
+    setPassword('');
   };
 
   return (
@@ -270,7 +250,7 @@ const Login: React.FC = () => {
                   </div>
 
                   <div className="login-submit-row">
-                    <Button type="submit" className="login-submit-btn">
+                    <Button type="submit" className="login-submit-btn" disabled={submitting}>
                       Log In
                     </Button>
                   </div>
@@ -305,10 +285,7 @@ const Login: React.FC = () => {
                       type="button"
                       variant="outline"
                       className="login-secondary-btn"
-                      onClick={() => {
-                        setSuccess(false);
-                        setWelcomeTitle('');
-                      }}
+                      onClick={handleDemoSignOut}
                     >
                       Sign out (demo)
                     </Button>
@@ -364,6 +341,7 @@ const Login: React.FC = () => {
                   type="button"
                   className="login-submit-btn"
                   onClick={handleForgotSend}
+                  disabled={forgotSending}
                 >
                   Send recovery email
                 </Button>

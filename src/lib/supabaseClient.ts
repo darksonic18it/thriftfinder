@@ -1,18 +1,23 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-let client: any = null
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 
-export function getSupabaseClient(): any {
-  if (client) return client
+if (!url) throw new Error('Missing VITE_SUPABASE_URL')
+if (!key) throw new Error('Missing VITE_SUPABASE_PUBLISHABLE_KEY')
 
-  const url = import.meta.env.VITE_SUPABASE_URL
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+export const supabase: SupabaseClient = createClient(url, key, {
+  auth: {
+    // Session is stored in localStorage and refreshed automatically.
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+})
 
-  if (!url) throw new Error('Missing VITE_SUPABASE_URL')
-  if (!key) throw new Error('Missing VITE_SUPABASE_PUBLISHABLE_KEY')
-
-  client = createClient(url, key)
-  return client
+// Kept for backwards compatibility with the existing service stubs.
+export function getSupabaseClient(): SupabaseClient {
+  return supabase
 }
 
-export type SupabaseClient = any
+export type { SupabaseClient }

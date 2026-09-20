@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-
+import React, { useEffect, useRef, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Bell,
@@ -28,45 +28,16 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 
-type StoredUser = {
-  name: string
-  email: string
-  isFirstLogin: boolean
-}
 
-const USER_STORAGE_KEY = 'thriftfinder_user'
 const PROFILE_NAME_CHIP_REVEAL_MS = 220
 const DROPDOWN_CLOSE_DURATION_FALLBACK_MS = 120
 
 const NAV_SCROLL_DELTA_PX = 10
 const NAV_TOGGLE_COOLDOWN_MS = 140
 
-function readStoredUser(): StoredUser | null {
-  if (typeof window === 'undefined') return null
-
-  const raw = window.localStorage.getItem(USER_STORAGE_KEY)
-  if (!raw) return null
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<StoredUser>
-
-    if (!parsed || typeof parsed !== 'object') return null
-    if (!parsed.name || typeof parsed.name !== 'string') return null
-    if (!parsed.email || typeof parsed.email !== 'string') return null
-    if (typeof parsed.isFirstLogin !== 'boolean') return null
-
-    return {
-      name: parsed.name,
-      email: parsed.email,
-      isFirstLogin: parsed.isFirstLogin,
-    }
-  } catch {
-    return null
-  }
-}
-
 const AppNavbar: React.FC = () => {
   const [navHidden, setNavHidden] = useState(false)
+  const { displayName: authName, displayEmail: authEmail, signOut } = useAuth()
   const navHiddenRef = useRef(navHidden)
   const profileMenuOpenRef = useRef(false)
   const profileNameRevealRef = useRef(false)
@@ -350,22 +321,17 @@ const AppNavbar: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const storedUser = useMemo(() => readStoredUser(), [])
-  const displayName = storedUser?.name?.trim() || 'Juan D.'
-  const displayEmail = storedUser?.email?.trim() || 'you@example.com'
+  const displayName = authName || 'Juan D.'
+  const displayEmail = authEmail || 'you@example.com'
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearTimers()
     killChipTweens()
 
-    try {
-      window.localStorage.removeItem(USER_STORAGE_KEY)
-    } catch {
-      // ignore
-    }
-
     setProfileMenuOpen(false)
     setProfileNameReveal(false)
+
+    await signOut()
     navigate('/login')
   }
 

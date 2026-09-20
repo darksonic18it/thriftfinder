@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   Check,
   Calendar,
@@ -21,8 +22,26 @@ import './Profile.css';
 // (This is the only header control on /profile; AppNavbar is intentionally removed.)
 
 
-const Profile: React.FC = () => {
+  function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '—';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+  const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { user, profile, displayName } = useAuth();
+
+  const initials = getInitials(displayName);
+  const isEmailVerified = !!user?.email_confirmed_at;
+
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString(undefined, {
+        month: 'short',
+        year: 'numeric',
+      })
+    : '—';
 
   const handleBack = () => {
     // Prefer browser history when available; fall back to dashboard.
@@ -56,20 +75,25 @@ const Profile: React.FC = () => {
               <div className="profile-summary__avatar" aria-hidden="true">
                 <span>MR</span>
               </div>
+                <div className="profile-summary__avatar" aria-hidden="true">
+                  <span>{initials}</span>
+              </div>
               <div className="profile-summary__identity">
-                <h1 className="profile-summary__name">Mika Reyes</h1>
+                <h1 className="profile-summary__name">{displayName}</h1>
                 <p className="profile-summary__role">Buyer and seller</p>
               </div>
             </div>
 
             <div className="profile-summary__badges" aria-label="Account status badges">
-              <span className="profile-badge profile-badge--verified">
-                <Check size={14} className="profile-badge__icon" strokeWidth={2.5} />
-                <span>Email verified</span>
-              </span>
+                {isEmailVerified ? (
+                <span className="profile-badge profile-badge--verified">
+                  <Check size={14} className="profile-badge__icon" strokeWidth={2.5} />
+                  <span>Email verified</span>
+                </span>
+              ) : null}
               <span className="profile-badge profile-badge--neutral">
                 <Calendar size={14} className="profile-badge__icon" />
-                <span>Member since Feb 2026</span>
+                <span>Member since {memberSince}</span>
               </span>
             </div>
 
