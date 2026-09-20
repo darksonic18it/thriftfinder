@@ -139,24 +139,23 @@
   transition: box-shadow 0.2s ease, transform 0.12s ease;
 }
 
-/* Name chip (GSAP animates translateX + scaleX + opacity; CSS owns the rest states). */
+/* Profile name chip
+   Expands from underneath the avatar so it visually connects
+   to the profile button without overlapping the avatar/icon. */
 .app-navbar-profile-name-chip {
   position: absolute;
   top: 50%;
   right: 0;
 
-  /* Behind avatar ring so it tucks “under” at rest. */
-  z-index: 0;
-
   box-sizing: border-box;
-  /* Actual width measured at runtime to match the dropdown menu. */
-  width: var(--profile-dropdown-width);
 
-  opacity: 0;
-  transform-origin: 100% 50%;
+  /* Let the chip size itself around the user's name. */
+  width: max-content;
+  max-width: 240px;
+  min-height: 40px;
 
-  /* Hidden rest state (GSAP will animate from here). */
-  transform: translateY(-50%) scaleX(0);
+  /* The right padding reserves space underneath the avatar. */
+  padding: 0.55rem 50px 0.55rem 0.85rem;
 
   display: flex;
   align-items: center;
@@ -166,8 +165,10 @@
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-lg);
 
-  /* Match dropdown menu item padding for consistency. */
-  padding: 0.55rem 0.65rem;
+  /*
+    Rounded on the outside, but the right side sits underneath
+    the avatar ring, making the two pieces visually connected.
+  */
   border-radius: 9999px;
 
   color: var(--color-text-primary);
@@ -177,16 +178,26 @@
   white-space: nowrap;
   text-align: left;
 
+  /* Hidden until the profile is revealed/pressed. */
+  opacity: 0;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: 100% 50%;
+
+  /* Avatar stays visually above the chip. */
+  z-index: 0;
+
   pointer-events: none;
+
+  overflow: hidden;
 }
 
-.app-navbar-profile-pill[data-reveal='true'] .app-navbar-profile-name-chip {
-  opacity: 1;
-  transform: translateY(-50%) scaleX(1);
-}
 
-.app-navbar-profile-pill:hover {
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+/* Revealed state */
+.app-navbar-profile-pill[data-reveal='true']
+  .app-navbar-profile-name-chip {
+  opacity: 1 !important;
+  transform: translateY(-50%) scaleX(1) !important;
+  transform-origin: 100% 50% !important;
 }
 
 .app-navbar-profile-pill:active {
