@@ -155,7 +155,7 @@ const About: React.FC = () => {
           <div className="about-section team-section">
             <h2 className="section-title">Meet the Team</h2>
             <p className="section-text center">
-              ThriftFinder is a capstone project developed by a dedicated team of students passionate
+              ThriftFinder is a school project developed by a dedicated team of students passionate
               about building solutions that make a difference. This platform represents our commitment
               to sustainable technology, user-centered design, and community-driven innovation.
             </p>
