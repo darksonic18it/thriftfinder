@@ -38,6 +38,7 @@ function AppShell() {
 
   const isAppShell =
     location.pathname === '/dashboard' ||
+    location.pathname === '/create-listing' ||
     (location.pathname.startsWith('/listing/') &&
       (location.state as { from?: string } | null)?.from === '/dashboard')
 

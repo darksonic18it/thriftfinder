@@ -267,9 +267,9 @@ const CreateListing: React.FC = () => {
   return (
     <div className="create-listing-page">
       <div className="create-listing-topbar">
-        <Link to="/browse" className="create-listing-back-link">
+        <Link to="/dashboard" className="create-listing-back-link">
           <ArrowLeft size={18} />
-          <span>Back to Browse</span>
+          <span>Back to Dashboard</span>
         </Link>
       </div>
 
@@ -574,10 +574,10 @@ const CreateListing: React.FC = () => {
               type="button"
               onClick={() => {
                 setPublishOpen(false);
-                navigate('/browse');
+                navigate('/dashboard');
               }}
             >
-              Back to Browse
+              Back to Dashboard
             </Button>
           </DialogFooter>
         </DialogContent>

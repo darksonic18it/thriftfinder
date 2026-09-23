@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import {
   Bell,
   Heart,
@@ -42,6 +42,9 @@ const AppNavbar: React.FC = () => {
   const profileMenuOpenRef = useRef(false)
   const profileNameRevealRef = useRef(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const isCreateListingActive = location.pathname === '/create-listing'
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [profileNameReveal, setProfileNameReveal] = useState(false)
@@ -365,9 +368,10 @@ const AppNavbar: React.FC = () => {
 
             <button
               type="button"
-              className="app-navbar-icon-btn"
+              className={`app-navbar-icon-btn ${isCreateListingActive ? 'app-navbar-icon-btn--active' : ''}`}
               onClick={() => navigate('/create-listing')}
               aria-label="Create listing"
+              aria-current={isCreateListingActive ? 'page' : undefined}
             >
               <SquarePlus size={20} />
             </button>

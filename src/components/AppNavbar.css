@@ -110,6 +110,12 @@
   background-color: var(--color-bg-secondary);
 }
 
+.app-navbar-icon-btn--active {
+  background-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
 .app-navbar__notification-dot {
   position: absolute;
   top: 6px;
