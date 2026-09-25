@@ -1,247 +1,555 @@
 /* ==========================================================================
-   Profile Dashboard (Dark Theme Card-Based Reference Design)
+   THRIFTFINDER — PROFILE
+   Phase 1 Visual System
+   --------------------------------------------------------------------------
+   - Preserves existing Bento/card layout
+   - Supports light + dark themes
+   - Uses dashboard/app theme variables when available
+   - Falls back safely if global theme variables do not exist
+   ========================================================================== */
+
+
+/* ==========================================================================
+   THEME TOKENS
+   ========================================================================== */
+
+.profile-dashboard {
+  /* Dark theme defaults */
+  --profile-bg: #0b0f0d;
+  --profile-surface: #111714;
+  --profile-surface-raised: #151c18;
+  --profile-surface-hover: #1a231e;
+
+  --profile-border: rgba(255, 255, 255, 0.08);
+  --profile-border-strong: rgba(255, 255, 255, 0.14);
+
+  --profile-text: #f4f7f5;
+  --profile-text-soft: #c5cec8;
+  --profile-muted: #8d9a92;
+  --profile-faint: #647069;
+
+  --profile-accent: #3f8f68;
+  --profile-accent-bright: #5bbd8a;
+  --profile-accent-soft: rgba(63, 143, 104, 0.13);
+  --profile-accent-border: rgba(63, 143, 104, 0.32);
+
+  --profile-success: #4ade80;
+  --profile-warning: #fbbf24;
+  --profile-danger: #f87171;
+  --profile-info: #60a5fa;
+
+  --profile-input: rgba(255, 255, 255, 0.045);
+  --profile-overlay: rgba(255, 255, 255, 0.035);
+
+  --profile-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.22);
+
+  --profile-shadow-hover:
+    0 16px 38px rgba(0, 0, 0, 0.28);
+
+  --profile-radius: 18px;
+  --profile-radius-sm: 12px;
+
+  min-height: 100vh;
+}
+
+
+/* ==========================================================================
+   LIGHT THEME
+   --------------------------------------------------------------------------
+   This selector assumes your application uses data-theme="light".
+   The profile also inherits global variables if your dashboard already
+   defines them.
+   ========================================================================== */
+
+[data-theme="light"] .profile-dashboard,
+
+
+
+/* ==========================================================================
+   DARK THEME
+   ========================================================================== */
+
+[data-theme="dark"] .profile-dashboard,
+.profile-dashboard {
+  --profile-bg: rgba(15, 23, 42, 1);
+
+  --profile-surface: rgba(30, 41, 59, 0.92);
+  --profile-surface-raised: rgba(30, 41, 59, 0.98);
+  --profile-surface-hover: rgba(51, 65, 85, 0.75);
+
+  --profile-border: rgba(148, 163, 184, 0.12);
+  --profile-border-strong: rgba(148, 163, 184, 0.22);
+
+  --profile-text: #f8fafc;
+  --profile-text-soft: #cbd5e1;
+  --profile-muted: #94a3b8;
+  --profile-faint: #64748b;
+
+  --profile-accent: #3f8f68;
+  --profile-accent-bright: #5bbd8a;
+  --profile-accent-soft: rgba(63, 143, 104, 0.12);
+  --profile-accent-border: rgba(63, 143, 104, 0.32);
+
+  --profile-success: #4ade80;
+  --profile-warning: #fbbf24;
+  --profile-danger: #f87171;
+  --profile-info: #60a5fa;
+
+  --profile-input: rgba(15, 23, 42, 0.65);
+  --profile-overlay: rgba(148, 163, 184, 0.055);
+
+  --profile-shadow:
+    0 10px 30px rgba(2, 6, 23, 0.35);
+
+  --profile-shadow-hover:
+    0 16px 40px rgba(2, 6, 23, 0.48);
+}
+
+
+/* ==========================================================================
+   ROOT
+   ========================================================================== */
+
+.profile-dashboard {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      var(--profile-accent-soft),
+      transparent 30rem
+    ),
+    var(--profile-bg);
+
+  color: var(--profile-text);
+
+  padding: 0 1.5rem 4rem;
+
+  font-family:
+    var(--font-body,
+    'Plus Jakarta Sans',
+    sans-serif);
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+
+/* ==========================================================================
+   TOP HEADER
    ========================================================================== */
 
 .profile-header {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.25rem 0 0.25rem;
+  padding: 1.25rem 0 0.5rem;
 }
 
 .profile-header__back-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+
   padding: 0.5rem 0.75rem;
-  border-radius: 12px;
+
+  border-radius: 10px;
+
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #94a3b8;
+  border: 1px solid transparent;
+
+  color: var(--profile-muted);
+
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.05s ease;
+
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 650;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .profile-header__back-btn:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #f3f4f6;
+  background: var(--profile-overlay);
+  border-color: var(--profile-border);
+
+  color: var(--profile-text);
+
+  transform: translateX(-2px);
 }
 
 .profile-header__back-btn:active {
-  transform: translateY(1px);
+  transform: translateX(0);
 }
 
-@media (max-width: 480px) {
-  .profile-header {
-    padding: 1rem 0 0.25rem;
-  }
-}
 
-/*
-   (Existing Profile page styles continue below)
-*/
-
-
-.profile-dashboard {
-  min-height: 100vh;
-  background-color: #0d0f12;
-  color: #f3f4f6;
-  padding: 0 1.5rem 4rem;
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-}
+/* ==========================================================================
+   CONTAINER
+   ========================================================================== */
 
 .profile-dashboard__container {
   max-width: 1100px;
   margin: 0 auto;
+
   display: flex;
   flex-direction: column;
+
   gap: 1.25rem;
 }
 
-/* Row Layouts */
+
+/* ==========================================================================
+   BENTO ROWS
+   ========================================================================== */
+
 .profile-dashboard__row {
   display: flex;
   flex-direction: column;
+
   gap: 1.25rem;
   width: 100%;
 }
 
 .profile-dashboard__row--two-col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    minmax(0, 0.92fr)
+    minmax(0, 1.08fr);
+
   gap: 1.25rem;
 }
 
 .profile-dashboard__row--four-col {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
   gap: 1.25rem;
 }
 
-/* Base Card Styling */
+
+/* ==========================================================================
+   BASE CARD
+   ========================================================================== */
+
 .profile-card {
-  background-color: #16181d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      var(--profile-surface-raised),
+      var(--profile-surface)
+    );
+
+  border: 1px solid var(--profile-border);
+
+  border-radius: var(--profile-radius);
+
   padding: 1.75rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+
+  box-shadow: var(--profile-shadow);
+
   display: flex;
   flex-direction: column;
+
   position: relative;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.25s ease;
+}
+
+.profile-card::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--profile-accent-border),
+      transparent
+    );
+
+  opacity: 0.6;
 }
 
 .profile-card:hover {
-  border-color: rgba(255, 255, 255, 0.13);
+  border-color: var(--profile-border-strong);
+
+  box-shadow: var(--profile-shadow-hover);
 }
 
-/* Card Headers */
+
+/* ==========================================================================
+   CARD HEADERS
+   ========================================================================== */
+
 .profile-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  gap: 1rem;
+
   margin-bottom: 1.25rem;
 }
 
 .profile-card__title-wrap {
   display: flex;
   align-items: center;
+
   gap: 0.6rem;
 }
 
 .profile-card__header-icon {
-  color: #94a3b8;
+  color: var(--profile-accent-bright);
+
   flex-shrink: 0;
 }
 
 .profile-card__title {
+  margin: 0;
+
   font-size: 1.05rem;
-  font-weight: 750;
-  color: #f3f4f6;
-  letter-spacing: -0.01em;
+  font-weight: 760;
+
+  color: var(--profile-text);
+
+  letter-spacing: -0.015em;
 }
 
+
 /* ==========================================================================
-   Card 1: Profile Summary
+   PROFILE SUMMARY / HERO
    ========================================================================== */
+
 .profile-card--summary {
-  display: flex;
-  flex-direction: column;
   justify-content: space-between;
   gap: 1.35rem;
+
+  min-height: 235px;
 }
 
 .profile-summary__header {
   display: flex;
   align-items: center;
+
   gap: 1.15rem;
 }
 
 .profile-summary__avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #285943, #1e4534);
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  width: 68px;
+  height: 68px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--profile-accent),
+      #1d4735
+    );
+
+  border: 1px solid var(--profile-accent-border);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: #ffffff;
-  font-weight: 800;
-  font-size: 1.25rem;
+
+  font-weight: 850;
+  font-size: 1.35rem;
+
   letter-spacing: 0.02em;
+
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(40, 89, 67, 0.35);
+
+  box-shadow:
+    0 8px 24px
+    rgba(47, 118, 85, 0.22);
 }
 
 .profile-summary__identity {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+
+  gap: 0.25rem;
+
+  min-width: 0;
 }
 
 .profile-summary__name {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: #f9fafb;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  margin: 0;
+
+  font-size: clamp(1.35rem, 2.4vw, 1.65rem);
+
+  font-weight: 820;
+
+  color: var(--profile-text);
+
+  letter-spacing: -0.025em;
+
+  line-height: 1.15;
+
+  overflow-wrap: anywhere;
 }
 
 .profile-summary__role {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  font-weight: 500;
+  margin: 0;
+
+  font-size: 0.88rem;
+
+  color: var(--profile-muted);
+
+  font-weight: 550;
 }
+
+
+/* ==========================================================================
+   PROFILE BADGES
+   ========================================================================== */
 
 .profile-summary__badges {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem;
+
+  gap: 0.55rem;
 }
 
 .profile-badge {
   display: inline-flex;
   align-items: center;
+
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+
+  padding: 0.38rem 0.7rem;
+
+  border-radius: 999px;
+
+  font-size: 0.76rem;
+  font-weight: 650;
+
+  letter-spacing: 0.005em;
+
+  white-space: nowrap;
 }
 
 .profile-badge--verified {
-  background-color: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.1);
+
+  color: var(--profile-success);
+
+  border:
+    1px solid
+    rgba(34, 197, 94, 0.22);
 }
 
 .profile-badge--neutral {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--profile-overlay);
+
+  color: var(--profile-text-soft);
+
+  border: 1px solid var(--profile-border);
 }
 
 .profile-badge__icon {
   flex-shrink: 0;
 }
 
-.profile-summary__actions {
-  margin-top: 0.25rem;
-}
 
-.profile-btn-outline {
+/* ==========================================================================
+   BUTTON SYSTEM
+   ========================================================================== */
+
+.profile-btn-outline,
+.profile-btn-sm-outline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
+
+  gap: 0.45rem;
+
   background: transparent;
-  color: #f3f4f6;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 650;
+
+  color: var(--profile-text);
+
+  border: 1px solid var(--profile-border-strong);
+
   cursor: pointer;
-  transition: all 0.2s ease;
+
+  font-family: inherit;
+  font-weight: 650;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
-.profile-btn-outline:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+.profile-btn-outline {
+  padding: 0.62rem 1rem;
+
+  border-radius: 10px;
+
+  font-size: 0.86rem;
+}
+
+.profile-btn-sm-outline {
+  padding: 0.42rem 0.78rem;
+
+  border-radius: 9px;
+
+  font-size: 0.79rem;
+}
+
+.profile-btn-outline:hover,
+.profile-btn-sm-outline:hover {
+  background: var(--profile-accent-soft);
+
+  border-color: var(--profile-accent-border);
+
+  color: var(--profile-accent-bright);
+
   transform: translateY(-1px);
 }
 
-.profile-btn-outline:active {
+.profile-btn-outline:active,
+.profile-btn-sm-outline:active {
   transform: translateY(0);
 }
 
+.profile-btn-outline:disabled,
+.profile-btn-sm-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
 /* ==========================================================================
-   Card 2: Active Reservations
+   RESERVATIONS
    ========================================================================== */
+
 .profile-card--reservations {
   display: flex;
   flex-direction: column;
@@ -250,158 +558,285 @@
 .profile-reservations__list {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+
+  gap: 0.65rem;
+
   flex: 1;
-  justify-content: center;
 }
 
 .profile-reservation-item {
-  display: flex;
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    auto;
+
   align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  gap: 1rem;
+
+  gap: 0.85rem;
+
+  padding: 0.85rem 0.95rem;
+
+  background: var(--profile-overlay);
+
+  border: 1px solid var(--profile-border);
+
+  border-radius: var(--profile-radius-sm);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.profile-reservation-item:hover {
+  background: var(--profile-surface-hover);
+
+  border-color: var(--profile-border-strong);
+}
+
+.profile-reservation-item__info {
+  min-width: 0;
 }
 
 .profile-reservation-item__name {
-  font-size: 0.95rem;
-  font-weight: 650;
-  color: #f1f5f9;
+  font-size: 0.9rem;
+  font-weight: 680;
+
+  color: var(--profile-text);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Status Pills */
+.profile-linkish {
+  background: none;
+  border: none;
+
+  padding: 0;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  font: inherit;
+  color: inherit;
+}
+
+.profile-linkish:hover {
+  color: var(--profile-accent-bright);
+
+  text-decoration: none;
+}
+
+
+/* ==========================================================================
+   STATUS PILLS
+   ========================================================================== */
+
 .profile-status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 650;
+
+  gap: 0.4rem;
+
+  padding: 0.32rem 0.68rem;
+
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 680;
+
   white-space: nowrap;
 }
 
 .profile-status-pill__dot {
   width: 6px;
   height: 6px;
+
   border-radius: 50%;
-  background-color: currentColor;
+
+  background: currentColor;
+
+  flex-shrink: 0;
 }
 
 .profile-status-pill--pending {
-  background-color: rgba(245, 158, 11, 0.14);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.11);
+
+  color: var(--profile-warning);
+
+  border: 1px solid rgba(245, 158, 11, 0.22);
 }
 
 .profile-status-pill--confirmed {
-  background-color: rgba(59, 130, 246, 0.14);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.1);
+
+  color: var(--profile-info);
+
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+.profile-status-pill--completed {
+  background: rgba(34, 197, 94, 0.1);
+
+  color: var(--profile-success);
+
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+.profile-status-pill--cancelled {
+  background: rgba(148, 163, 184, 0.1);
+
+  color: var(--profile-muted);
+
+  border: 1px solid var(--profile-border);
+}
+
+.profile-status-pill--expired {
+  background: rgba(239, 68, 68, 0.1);
+
+  color: var(--profile-danger);
+
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+
 /* ==========================================================================
-   Row 2: My Listings Card
+   SELLER RESERVATION ACTIONS
    ========================================================================== */
+
+.profile-reservation-item__actions {
+  display: flex;
+  align-items: center;
+
+  gap: 0.45rem;
+
+  flex-wrap: wrap;
+}
+
+
+/* ==========================================================================
+   MY LISTINGS
+   ========================================================================== */
+
 .profile-card--listings {
   padding: 1.75rem 2rem;
 }
 
-.profile-btn-sm-outline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.85rem;
-  background: transparent;
-  color: #f3f4f6;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  font-size: 0.825rem;
-  font-weight: 650;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.profile-btn-sm-outline:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #ffffff;
-}
-
 .profile-listings__stats-grid {
-  display: flex;
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
   align-items: center;
-  justify-content: space-around;
-  padding: 1rem 0 0.25rem;
+
+  padding: 0.8rem 0 1.15rem;
+
+  border-bottom: 1px solid var(--profile-border);
 }
 
 .profile-listing-stat {
   display: flex;
   flex-direction: column;
+
   align-items: center;
+
   gap: 0.35rem;
-  flex: 1;
+
   text-align: center;
 }
 
 .profile-listing-stat__value {
-  font-size: clamp(1.85rem, 3.5vw, 2.35rem);
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+
   font-weight: 850;
-  color: #f9fafb;
-  letter-spacing: -0.03em;
+
+  color: var(--profile-text);
+
+  letter-spacing: -0.04em;
+
   line-height: 1;
 }
 
 .profile-listing-stat__label {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 0.78rem;
+
+  color: var(--profile-muted);
+
+  font-weight: 650;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.055em;
 }
 
 .profile-listing-stat__divider {
-  width: 1px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.08);
-  flex-shrink: 0;
+  display: none;
 }
 
+
 /* ==========================================================================
-   Row 3: 4 Small Stat Cards
+   QUICK METRIC CARDS
    ========================================================================== */
+
 .profile-stat-card {
-  background-color: #16181d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(
+      145deg,
+      var(--profile-surface-raised),
+      var(--profile-surface)
+    );
+
+  border: 1px solid var(--profile-border);
+
   border-radius: 16px;
-  padding: 1.35rem 1.4rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+  padding: 1.3rem;
+
+  box-shadow: var(--profile-shadow);
+
   display: flex;
   flex-direction: column;
+
   justify-content: space-between;
-  gap: 1.15rem;
+
+  gap: 1.1rem;
+
   text-align: left;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  min-height: 130px;
+
+  min-height: 135px;
+
+  color: var(--profile-text);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .profile-stat-card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--profile-border-strong);
 }
 
 .profile-stat-card--interactive {
   cursor: pointer;
-  background: #16181d;
+
   width: 100%;
+
   font-family: inherit;
-  color: inherit;
 }
 
 .profile-stat-card--interactive:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
+  border-color: var(--profile-accent-border);
+
+  box-shadow:
+    0 12px 28px
+    rgba(47, 118, 85, 0.1);
+
   transform: translateY(-2px);
 }
 
@@ -413,34 +848,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   width: 100%;
 }
 
-.profile-stat-card__chevron {
-  color: #64748b;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.profile-stat-card--interactive:hover .profile-stat-card__chevron {
-  color: #f3f4f6;
-  transform: translateX(2px);
-}
-
 .profile-stat-card__icon-wrap {
-  width: 36px;
-  height: 36px;
+  width: 37px;
+  height: 37px;
+
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  background: var(--profile-overlay);
+
+  border: 1px solid var(--profile-border);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   position: relative;
 }
 
 .profile-stat-card__icon-wrap--star {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.08);
+
+  border-color: rgba(245, 158, 11, 0.18);
 }
 
 .profile-stat-card__icon-wrap--active {
@@ -449,45 +881,79 @@
 
 .profile-stat-card__dot {
   position: absolute;
-  top: 7px;
-  right: 7px;
+
+  top: 5px;
+  right: 5px;
+
   width: 7px;
   height: 7px;
+
   border-radius: 50%;
-  background-color: #ef4444;
+
+  background: #ef4444;
+
+  box-shadow:
+    0 0 0 3px var(--profile-surface);
 }
 
 .profile-stat-card__body {
   display: flex;
   flex-direction: column;
+
   gap: 0.25rem;
 }
 
 .profile-stat-card__primary-value {
   font-size: 1.55rem;
+
   font-weight: 850;
-  color: #f9fafb;
-  letter-spacing: -0.02em;
+
+  color: var(--profile-text);
+
+  letter-spacing: -0.025em;
+
   line-height: 1.1;
 }
 
 .profile-stat-card__primary-text {
-  font-size: 1.05rem;
+  font-size: 1rem;
+
   font-weight: 750;
-  color: #f9fafb;
-  letter-spacing: -0.01em;
+
+  color: var(--profile-text);
+
   line-height: 1.2;
 }
 
 .profile-stat-card__meta {
-  font-size: 0.825rem;
-  color: #94a3b8;
+  font-size: 0.78rem;
+
+  color: var(--profile-muted);
+
   font-weight: 500;
+
+  line-height: 1.45;
 }
 
+.profile-stat-card__chevron {
+  color: var(--profile-faint);
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.profile-stat-card--interactive:hover .profile-stat-card__chevron {
+  color: var(--profile-accent-bright);
+
+  transform: translateX(2px);
+}
+
+
 /* ==========================================================================
-   Row 4: Transaction History Card
+   TRANSACTION HISTORY
    ========================================================================== */
+
 .profile-card--transactions {
   padding: 1.75rem 2rem;
 }
@@ -495,64 +961,211 @@
 .profile-transactions__chips-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+
+  gap: 0.65rem;
+
   align-items: center;
 }
 
 .profile-tx-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 1.1rem;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.875rem;
+
+  gap: 0.4rem;
+
+  padding: 0.55rem 0.85rem;
+
+  border-radius: 11px;
+
+  background: var(--profile-overlay);
+
+  border: 1px solid var(--profile-border);
+
+  font-size: 0.78rem;
+
   font-weight: 600;
-  transition: all 0.2s ease;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .profile-tx-chip:hover {
-  background-color: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--profile-surface-hover);
+
+  border-color: var(--profile-border-strong);
+
   transform: translateY(-1px);
 }
 
 .profile-tx-chip__item {
-  color: #f1f5f9;
-  font-weight: 650;
+  color: var(--profile-text);
+
+  font-weight: 680;
+}
+
+.profile-tx-chip__seller {
+  color: var(--profile-muted);
 }
 
 .profile-tx-chip__separator {
-  color: #64748b;
-  font-size: 0.8rem;
+  color: var(--profile-faint);
+
+  font-size: 0.75rem;
 }
 
 .profile-tx-chip__status {
-  color: #94a3b8;
-  font-weight: 550;
+  color: var(--profile-muted);
+
+  font-weight: 650;
 }
 
 .profile-tx-chip--completed .profile-tx-chip__status {
-  color: #94a3b8;
+  color: var(--profile-success);
 }
 
 .profile-tx-chip--expired .profile-tx-chip__status {
-  color: #a1a1aa;
+  color: var(--profile-danger);
 }
 
 .profile-tx-chip--cancelled .profile-tx-chip__status {
-  color: #f87171;
+  color: var(--profile-muted);
 }
 
+
 /* ==========================================================================
-   Responsive Breakpoints
+   EDIT PROFILE
    ========================================================================== */
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.85rem;
+
+  margin-top: 0.5rem;
+}
+
+.profile-edit-field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.4rem;
+
+  font-size: 0.78rem;
+
+  color: var(--profile-text-soft);
+
+  font-weight: 600;
+}
+
+.profile-edit-field input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 0.68rem 0.78rem;
+
+  border-radius: 9px;
+
+  border: 1px solid var(--profile-border);
+
+  background: var(--profile-input);
+
+  color: var(--profile-text);
+
+  font-family: inherit;
+
+  font-size: 0.86rem;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-edit-field input::placeholder {
+  color: var(--profile-faint);
+}
+
+.profile-edit-field input:hover {
+  border-color: var(--profile-border-strong);
+}
+
+.profile-edit-field input:focus {
+  outline: none;
+
+  border-color: var(--profile-accent);
+
+  box-shadow:
+    0 0 0 3px
+    var(--profile-accent-soft);
+
+  background: var(--profile-surface);
+}
+
+
+/* ==========================================================================
+   INLINE ERROR / EMPTY STATES
+   ========================================================================== */
+
+.profile-inline-error {
+  padding: 0.85rem 1rem;
+
+  border-radius: 12px;
+
+  background: rgba(239, 68, 68, 0.08);
+
+  border: 1px solid rgba(239, 68, 68, 0.2);
+
+  color: var(--profile-danger);
+
+  font-size: 0.84rem;
+
+  font-weight: 600;
+}
+
+.profile-empty-note {
+  color: var(--profile-muted);
+
+  font-size: 0.82rem;
+
+  line-height: 1.6;
+
+  padding: 0.45rem 0.1rem;
+
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   FOCUS ACCESSIBILITY
+   ========================================================================== */
+
+.profile-dashboard button:focus-visible,
+.profile-dashboard input:focus-visible {
+  outline: 2px solid var(--profile-accent-bright);
+
+  outline-offset: 3px;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — TABLET
+   ========================================================================== */
+
 @media (max-width: 960px) {
   .profile-dashboard__row--four-col {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ==========================================================================
+   RESPONSIVE — SMALL TABLET
+   ========================================================================== */
 
 @media (max-width: 860px) {
   .profile-dashboard__row--two-col {
@@ -560,58 +1173,149 @@
   }
 }
 
-@media (max-width: 540px) {
-  .profile-dashboard__row--four-col {
-    grid-template-columns: 1fr;
-  }
-}
 
-@media (max-width: 480px) {
+/* ==========================================================================
+   RESPONSIVE — MOBILE
+   ========================================================================== */
+
+@media (max-width: 640px) {
   .profile-dashboard {
-    padding: 1.25rem 1rem 3rem;
+    padding:
+      0.25rem
+      1rem
+      3rem;
   }
 
-  .profile-card {
-    padding: 1.35rem;
+  .profile-header {
+    padding:
+      0.9rem
+      0
+      0.4rem;
+  }
+
+  .profile-card,
+  .profile-card--listings,
+  .profile-card--transactions {
+    padding: 1.25rem;
+
     border-radius: 16px;
   }
 
-  .profile-card--listings,
-  .profile-card--transactions {
-    padding: 1.35rem;
-  }
-
-  .profile-summary__header {
-    gap: 0.9rem;
-  }
-
   .profile-summary__avatar {
-    width: 52px;
-    height: 52px;
-    font-size: 1.1rem;
+    width: 58px;
+    height: 58px;
+
+    border-radius: 17px;
+
+    font-size: 1.15rem;
   }
 
   .profile-summary__name {
     font-size: 1.25rem;
   }
 
+  .profile-summary__header {
+    gap: 0.85rem;
+  }
+
   .profile-reservation-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    grid-template-columns: 1fr auto;
+
+    align-items: center;
+  }
+
+  .profile-reservation-item__info {
+    grid-column: 1 / -1;
+  }
+
+  .profile-reservation-item__actions {
+    grid-column: 1 / -1;
+  }
+
+  .profile-status-pill {
+    justify-self: start;
   }
 
   .profile-listings__stats-grid {
-    flex-direction: row;
-    gap: 0.5rem;
+    padding-bottom: 1rem;
   }
 
   .profile-listing-stat__value {
-    font-size: 1.65rem;
+    font-size: 1.7rem;
+  }
+
+  .profile-stat-card {
+    min-height: 120px;
+  }
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — PHONE
+   ========================================================================== */
+
+@media (max-width: 540px) {
+  .profile-dashboard__row--four-col {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-listings__stats-grid {
+    gap: 0.25rem;
+  }
+
+  .profile-listing-stat__label {
+    font-size: 0.68rem;
   }
 
   .profile-tx-chip {
-    padding: 0.45rem 0.85rem;
-    font-size: 0.8rem;
+    width: 100%;
+
+    justify-content: flex-start;
+
+    flex-wrap: wrap;
+
+    border-radius: 12px;
+  }
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — VERY SMALL PHONE
+   ========================================================================== */
+
+@media (max-width: 400px) {
+  .profile-dashboard {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .profile-card,
+  .profile-card--listings,
+  .profile-card--transactions {
+    padding: 1.05rem;
+  }
+
+  .profile-summary__badges {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-btn-outline {
+    width: 100%;
+  }
+}
+
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-dashboard *,
+  .profile-dashboard *::before,
+  .profile-dashboard *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
   }
 }

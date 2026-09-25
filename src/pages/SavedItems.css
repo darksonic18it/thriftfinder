@@ -1,0 +1,275 @@
+/* ==========================================================================
+   SAVED ITEMS
+   Theme-aware light + dark mode
+   ========================================================================== */
+
+.saved-items-page {
+  min-height: 100vh;
+
+  background: #f8fafc;
+  color: #0f172a;
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.saved-items-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.saved-items-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  padding: 40px 24px 32px;
+}
+
+.saved-items-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #fce7f3;
+  color: #ec4899;
+
+  margin-bottom: 16px;
+}
+
+.saved-items-header h1 {
+  margin: 0;
+
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #0f172a;
+
+  transition: color 0.25s ease;
+}
+
+.saved-items-header p {
+  margin: 8px 0 0;
+
+  color: #64748b;
+
+  font-size: 15px;
+
+  transition: color 0.25s ease;
+}
+
+
+/* ==========================================================================
+   CONTENT
+   ========================================================================== */
+
+.saved-items-content {
+  padding: 32px 24px 48px;
+}
+
+.saved-items-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+/* ==========================================================================
+   EMPTY / LOADING / ERROR STATES
+   ========================================================================== */
+
+.saved-items-state {
+  min-height: 300px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  color: #64748b;
+
+  gap: 10px;
+
+  transition: color 0.25s ease;
+}
+
+.saved-items-state h2 {
+  margin: 4px 0 0;
+
+  color: #0f172a;
+
+  font-size: 20px;
+
+  transition: color 0.25s ease;
+}
+
+.saved-items-state p {
+  margin: 0;
+}
+
+.saved-items-state-spinner {
+  animation: saved-items-spin 1s linear infinite;
+}
+
+.saved-items-retry {
+  margin-top: 8px;
+
+  padding: 9px 16px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: #0f172a;
+  color: #ffffff;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.saved-items-retry:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+
+/* ==========================================================================
+   PRODUCT GRID
+   ========================================================================== */
+
+.products-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 24px;
+}
+
+
+/* ==========================================================================
+   DARK THEME
+   --------------------------------------------------------------------------
+   Main dark background:
+   rgba(15, 23, 42, 1)
+   ========================================================================== */
+
+[data-theme="dark"] .saved-items-page {
+  background: rgba(15, 23, 42, 1);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .saved-items-header {
+  background: rgba(15, 23, 42, 1);
+
+  border-bottom-color:
+    rgba(148, 163, 184, 0.12);
+}
+
+[data-theme="dark"] .saved-items-header h1 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .saved-items-header p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .saved-items-state {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .saved-items-state h2 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .saved-items-retry {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+
+/* ==========================================================================
+   DARK THEME — ICON
+   ========================================================================== */
+
+[data-theme="dark"] .saved-items-icon {
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+
+  border:
+    1px solid rgba(236, 72, 153, 0.18);
+}
+
+
+/* ==========================================================================
+   ANIMATION
+   ========================================================================== */
+
+@keyframes saved-items-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .saved-items-header-container {
+    padding: 32px 20px 24px;
+  }
+
+  .saved-items-header h1 {
+    font-size: 28px;
+  }
+
+  .saved-items-content {
+    padding: 24px 20px 40px;
+  }
+
+  .products-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+}
