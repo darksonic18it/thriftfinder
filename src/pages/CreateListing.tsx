@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Image as ImageIcon,
@@ -19,46 +20,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import { listingService } from '../services/listingService';
+import { listingImageUrl } from '../lib/listingMappers';
+import {
+  LISTING_CATEGORIES,
+  LISTING_CONDITIONS,
+  type ListingCategory,
+  type ListingCondition,
+} from '../types/database';
 import './CreateListing.css';
 
-type ListingCategory =
-  | 'Clothing'
-  | 'Shoes'
-  | 'Accessories'
-  | 'Electronics'
-  | 'Collectibles'
-  | 'Bags'
-  | 'Vintage'
-  | 'Furniture'
-  | 'Books'
-  | 'Sports'
-  | 'Others';
+/**
+ * One entry in the photo strip.
+ *  - kind 'new'      : a File the user just picked, not uploaded yet
+ *  - kind 'existing' : a listing_images row already in the database (edit mode)
+ *
+ * There is deliberately NO maximum. No MAX_IMAGES constant, no slice(0, n),
+ * no "remaining slots" arithmetic. The user may add as many photos as their
+ * device and the Storage bucket allow.
+ */
+type PhotoItem =
+  | { key: string; kind: 'new'; url: string; file: File }
+  | { key: string; kind: 'existing'; url: string; imageId: string };
 
-type ListingCondition = 'Like New' | 'Excellent' | 'Good' | 'Fair';
+type ListingFormErrors = Partial<
+  Record<'title' | 'description' | 'category' | 'condition' | 'price' | 'city' | 'photos', string>
+>;
 
-type PhotoItem = {
-  id: string;
-  url: string;
-  file: File;
-};
-
-type ListingFormErrors = Partial<Record<'title' | 'description' | 'category' | 'condition' | 'price' | 'city', string>>;
-
-const CATEGORY_OPTIONS: ListingCategory[] = [
-  'Clothing',
-  'Shoes',
-  'Accessories',
-  'Electronics',
-  'Collectibles',
-  'Bags',
-  'Vintage',
-  'Furniture',
-  'Books',
-  'Sports',
-  'Others',
-];
-
-const CONDITION_OPTIONS: ListingCondition[] = ['Like New', 'Excellent', 'Good', 'Fair'];
+const CATEGORY_OPTIONS: ListingCategory[] = LISTING_CATEGORIES;
+const CONDITION_OPTIONS: ListingCondition[] = LISTING_CONDITIONS;
 
 const CONDITION_CLASS: Record<ListingCondition, string> = {
   'Like New': 'condition-like-new',
@@ -66,6 +56,8 @@ const CONDITION_CLASS: Record<ListingCondition, string> = {
   Good: 'condition-good',
   Fair: 'condition-fair',
 };
+
+const DRAFT_STORAGE_KEY = 'thriftfinder:listing-draft';
 
 const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
@@ -148,14 +140,22 @@ const ListingPreviewCard: React.FC<{
 const CreateListing: React.FC = () => {
   const navigate = useNavigate();
 
+  // When the route is /edit-listing/:id we run the same form in edit mode.
+  const { id: routeListingId } = useParams<{ id: string }>();
+  const isEditMode = !!routeListingId;
+
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+
   const photosRef = useRef<PhotoItem[]>([]);
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
   useEffect(() => {
     return () => {
-      photosRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+      photosRef.current.forEach((p) => {
+        if (p.kind === 'new') URL.revokeObjectURL(p.url);
+      });
     };
   }, []);
 
@@ -168,6 +168,12 @@ const CreateListing: React.FC = () => {
   const [barangay, setBarangay] = useState('');
 
   const [errors, setErrors] = useState<ListingFormErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [loadingListing, setLoadingListing] = useState(isEditMode);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [savedListingId, setSavedListingId] = useState<string | null>(null);
 
   const [publishOpen, setPublishOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
@@ -179,6 +185,68 @@ const CreateListing: React.FC = () => {
       if (draftTimerRef.current) window.clearTimeout(draftTimerRef.current);
     };
   }, []);
+
+  // ---------------------------------------------------------------
+  // Edit mode: load the existing listing + its photos
+  // ---------------------------------------------------------------
+  useEffect(() => {
+    if (!routeListingId) return;
+    let active = true;
+
+    (async () => {
+      setLoadingListing(true);
+      const { data, error } = await listingService.getForEdit(routeListingId);
+      if (!active) return;
+
+      if (error || !data) {
+        setLoadError(error?.message ?? 'Could not load this listing.');
+        setLoadingListing(false);
+        return;
+      }
+
+      setTitle(data.listing.title);
+      setDescription(data.listing.description);
+      setCategory(data.listing.category as ListingCategory);
+      setCondition(data.listing.condition as ListingCondition);
+      setPrice(String(Number(data.listing.price)));
+      setCity(data.listing.city);
+      setBarangay(data.listing.barangay ?? '');
+      setPhotos(
+        data.images.map((img) => ({
+          key: img.id,
+          kind: 'existing' as const,
+          imageId: img.id,
+          url: listingImageUrl(img.storage_path),
+        }))
+      );
+      setLoadingListing(false);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [routeListingId]);
+
+  // ---------------------------------------------------------------
+  // Create mode: offer the locally saved draft back (text fields only)
+  // ---------------------------------------------------------------
+  useEffect(() => {
+    if (isEditMode) return;
+    try {
+      const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Partial<Record<string, string>>;
+      setTitle(draft.title ?? '');
+      setDescription(draft.description ?? '');
+      setCategory((draft.category as ListingCategory) ?? '');
+      setCondition((draft.condition as ListingCondition) ?? '');
+      setPrice(draft.price ?? '');
+      setCity(draft.city ?? '');
+      setBarangay(draft.barangay ?? '');
+    } catch {
+      // A corrupt draft is not worth interrupting the user for.
+    }
+  }, [isEditMode]);
 
   const priceNumber = useMemo(() => {
     const n = Number(price);
@@ -209,35 +277,48 @@ const CreateListing: React.FC = () => {
 
     if (!city.trim()) next.city = 'Please enter your location.';
 
+    // SRS 4.4: a listing without at least one photo cannot be published.
+    if (photos.length === 0) next.photos = 'Add at least one photo.';
+
     return next;
   };
 
+  /**
+   * Accepts every file the user picked. No cap, no slicing, no counting
+   * against a maximum.
+   */
   const handleAddPhotos = (files: FileList | null) => {
-    if (!files) return;
-    const remainingSlots = Math.max(0, 6 - photos.length);
-    if (remainingSlots === 0) return;
+    if (!files || files.length === 0) return;
 
-    const nextFiles = Array.from(files).slice(0, remainingSlots);
-    const nextPhotos: PhotoItem[] = nextFiles.map((file) => ({
-      id: uid(),
-      file,
-      url: URL.createObjectURL(file),
-    }));
+    const nextPhotos: PhotoItem[] = Array.from(files)
+      .filter((file) => file.type.startsWith('image/'))
+      .map((file) => ({
+        key: uid(),
+        kind: 'new' as const,
+        file,
+        url: URL.createObjectURL(file),
+      }));
+
+    if (nextPhotos.length === 0) return;
 
     setPhotos((prev) => [...prev, ...nextPhotos]);
+    setErrors((prev) => ({ ...prev, photos: undefined }));
   };
 
-  const handleRemovePhoto = (id: string) => {
+  const handleRemovePhoto = (key: string) => {
     setPhotos((prev) => {
-      const removed = prev.find((p) => p.id === id);
-      if (removed) URL.revokeObjectURL(removed.url);
-      return prev.filter((p) => p.id !== id);
+      const removed = prev.find((p) => p.key === key);
+      if (removed?.kind === 'new') URL.revokeObjectURL(removed.url);
+      if (removed?.kind === 'existing') {
+        setRemovedImageIds((ids) => [...ids, removed.imageId]);
+      }
+      return prev.filter((p) => p.key !== key);
     });
   };
 
-  const handleMakeMainPhoto = (id: string) => {
+  const handleMakeMainPhoto = (key: string) => {
     setPhotos((prev) => {
-      const index = prev.findIndex((p) => p.id === id);
+      const index = prev.findIndex((p) => p.key === key);
       if (index <= 0) return prev;
       const copy = [...prev];
       const [picked] = copy.splice(index, 1);
@@ -246,30 +327,167 @@ const CreateListing: React.FC = () => {
     });
   };
 
-  const handlePublish = () => {
+  // ---------------------------------------------------------------
+  // Publish / Save
+  // ---------------------------------------------------------------
+  const handlePublish = useCallback(async () => {
+    const { data: sessionCheck, error: sessionErr } = await supabase.auth.getSession();
+    console.log('SESSION CHECK', sessionCheck?.session?.user?.id, sessionCheck?.session?.access_token?.slice(0, 20), sessionErr);
     const nextErrors = validate();
     setErrors(nextErrors);
+    setSubmitError(null);
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    setPublishOpen(true);
-  };
+    setSubmitting(true);
 
+    const commonFields = {
+      title: title.trim(),
+      description: description.trim(),
+      category: category as string,
+      condition: condition as string,
+      price: Number(price),
+      city: city.trim(),
+      barangay: barangay.trim(),
+    };
+
+    if (isEditMode && routeListingId) {
+      const updateResult = await listingService.updateListing(routeListingId, commonFields);
+      if (updateResult.error) {
+        setSubmitting(false);
+        setSubmitError(updateResult.error.message);
+        return;
+      }
+
+      const imagesResult = await listingService.updateListingImages(routeListingId, {
+        keptImageIds: photos
+          .filter((p): p is Extract<PhotoItem, { kind: 'existing' }> => p.kind === 'existing')
+          .map((p) => p.imageId),
+        removedImageIds,
+        newPhotos: photos
+          .filter((p): p is Extract<PhotoItem, { kind: 'new' }> => p.kind === 'new')
+          .map((p) => p.file),
+      });
+
+      setSubmitting(false);
+
+      if (imagesResult.error) {
+        setSubmitError(imagesResult.error.message);
+        return;
+      }
+
+      setRemovedImageIds([]);
+      setSavedListingId(routeListingId);
+      setPublishOpen(true);
+      return;
+    }
+
+    const result = await listingService.createListing({
+      ...commonFields,
+      photos: photos
+        .filter((p): p is Extract<PhotoItem, { kind: 'new' }> => p.kind === 'new')
+        .map((p) => p.file),
+    });
+
+    setSubmitting(false);
+
+    if (result.error || !result.data) {
+      setSubmitError(result.error?.message ?? 'Could not publish the listing.');
+      return;
+    }
+
+    try {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+
+    setSavedListingId(result.data.id);
+    setPublishOpen(true);
+  }, [
+    barangay,
+    category,
+    city,
+    condition,
+    description,
+    isEditMode,
+    photos,
+    price,
+    removedImageIds,
+    routeListingId,
+    title,
+  ]);
+
+  /** Saves the text fields locally so a half-finished form survives a reload. */
   const handleSaveDraft = () => {
-    setDraftMessage('Draft saved');
+    try {
+      window.localStorage.setItem(
+        DRAFT_STORAGE_KEY,
+        JSON.stringify({ title, description, category, condition, price, city, barangay })
+      );
+      setDraftMessage('Draft saved on this device (photos are not included)');
+    } catch {
+      setDraftMessage('Could not save the draft on this device');
+    }
     if (draftTimerRef.current) window.clearTimeout(draftTimerRef.current);
-    draftTimerRef.current = window.setTimeout(() => setDraftMessage(null), 2000);
+    draftTimerRef.current = window.setTimeout(() => setDraftMessage(null), 2500);
   };
 
   const listingTitle = title.trim() ? title.trim() : undefined;
   const listingDescription = description.trim() ? description.trim() : undefined;
+
+  if (loadingListing) {
+    return (
+      <div className="create-listing-page">
+        <div className="create-listing-topbar">
+          <Link to="/dashboard" className="create-listing-back-link">
+            <ArrowLeft size={18} />
+            <span>Back to Browse</span>
+          </Link>
+        </div>
+        <div className="create-listing-content">
+          <div className="create-listing-form-panel">
+            <div className="create-listing-header">
+              <h1>Loading listing…</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="create-listing-page">
+        <div className="create-listing-topbar">
+          <Link to="/dashboard" className="create-listing-back-link">
+            <ArrowLeft size={18} />
+            <span>Back to Browse</span>
+          </Link>
+        </div>
+        <div className="create-listing-content">
+          <div className="create-listing-form-panel">
+            <div className="create-listing-header">
+              <h1>Can't edit this listing</h1>
+              <p>{loadError}</p>
+            </div>
+            <div className="action-buttons">
+              <Button type="button" onClick={() => navigate('/dashboard')}>
+                Back to Browse
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-listing-page">
       <div className="create-listing-topbar">
         <Link to="/dashboard" className="create-listing-back-link">
           <ArrowLeft size={18} />
-          <span>Back to Dashboard</span>
+          <span>Back to Browse</span>
         </Link>
       </div>
 
@@ -277,14 +495,18 @@ const CreateListing: React.FC = () => {
         {/* Form Panel */}
         <div className="create-listing-form-panel">
           <div className="create-listing-header">
-            <h1>Create a Listing</h1>
-            <p>Sell something you no longer need and give it a second life locally.</p>
+            <h1>{isEditMode ? 'Edit Listing' : 'Create a Listing'}</h1>
+            <p>
+              {isEditMode
+                ? 'Update your item details and photos.'
+                : 'Sell something you no longer need and give it a second life locally.'}
+            </p>
           </div>
 
           {/* Photos */}
           <div className="create-listing-section">
             <h2 className="section-heading">Photos</h2>
-            <p className="section-subhelp">Add up to 6 photos</p>
+            <p className="section-subhelp">Add as many photos as you like</p>
             <p className="section-help">Your first photo will be used as the main listing image.</p>
 
             <div className="create-listing-photo-block">
@@ -307,7 +529,11 @@ const CreateListing: React.FC = () => {
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={(e) => handleAddPhotos(e.target.files)}
+                    onChange={(e) => {
+                      handleAddPhotos(e.target.files);
+                      // allow picking the same file again after removing it
+                      e.target.value = '';
+                    }}
                   />
                   <span className="add-photos-button-inner">
                     <Plus size={18} />
@@ -315,17 +541,19 @@ const CreateListing: React.FC = () => {
                   </span>
                 </label>
 
-                <div className="photo-count">{photos.length}/6 selected</div>
+                <div className="photo-count">
+                  {photos.length} {photos.length === 1 ? 'photo' : 'photos'} selected
+                </div>
               </div>
 
               {photos.length > 0 && (
                 <div className="photo-thumbnails" aria-label="Photo thumbnails">
                   {photos.map((p, index) => (
                     <button
-                      key={p.id}
+                      key={p.key}
                       type="button"
                       className={`photo-thumb ${index === 0 ? 'active' : ''}`}
-                      onClick={() => handleMakeMainPhoto(p.id)}
+                      onClick={() => handleMakeMainPhoto(p.key)}
                       aria-label={index === 0 ? 'Main photo' : 'Make this the main photo'}
                     >
                       <img src={p.url} alt={`Photo ${index + 1}`} loading="lazy" />
@@ -340,7 +568,7 @@ const CreateListing: React.FC = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleRemovePhoto(p.id);
+                          handleRemovePhoto(p.key);
                         }}
                       >
                         <Trash2 size={16} />
@@ -349,6 +577,12 @@ const CreateListing: React.FC = () => {
                   ))}
                 </div>
               )}
+
+              {errors.photos ? (
+                <div className="form-error" id="photos-error" role="alert">
+                  {errors.photos}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -440,8 +674,8 @@ const CreateListing: React.FC = () => {
 
           {/* Price & Condition */}
           <div className="create-listing-section">
-            <h2 className="section-heading">Price & Condition</h2>
-            <p className="section-subhelp">Set a fair price based on the item\'s condition.</p>
+            <h2 className="section-heading">Price &amp; Condition</h2>
+            <p className="section-subhelp">Set a fair price based on the item's condition.</p>
 
             <div className="form-field">
               <Label htmlFor="price">Price</Label>
@@ -504,12 +738,46 @@ const CreateListing: React.FC = () => {
           <div className="create-listing-section create-listing-actions">
             {draftMessage ? <div className="draft-message">{draftMessage}</div> : null}
 
+            {submitError ? (
+              <div className="form-error" role="alert">
+                {submitError}
+              </div>
+            ) : null}
+
             <div className="action-buttons">
-              <Button type="button" variant="secondary" onClick={handleSaveDraft}>
-                Save Draft
-              </Button>
-              <Button type="button" onClick={handlePublish} className="publish-btn">
-                Publish Listing
+              {!isEditMode ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSaveDraft}
+                  disabled={submitting}
+                >
+                  Save Draft
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => navigate(`/listing/${routeListingId}`)}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                onClick={handlePublish}
+                className="publish-btn"
+                disabled={submitting}
+              >
+                {submitting
+                  ? isEditMode
+                    ? 'Saving…'
+                    : 'Publishing…'
+                  : isEditMode
+                    ? 'Save Changes'
+                    : 'Publish Listing'}
               </Button>
             </div>
 
@@ -530,7 +798,7 @@ const CreateListing: React.FC = () => {
         <div className="create-listing-preview-panel">
           <div className="preview-heading">
             <h2>Listing Preview</h2>
-            <p>Here\'s how buyers will see your post.</p>
+            <p>Here's how buyers will see your post.</p>
           </div>
 
           <ListingPreviewCard
@@ -553,9 +821,11 @@ const CreateListing: React.FC = () => {
             <div className="publish-success-icon">
               <CheckCircle2 size={44} />
             </div>
-            <DialogTitle>Listing Published!</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Listing Updated!' : 'Listing Published!'}</DialogTitle>
             <DialogDescription>
-              Your item is ready to be discovered by nearby buyers.
+              {isEditMode
+                ? 'Your changes are live for buyers to see.'
+                : 'Your item is ready to be discovered by nearby buyers.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -565,7 +835,7 @@ const CreateListing: React.FC = () => {
               variant="outline"
               onClick={() => {
                 setPublishOpen(false);
-                setPreviewDialogOpen(true);
+                if (savedListingId) navigate(`/listing/${savedListingId}`);
               }}
             >
               View Listing
@@ -577,19 +847,19 @@ const CreateListing: React.FC = () => {
                 navigate('/dashboard');
               }}
             >
-              Back to Dashboard
+              Back to Browse
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Preview Dialog (mobile / from success) */}
+      {/* Preview Dialog (mobile) */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
         <DialogContent className="preview-dialog-content">
           <DialogHeader>
             <DialogTitle>Preview Listing</DialogTitle>
             <DialogDescription>
-              This is a frontend-only preview of your listing.
+              This is how your listing will appear to buyers.
             </DialogDescription>
           </DialogHeader>
 

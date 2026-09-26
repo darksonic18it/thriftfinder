@@ -1,84 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, User } from 'lucide-react';
 
 import ThemeToggle from '../components/ThemeToggle';
 import type { Product } from '../components/ProductCard';
+import { listingService } from '../services/listingService';
+import { favoriteService } from '../services/favoriteService';
+import { browseRowToProduct, formatPeso } from '../lib/listingMappers';
+import { useAuth } from '../context/AuthContext';
+import type { MyStatsRow } from '../types/database';
 
 import '../components/Hero.css';
 import './Dashboard.css';
-
-const browsePreviewProducts: Product[] = [
-  {
-    id: 'browse-1',
-    name: 'Vintage Denim Jacket',
-    price: 850,
-    condition: 'Excellent',
-    location: 'Quezon City',
-    seller: 'vintage_closet',
-    image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=600&auto=format&fit=crop',
-    tag: 'Vintage 90s',
-  },
-  {
-    id: 'browse-2',
-    name: 'Nike Sneakers',
-    price: 1200,
-    condition: 'Like New',
-    location: 'Makati City',
-    seller: 'kicks_manila',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-3',
-    name: 'Y2K Shoulder Bag',
-    price: 650,
-    condition: 'Good',
-    location: 'Cebu City',
-    seller: 'retrochic.ph',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop',
-    tag: 'Trending',
-  },
-];
-
-const featuredPreviewProducts: Product[] = [
-  {
-    id: 'prod-1',
-    name: 'Oversized Denim Jacket',
-    price: 1250,
-    condition: 'Excellent',
-    location: 'Cagayan de Oro',
-    seller: 'vintage_closet',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop',
-    tag: 'Local find',
-  },
-  {
-    id: 'prod-2',
-    name: 'Nike Sneakers',
-    price: 1200,
-    condition: 'Like New',
-    location: 'Lapasan',
-    seller: 'kicks_manila',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'prod-3',
-    name: 'Y2K Shoulder Bag',
-    price: 650,
-    condition: 'Good',
-    location: 'Carmen',
-    seller: 'retrochic.ph',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop',
-    tag: 'Popular',
-  },
-];
 
 type LocationState = {
   isNewUser?: boolean;
 };
 
-function formatPrice(price: number) {
-  return `₱${price.toLocaleString()}`;
-}
+const EMPTY_STATS: MyStatsRow = {
+  active_listings: 0,
+  archived_listings: 0,
+  reserved_listings: 0,
+  sold_listings: 0,
+  my_active_reservations: 0,
+  my_past_reservations: 0,
+  incoming_reservations: 0,
+};
 
 function MiniProductCard({ product }: { product: Product }) {
   const navigate = useNavigate();
@@ -108,7 +55,7 @@ function MiniProductCard({ product }: { product: Product }) {
         <h3 className="dashboard-mini-card__name" title={product.name}>
           {product.name}
         </h3>
-        <div className="dashboard-mini-card__price">{formatPrice(product.price)}</div>
+        <div className="dashboard-mini-card__price">{formatPeso(product.price)}</div>
 
         <div className="dashboard-mini-card__location">
           <MapPin size={14} className="dashboard-mini-card__location-icon" />
@@ -124,8 +71,58 @@ const Dashboard: React.FC = () => {
   const location = useLocation();
   const state = (location.state as LocationState | null) ?? undefined;
 
-  const isNewUser = state?.isNewUser === true;
-  const displayProducts = isNewUser ? featuredPreviewProducts : browsePreviewProducts;
+  const { displayName } = useAuth();
+
+  const [stats, setStats] = useState<MyStatsRow>(EMPTY_STATS);
+  const [savedCount, setSavedCount] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [homeCity, setHomeCity] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // "New user" is now derived from the database, not from router state:
+  // a user with no listings, no saved items and no reservations is new.
+  const routeSaysNewUser = state?.isNewUser === true;
+
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      const [statsResult, browseResult, myListingsResult, saved] = await Promise.all([
+        listingService.getMyStats(),
+        listingService.browse({ limit: 3 }),
+        listingService.getMyListings(),
+        favoriteService.countMyFavorites(),
+      ]);
+
+      if (!active) return;
+
+      setStats(statsResult.data ?? EMPTY_STATS);
+      setProducts((browseResult.data ?? []).map(browseRowToProduct));
+      setSavedCount(saved);
+
+      // The profile table has no city column (and the SRS doesn't ask for
+      // one), so the greeting location comes from the user's most recent
+      // listing. If they haven't listed anything, the line is hidden rather
+      // than filled with a made-up city.
+      const latest = (myListingsResult.data ?? [])[0];
+      setHomeCity(latest?.city ?? null);
+
+      setLoading(false);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const hasActivity =
+    stats.active_listings > 0 ||
+    stats.archived_listings > 0 ||
+    stats.my_active_reservations > 0 ||
+    stats.my_past_reservations > 0 ||
+    savedCount > 0;
+
+  const isNewUser = routeSaysNewUser || (!loading && !hasActivity);
 
   return (
     <div className="dashboard-page">
@@ -140,12 +137,16 @@ const Dashboard: React.FC = () => {
 
             <div className="dashboard-header-text">
               <h1 className="dashboard-heading">
-                {isNewUser ? 'Welcome to ThriftFinder, Khim Jay!' : 'Welcome back, Khim Jay'}
+                {isNewUser
+                  ? `Welcome to ThriftFinder${displayName ? `, ${displayName}` : ''}!`
+                  : `Welcome back${displayName ? `, ${displayName}` : ''}`}
               </h1>
-              <div className="dashboard-location">
-                <MapPin size={14} className="dashboard-location-icon" />
-                <span>Pagadian City</span>
-              </div>
+              {homeCity ? (
+                <div className="dashboard-location">
+                  <MapPin size={14} className="dashboard-location-icon" />
+                  <span>{homeCity}</span>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -160,15 +161,15 @@ const Dashboard: React.FC = () => {
           <section className="dashboard-stats" aria-label="Account stats">
             <div className="dashboard-stats-grid">
               <div className="dashboard-stat-card">
-                <div className="dashboard-stat-value">2</div>
+                <div className="dashboard-stat-value">{stats.active_listings}</div>
                 <div className="dashboard-stat-label">Active listings</div>
               </div>
               <div className="dashboard-stat-card">
-                <div className="dashboard-stat-value">5</div>
+                <div className="dashboard-stat-value">{savedCount}</div>
                 <div className="dashboard-stat-label">Saved items</div>
               </div>
               <div className="dashboard-stat-card">
-                <div className="dashboard-stat-value">1</div>
+                <div className="dashboard-stat-value">{stats.my_active_reservations}</div>
                 <div className="dashboard-stat-label">Pending pickups</div>
               </div>
             </div>
@@ -188,15 +189,24 @@ const Dashboard: React.FC = () => {
           </button>
         </section>
 
-        <section className="dashboard-section" aria-label={isNewUser ? 'Popular items' : 'Continue browsing'}>
+        <section
+          className="dashboard-section"
+          aria-label={isNewUser ? 'Popular items' : 'Continue browsing'}
+        >
           <h2 className="dashboard-section-title">
             {isNewUser ? 'Popular near you' : 'Continue browsing near you'}
           </h2>
 
           <div className="dashboard-mini-grid">
-            {displayProducts.map((product) => (
-              <MiniProductCard key={product.id} product={product} />
-            ))}
+            {loading ? (
+              <p className="dashboard-onboarding-message">Loading listings…</p>
+            ) : products.length === 0 ? (
+              <p className="dashboard-onboarding-message">
+                No items have been listed yet. Be the first to sell something!
+              </p>
+            ) : (
+              products.map((product) => <MiniProductCard key={product.id} product={product} />)
+            )}
           </div>
         </section>
       </main>

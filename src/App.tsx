@@ -15,6 +15,7 @@ import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 import RequireAuth from './components/RequireAuth';
+import SavedItems from './pages/SavedItems';
 
 import AppNavbar from './components/AppNavbar';
 
@@ -34,22 +35,32 @@ function LandingPage() {
 function AppShell() {
   const location = useLocation();
 
-  const isProfileRoute = location.pathname === '/profile'
+  const isProfileRoute = location.pathname === '/profile';
 
   const isAppShell =
     location.pathname === '/dashboard' ||
     location.pathname === '/create-listing' ||
+    location.pathname === '/saved-items' ||
+    location.pathname.startsWith('/edit-listing/') ||
     (location.pathname.startsWith('/listing/') &&
-      (location.state as { from?: string } | null)?.from === '/dashboard')
+    ['/dashboard', '/saved-items'].includes(
+        (location.state as { from?: string } | null)?.from ?? ''
+      ))
 
   return (
     <div className="app">
       {isAppShell ? <AppNavbar /> : isProfileRoute ? null : <Navbar />}
+
       <main>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+
           <Route path="/about" element={<About />} />
+
+          {/* Public browse page */}
           <Route path="/browse" element={<Browse />} />
+
+          {/* Authenticated dashboard browse page */}
           <Route
             path="/dashboard"
             element={
@@ -60,7 +71,10 @@ function AppShell() {
               </RequireAuth>
             }
           />
+
           <Route path="/listing/:id" element={<ListingDetails />} />
+
+          {/* Create listing */}
           <Route
             path="/create-listing"
             element={
@@ -69,9 +83,33 @@ function AppShell() {
               </RequireAuth>
             }
           />
+
+          {/* Edit listing */}
+          <Route
+            path="/edit-listing/:id"
+            element={
+              <RequireAuth>
+                <CreateListing />
+              </RequireAuth>
+            }
+          />
+
+          {/* Saved items */}
+          <Route
+            path="/saved-items"
+            element={
+              <RequireAuth>
+                <SavedItems />
+              </RequireAuth>
+            }
+          />
+
           <Route path="/login" element={<Login />} />
+
           <Route path="/signup" element={<Signup />} />
+
           <Route path="/ui-test" element={<UITest />} />
+
           <Route
             path="/profile"
             element={
@@ -82,6 +120,7 @@ function AppShell() {
           />
         </Routes>
       </main>
+
       {!isAppShell && !isProfileRoute ? <Footer /> : null}
     </div>
   );

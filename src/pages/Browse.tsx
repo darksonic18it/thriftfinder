@@ -1,124 +1,18 @@
-import React, { useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Search, MapPin, Loader2, PackageOpen, AlertCircle } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
+import { listingService } from '../services/listingService';
+import { favoriteService } from '../services/favoriteService';
+import { browseRowToProduct } from '../lib/listingMappers';
+import { useAuth } from '../context/AuthContext';
+import { LISTING_CONDITIONS } from '../types/database';
 import './Browse.css';
 
-// Mock product data for the Browse page
-const mockProducts: Product[] = [
-  {
-    id: 'browse-1',
-    name: 'Vintage Denim Jacket',
-    price: 850,
-    condition: 'Excellent',
-    location: 'Quezon City',
-    seller: 'vintage_closet',
-    image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=600&auto=format&fit=crop',
-    tag: 'Vintage 90s',
-  },
-  {
-    id: 'browse-2',
-    name: 'Nike Sneakers',
-    price: 1200,
-    condition: 'Like New',
-    location: 'Makati City',
-    seller: 'kicks_manila',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-3',
-    name: 'Y2K Shoulder Bag',
-    price: 650,
-    condition: 'Good',
-    location: 'Cebu City',
-    seller: 'retrochic.ph',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop',
-    tag: 'Trending',
-  },
-  {
-    id: 'browse-4',
-    name: 'Graphic T-Shirt',
-    price: 450,
-    condition: 'Good',
-    location: 'Pasig City',
-    seller: 'thrifted_finds',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-5',
-    name: 'Vintage Camera',
-    price: 2500,
-    condition: 'Like New',
-    location: 'Manila',
-    seller: 'analog_vault',
-    image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=600&auto=format&fit=crop',
-    tag: 'Rare',
-  },
-  {
-    id: 'browse-6',
-    name: 'Cargo Pants',
-    price: 700,
-    condition: 'Good',
-    location: 'Taguig City',
-    seller: 'street_wear_ph',
-    image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-7',
-    name: 'Leather Bag',
-    price: 900,
-    condition: 'Excellent',
-    location: 'Davao City',
-    seller: 'classic_leather',
-    image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-8',
-    name: 'Retro Game Console',
-    price: 1800,
-    condition: 'Fair',
-    location: 'Mandaluyong',
-    seller: 'nostalgia_arcade',
-    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-9',
-    name: 'Vintage Sunglasses',
-    price: 580,
-    condition: 'Excellent',
-    location: 'Quezon City',
-    seller: 'retro_accessories',
-    image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-10',
-    name: 'Varsity Jacket',
-    price: 950,
-    condition: 'Good',
-    location: 'Manila',
-    seller: 'campus_vibes',
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-11',
-    name: 'Leather Boots',
-    price: 1350,
-    condition: 'Like New',
-    location: 'Makati City',
-    seller: 'footwear_ph',
-    image: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'browse-12',
-    name: 'Vintage Watch',
-    price: 2200,
-    condition: 'Excellent',
-    location: 'Pasig City',
-    seller: 'timeless_watches',
-    image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=600&auto=format&fit=crop',
-    tag: 'Rare',
-  },
-];
-
+/**
+ * Static UI configuration — NOT mock marketplace data. These labels drive the
+ * category filter chips and are sent to browse_listings() as p_category.
+ * They match src/types/database.ts LISTING_CATEGORIES (plus 'All').
+ */
 const categories = [
   'All',
   'Clothing',
@@ -128,21 +22,123 @@ const categories = [
   'Collectibles',
   'Bags',
   'Vintage',
+  'Furniture',
+  'Books',
+  'Sports',
   'Others',
 ];
 
+const conditions = ['All', ...LISTING_CONDITIONS];
+
 const Browse: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCondition, setSelectedCondition] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
-  const toggleFavorite = (productId: string, e: React.MouseEvent) => {
+  // Debounce the keyword so typing doesn't fire a query per keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  const parsedMin = useMemo(() => {
+    const n = Number(minPrice);
+    return minPrice.trim() && Number.isFinite(n) ? n : null;
+  }, [minPrice]);
+
+  const parsedMax = useMemo(() => {
+    const n = Number(maxPrice);
+    return maxPrice.trim() && Number.isFinite(n) ? n : null;
+  }, [maxPrice]);
+
+  const loadListings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const { data, error: loadError } = await listingService.browse({
+      search: debouncedSearch,
+      category: selectedCategory,
+      condition: selectedCondition,
+      minPrice: parsedMin,
+      maxPrice: parsedMax,
+      limit: 48,
+    });
+
+    if (loadError || !data) {
+      setProducts([]);
+      setError(loadError?.message ?? 'Could not load listings.');
+      setLoading(false);
+      return;
+    }
+
+    setProducts(data.map(browseRowToProduct));
+    setLoading(false);
+  }, [debouncedSearch, selectedCategory, selectedCondition, parsedMin, parsedMax]);
+
+  useEffect(() => {
+    void loadListings();
+  }, [loadListings]);
+
+  // Saved items (OPTIONAL module — requires migration 04 + favoriteService).
+  // If the favorites table is absent the call fails quietly and hearts simply
+  // stay unfilled, so Browse keeps working without it.
+  useEffect(() => {
+    let active = true;
+    if (!isAuthenticated) {
+      setFavorites({});
+      return;
+    }
+
+    (async () => {
+      const { data } = await favoriteService.getMyFavoriteIds();
+      if (!active || !data) return;
+      const map: Record<string, boolean> = {};
+      data.forEach((id) => {
+        map[id] = true;
+      });
+      setFavorites(map);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
+
+  const toggleFavorite = async (productId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setFavorites((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
+    if (!isAuthenticated) return;
+
+    const currentlySaved = !!favorites[productId];
+    // Optimistic flip, reverted if the database rejects it.
+    setFavorites((prev) => ({ ...prev, [productId]: !currentlySaved }));
+
+    const { error: toggleError } = await favoriteService.toggleFavorite(
+      productId,
+      currentlySaved
+    );
+
+    if (toggleError) {
+      setFavorites((prev) => ({ ...prev, [productId]: currentlySaved }));
+    }
   };
+
+  const hasActiveFilters =
+    debouncedSearch.trim().length > 0 ||
+    selectedCategory !== 'All' ||
+    selectedCondition !== 'All' ||
+    parsedMin !== null ||
+    parsedMax !== null;
 
   return (
     <div className="browse-page">
@@ -187,22 +183,89 @@ const Browse: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/*
+            SRS FR-004 requires filtering by keyword, category, PRICE RANGE and
+            CONDITION. The shipped UI only had keyword + category, so this row
+            is the minimum addition needed to satisfy the requirement. It reuses
+            the existing .category-btn chip styling.
+          */}
+          <div className="browse-refine-row">
+            <div className="condition-filter">
+              {conditions.map((c) => (
+                <button
+                  key={c}
+                  className={`category-btn ${selectedCondition === c ? 'active' : ''}`}
+                  onClick={() => setSelectedCondition(c)}
+                >
+                  {c === 'All' ? 'Any condition' : c}
+                </button>
+              ))}
+            </div>
+
+            <div className="price-range-filter">
+              <span className="price-range-label">₱</span>
+              <input
+                type="number"
+                min={0}
+                className="price-range-input"
+                placeholder="Min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                aria-label="Minimum price"
+              />
+              <span className="price-range-dash">–</span>
+              <input
+                type="number"
+                min={0}
+                className="price-range-input"
+                placeholder="Max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                aria-label="Maximum price"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Product Grid */}
       <div className="browse-products">
         <div className="browse-products-container">
-          <div className="products-grid">
-            {mockProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                isFavorite={!!favorites[product.id]}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="browse-state" role="status" aria-live="polite">
+              <Loader2 size={28} className="browse-state-spinner" />
+              <p>Loading listings…</p>
+            </div>
+          ) : error ? (
+            <div className="browse-state" role="alert">
+              <AlertCircle size={28} className="browse-state-icon" />
+              <p>{error}</p>
+              <button type="button" className="category-btn active" onClick={() => void loadListings()}>
+                Try again
+              </button>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="browse-state">
+              <PackageOpen size={28} className="browse-state-icon" />
+              <p>
+                {hasActiveFilters
+                  ? 'No items match your search yet. Try a different keyword or filter.'
+                  : 'No items have been listed yet. Be the first to sell something!'}
+              </p>
+            </div>
+          ) : (
+            <div className="products-grid">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorite={!!favorites[product.id]}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

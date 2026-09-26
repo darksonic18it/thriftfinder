@@ -457,3 +457,29 @@
     gap: 0.5rem;
   }
 }
+
+/* =====================================================================
+   Phase 2 additions — APPEND to the end of the existing
+   src/pages/ListingDetails.css
+   For: reservation status note, error note. Reuses existing color tokens.
+   ===================================================================== */
+
+.listing-status-note {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  background-color: rgba(99, 102, 241, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.listing-status-note--mine {
+  background-color: rgba(40, 89, 67, 0.1);
+  color: var(--color-text-primary);
+}
+
+.listing-status-note--error {
+  background-color: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}

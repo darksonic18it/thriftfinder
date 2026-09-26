@@ -171,3 +171,101 @@
   z-index: auto;
   box-shadow: none;
 }
+
+/* =====================================================================
+   Phase 2 additions — APPEND to the end of the existing src/pages/Browse.css
+   Do not replace the file; these are new rules only, for:
+     - the condition + price-range refine row (FR-004)
+     - loading / error / empty states
+   ===================================================================== */
+
+.browse-refine-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.condition-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.price-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: var(--color-bg-main);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.4rem 0.75rem;
+}
+
+.price-range-label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.price-range-dash {
+  color: var(--color-text-muted);
+}
+
+.price-range-input {
+  width: 72px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.price-range-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Loading / error / empty states for the product grid */
+.browse-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.browse-state p {
+  max-width: 420px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.browse-state-spinner {
+  color: var(--color-primary);
+  animation: browse-spin 0.9s linear infinite;
+}
+
+.browse-state-icon {
+  color: var(--color-text-muted);
+}
+
+@keyframes browse-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-refine-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
