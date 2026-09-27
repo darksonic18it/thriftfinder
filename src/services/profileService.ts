@@ -13,13 +13,11 @@ export const profileService = {
   /**
    * Loads the profile row for a user id.
    * Returns null when no row exists yet (RLS also returns null for other users).
-   *
-   * UNCHANGED from Phase 1 — AuthContext depends on this exact signature.
    */
   async getProfileById(profileId: string): Promise<Profile | null> {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, contact_phone, avatar_path, created_at, updated_at')
+      .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
       .eq('id', profileId)
       .maybeSingle()
 
@@ -73,7 +71,12 @@ export const profileService = {
    * RLS restricts this to id = auth.uid(); the .eq() is only for clarity.
    */
   async updateMyProfile(
-    patch: { full_name?: string; contact_phone?: string | null }
+    patch: {
+      full_name?: string
+      contact_phone?: string | null
+      avatar_path?: string | null
+      cover_path?: string | null
+    }
   ): Promise<ServiceResult<Profile>> {
     const { data: auth, error: authError } = await supabase.auth.getUser()
     if (authError || !auth?.user) {
@@ -84,7 +87,7 @@ export const profileService = {
       .from('profiles')
       .update(patch)
       .eq('id', auth.user.id)
-      .select('id, full_name, contact_phone, avatar_path, created_at, updated_at')
+      .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
       .maybeSingle()
 
     if (error) {

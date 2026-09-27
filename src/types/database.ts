@@ -72,6 +72,7 @@ export interface Profile {
   full_name: string
   contact_phone: string | null
   avatar_path: string | null
+  cover_path: string | null
   created_at: string
   updated_at: string
 }
@@ -216,3 +217,6 @@ export interface ServiceError {
 export type ServiceResult<T> =
   | { data: T; error: null }
   | { data: null; error: ServiceError }
+
+export const PROFILE_AVATARS_BUCKET = 'profile-avatars'
+export const PROFILE_COVERS_BUCKET = 'profile-covers'
