@@ -1623,3 +1623,207 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   PUBLIC PROFILE
+   --------------------------------------------------------------------------
+   These styles only affect /profile/:userId.
+   Owner profile styling remains unchanged.
+   ========================================================================== */
+
+/* Public profiles should not leave an empty second column beside the hero. */
+.profile-dashboard__row--two-col
+  .profile-card--summary:only-child {
+  grid-column: 1 / -1;
+}
+
+/* Public profile hero */
+.profile-card--summary {
+  min-width: 0;
+}
+
+/* Public profile message action */
+.profile-card--summary .profile-summary__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+/* Make the public Message button feel like the primary profile action. */
+.profile-card--summary
+  .profile-summary__actions
+  .profile-btn-sm-outline {
+  min-height: 38px;
+  padding: 0.55rem 0.95rem;
+
+  border-radius: 10px;
+
+  background: var(--profile-accent-soft);
+  border-color: var(--profile-accent-border);
+
+  color: var(--profile-accent-bright);
+
+  opacity: 1;
+}
+
+/*
+ * The button is intentionally disabled because messaging backend
+ * is not implemented yet, but visually it should still look like
+ * a real future action.
+ */
+.profile-card--summary
+  .profile-summary__actions
+  .profile-btn-sm-outline:disabled {
+  opacity: 1;
+  cursor: default;
+  transform: none;
+}
+
+.profile-card--summary
+  .profile-summary__actions
+  .profile-btn-sm-outline:disabled:hover {
+  background: var(--profile-accent-soft);
+  border-color: var(--profile-accent-border);
+  color: var(--profile-accent-bright);
+}
+
+
+/* ==========================================================================
+   PUBLIC LISTINGS
+   ========================================================================== */
+
+.profile-listing-thumb {
+  width: 68px;
+  height: 68px;
+
+  flex-shrink: 0;
+
+  object-fit: cover;
+
+  border-radius: 10px;
+
+  border: 1px solid var(--profile-border);
+
+  background: var(--profile-surface-raised);
+
+  display: block;
+}
+
+/*
+ * Public listing rows have an image, title and price/location.
+ * Give the existing reservation row a little more breathing room.
+ */
+.profile-card--listings
+  .profile-listing-thumb
+  + .profile-reservation-item__info {
+  min-width: 0;
+}
+
+.profile-card--listings
+  .profile-reservation-item {
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  min-height: 84px;
+
+  padding: 0.7rem 0.8rem;
+}
+
+/* Public listing title */
+.profile-card--listings
+  .profile-reservation-item__name {
+  display: block;
+
+  max-width: 100%;
+
+  font-size: 0.94rem;
+  font-weight: 720;
+
+  line-height: 1.35;
+}
+
+/* Price + city pill */
+.profile-card--listings
+  .profile-status-pill {
+  color: var(--profile-text-soft);
+
+  background: var(--profile-overlay);
+
+  border-color: var(--profile-border);
+
+  font-weight: 650;
+}
+
+.profile-card--listings
+  .profile-status-pill__dot {
+  background: var(--profile-accent-bright);
+}
+
+/* Public listing hover */
+.profile-card--listings
+  .profile-reservation-item:hover {
+  border-color: var(--profile-accent-border);
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--profile-accent-soft),
+      var(--profile-overlay)
+    );
+}
+
+
+/* ==========================================================================
+   PUBLIC PROFILE EMPTY STATE
+   ========================================================================== */
+
+.profile-card--listings .profile-empty-note {
+  padding: 1.25rem 0.25rem;
+}
+
+
+/* ==========================================================================
+   PUBLIC PROFILE RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .profile-card--summary
+    .profile-summary__actions
+    .profile-btn-sm-outline {
+    width: 100%;
+  }
+
+  .profile-card--listings
+    .profile-reservation-item {
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+  }
+
+  .profile-card--listings
+    .profile-status-pill {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .profile-listing-thumb {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-card--summary
+    .profile-summary__actions
+    .profile-btn-sm-outline {
+    width: 100%;
+  }
+
+  .profile-listing-thumb {
+    width: 54px;
+    height: 54px;
+  }
+}

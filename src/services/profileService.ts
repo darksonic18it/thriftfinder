@@ -7,6 +7,8 @@ export interface ProfileDisplay {
   id: UUID
   full_name: string
   avatar_path: string | null
+  cover_path: string | null
+  created_at: string
 }
 
 export const profileService = {

@@ -336,9 +336,13 @@ const ListingDetails: React.FC = () => {
               profile page is out of this phase's scope, so its behavior is
               unchanged rather than invented.
             */}
-            <Button variant="outline" className="view-seller-btn" onClick={() => {}}>
-              View Seller
-            </Button>
+            <Button
+                variant="outline"
+                className="view-seller-btn"
+                onClick={() => navigate(`/profile/${listing.seller_id}`)}
+              >
+                View Seller
+              </Button>
           </div>
 
           <div className="divider"></div>

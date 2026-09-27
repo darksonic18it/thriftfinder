@@ -249,6 +249,52 @@ export const listingService = {
     return { data: rows, error: null }
   },
 
+    // -------------------------------------------------------------------
+  // READ — public listings by seller
+  // -------------------------------------------------------------------
+  async getPublicListingsBySeller(
+    sellerId: UUID
+  ): Promise<ServiceResult<MyListingRow[]>> {
+    const { data, error } = await supabase
+      .from('listings')
+      .select(
+        'id, title, price, status, city, created_at, listing_images(storage_path, sort_order)'
+      )
+      .eq('seller_id', sellerId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[listingService.getPublicListingsBySeller]', error)
+      return {
+        data: null,
+        error: describeError(error, 'Could not load this user’s listings.'),
+      }
+    }
+
+    const rows: MyListingRow[] = (data ?? []).map((row) => {
+      const r = row as MyListingRow & {
+        listing_images?: { storage_path: string; sort_order: number }[]
+      }
+
+      const cover = (r.listing_images ?? [])
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)[0]
+
+      return {
+        id: r.id,
+        title: r.title,
+        price: r.price,
+        status: r.status,
+        city: r.city,
+        created_at: r.created_at,
+        cover_image_path: cover?.storage_path ?? null,
+      }
+    })
+
+    return { data: rows, error: null }
+  },
+
   /** Raw row + images for the edit form. Owner only (checked here and by RLS). */
   async getForEdit(listingId: UUID): Promise<
     ServiceResult<{ listing: Listing; images: { id: UUID; storage_path: string; sort_order: number }[] }>

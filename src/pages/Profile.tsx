@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Check,
@@ -21,12 +21,13 @@ import {
 } from 'lucide-react';
 import { listingService, type MyListingRow } from '../services/listingService';
 import { reservationService } from '../services/reservationService';
-import { profileService } from '../services/profileService';
+import { profileService, type ProfileDisplay } from '../services/profileService';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
 import { supabase } from '../lib/supabaseClient';
 import { formatPeso, randomToken, sanitizeFileName, describeError } from '../lib/listingMappers';
 import {
+  LISTING_PHOTOS_BUCKET,
   PROFILE_AVATARS_BUCKET,
   PROFILE_COVERS_BUCKET,
   type MyStatsRow,
@@ -92,25 +93,44 @@ const EMPTY_STATS: MyStatsRow = {
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const { user, profile, displayName, refreshProfile } = useAuth();
 
-  const initials = getInitials(displayName);
+  const viewingUserId = userId ?? user?.id ?? null;
+  const isOwner = !!viewingUserId && viewingUserId === user?.id;
+
   const isEmailVerified = !!user?.email_confirmed_at;
-  const isOwner = !!(user && profile?.id && profile.id === user.id);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+
+  const [viewedProfile, setViewedProfile] = useState<ProfileDisplay | null>(null);
+  const [publicListings, setPublicListings] = useState<MyListingRow[]>([]);
+
+  const [publicListingImageUrls, setPublicListingImageUrls] = useState<
+  Record<string, string>
+  >({});
+
+  const profileName = isOwner
+    ? displayName
+    : viewedProfile?.full_name ?? 'User';
+
+  const initials = getInitials(profileName);
 
   const [followCounts, setFollowCounts] = useState<
     { followers: number; following: number } | null
   >(null);
 
-  const memberSince = profile?.created_at
-    ? new Date(profile.created_at).toLocaleDateString(undefined, {
-        month: 'short',
-        year: 'numeric',
-      })
-    : '—';
+  const memberSinceDate = isOwner
+  ? profile?.created_at
+  : viewedProfile?.created_at;
+
+const memberSince = memberSinceDate
+  ? new Date(memberSinceDate).toLocaleDateString(undefined, {
+      month: 'short',
+      year: 'numeric',
+    })
+  : '—';
 
   const [stats, setStats] = useState<MyStatsRow>(EMPTY_STATS);
   const [savedCount, setSavedCount] = useState(0);
@@ -156,9 +176,104 @@ const Profile: React.FC = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
+    const loadViewedProfile = useCallback(async () => {
+    if (!userId || isOwner) {
+      setViewedProfile(null);
+      return;
+    }
+
+    setLoading(true);
+    setActionError(null);
+
+    const publicProfile = await profileService.getProfileDisplay(userId);
+
+    if (!publicProfile) {
+      setViewedProfile(null);
+      setActionError('User profile not found.');
+      setLoading(false);
+      return;
+    }
+
+    setViewedProfile(publicProfile);
+    setLoading(false);
+  }, [userId, isOwner]);
+
+  const loadPublicListings = useCallback(async () => {
+  if (!userId || isOwner) {
+    setPublicListings([]);
+    return;
+  }
+
+  const result = await listingService.getPublicListingsBySeller(userId);
+
+  if (result.error) {
+    console.error('[Profile] Failed to load public listings:', result.error);
+    setPublicListings([]);
+    setActionError(result.error.message);
+    return;
+  }
+
+  setPublicListings(result.data ?? []);
+}, [userId, isOwner]);
+
+  const loadPublicListingImages = useCallback(async () => {
+  if (isOwner || publicListings.length === 0) {
+    setPublicListingImageUrls({});
+    return;
+  }
+
+  const entries = await Promise.all(
+    publicListings
+      .filter((listing) => listing.cover_image_path)
+      .map(async (listing) => {
+        const { data, error } = await supabase.storage
+          .from(LISTING_PHOTOS_BUCKET)
+          .createSignedUrl(listing.cover_image_path!, 60 * 60);
+
+        if (error) {
+          console.error(
+            '[Profile] Failed to create listing image URL:',
+            error
+          );
+          return null;
+        }
+
+        return data?.signedUrl
+          ? ([listing.id, data.signedUrl] as const)
+          : null;
+      })
+  );
+
+  setPublicListingImageUrls(
+    Object.fromEntries(
+      entries.filter(
+        (entry): entry is readonly [string, string] => entry !== null
+      )
+    )
+  );
+}, [isOwner, publicListings]);
+
+    useEffect(() => {
+  if (isOwner) {
     void loadAll();
-  }, [loadAll]);
+    return;
+  }
+
+  if (userId) {
+    void loadViewedProfile();
+    void loadPublicListings();
+  }
+}, [
+  isOwner,
+  userId,
+  loadAll,
+  loadViewedProfile,
+  loadPublicListings,
+]);
+
+useEffect(() => {
+  void loadPublicListingImages();
+}, [loadPublicListingImages]);
 
   useEffect(() => {
     setFullNameDraft(profile?.full_name ?? displayName ?? '');
@@ -166,64 +281,83 @@ const Profile: React.FC = () => {
   }, [profile, displayName]);
 
   useEffect(() => {
-    if (!profile?.id) return;
+  const targetUserId = isOwner ? user?.id : viewedProfile?.id;
 
-    void (async () => {
-      const res = await followService.getFollowCounts(profile.id);
-      if (res.data) {
-        setFollowCounts({ followers: res.data.followers_count, following: res.data.following_count });
-      } else {
-        setFollowCounts(null);
-      }
-    })();
-  }, [profile?.id]);
+  if (!targetUserId) {
+    setFollowCounts(null);
+    return;
+  }
 
-    useEffect(() => {
-    const avatarPath = profile?.avatar_path
-    if (avatarPath == null) {
-      setAvatarUrl(null)
-      return
+  void (async () => {
+    const res = await followService.getFollowCounts(targetUserId);
+
+    if (res.data) {
+      setFollowCounts({
+        followers: res.data.followers_count,
+        following: res.data.following_count,
+      });
+    } else {
+      setFollowCounts(null);
     }
-
-    void (async () => {
-      try {
-        const { data, error } = await supabase.storage
-          .from(PROFILE_AVATARS_BUCKET)
-          .createSignedUrl(avatarPath, 60 * 60)
-        if (error) {
-          console.error('[avatar signed url]', error)
-        }
-        setAvatarUrl(data?.signedUrl ?? null)
-      } catch (err) {
-        console.error('[avatar signed url] threw', err)
-        setAvatarUrl(null)
-      }
-    })()
-  }, [profile?.avatar_path]);
-
+  })();
+  }, [isOwner, user?.id, viewedProfile?.id]);
 
   useEffect(() => {
-    const coverPath = profile?.cover_path
-    if (coverPath == null) {
-      setCoverUrl(null)
-      return
-    }
+  const avatarPath = isOwner
+    ? profile?.avatar_path
+    : viewedProfile?.avatar_path;
 
-    void (async () => {
-      try {
-        const { data, error } = await supabase.storage
-          .from(PROFILE_COVERS_BUCKET)
-          .createSignedUrl(coverPath, 60 * 60)
-        if (error) {
-          console.error('[cover signed url]', error)
-        }
-        setCoverUrl(data?.signedUrl ?? null)
-      } catch (err) {
-        console.error('[cover signed url] threw', err)
-        setCoverUrl(null)
+  if (avatarPath == null) {
+    setAvatarUrl(null);
+    return;
+  }
+
+  void (async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(PROFILE_AVATARS_BUCKET)
+        .createSignedUrl(avatarPath, 60 * 60);
+
+      if (error) {
+        console.error('[avatar signed url]', error);
       }
-    })()
-  }, [profile?.cover_path]);
+
+      setAvatarUrl(data?.signedUrl ?? null);
+    } catch (err) {
+      console.error('[avatar signed url] threw', err);
+      setAvatarUrl(null);
+    }
+  })();
+  }, [isOwner, profile?.avatar_path, viewedProfile?.avatar_path]);
+
+
+useEffect(() => {
+  const coverPath = isOwner
+    ? profile?.cover_path
+    : viewedProfile?.cover_path;
+
+  if (coverPath == null) {
+    setCoverUrl(null);
+    return;
+  }
+
+  void (async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(PROFILE_COVERS_BUCKET)
+        .createSignedUrl(coverPath, 60 * 60);
+
+      if (error) {
+        console.error('[cover signed url]', error);
+      }
+
+      setCoverUrl(data?.signedUrl ?? null);
+    } catch (err) {
+      console.error('[cover signed url] threw', err);
+      setCoverUrl(null);
+    }
+  })();
+}, [isOwner, profile?.cover_path, viewedProfile?.cover_path]);
 
 
   // Live preview of a newly chosen avatar/cover file, before it's uploaded.
@@ -440,12 +574,12 @@ const Profile: React.FC = () => {
           <section className="profile-card profile-card--summary" aria-label="Profile summary">
             <div className="profile-summary__cover">
               {editing && coverPreview ? (
-                <img src={coverPreview} alt="" />
-              ) : profile?.cover_path && coverUrl ? (
-                <img src={coverUrl} alt="" />
-              ) : (
-                <div className="profile-summary__cover-fallback" />
-              )}
+                    <img src={coverPreview} alt="" />
+                  ) : coverUrl ? (
+                    <img src={coverUrl} alt="" />
+                  ) : (
+                    <div className="profile-summary__cover-fallback" />
+                  )}
               <div className="profile-summary__cover-overlay" />
 
               {isOwner && editing ? (
@@ -464,12 +598,12 @@ const Profile: React.FC = () => {
               <div className="profile-summary__avatar-wrap">
                 <div className="profile-summary__avatar">
                   {editing && avatarPreview ? (
-                    <img src={avatarPreview} alt="" />
-                  ) : profile?.avatar_path && avatarUrl ? (
-                    <img src={avatarUrl} alt="" />
-                  ) : (
-                    <span>{initials}</span>
-                  )}
+                      <img src={avatarPreview} alt="" />
+                    ) : avatarUrl ? (
+                      <img src={avatarUrl} alt="" />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
                 </div>
 
                 {isOwner && isEmailVerified ? (
@@ -491,7 +625,7 @@ const Profile: React.FC = () => {
               </div>
 
               <div className="profile-summary__identity">
-                <h1 className="profile-summary__name">{displayName}</h1>
+                <h1 className="profile-summary__name">{profileName}</h1>
                 <p className="profile-summary__role">User</p>
               </div>
             </div>
@@ -609,6 +743,7 @@ const Profile: React.FC = () => {
           </section>
 
           {/* Right Card: Active Reservations (as buyer) */}
+          {isOwner && (
           <section
             className="profile-card profile-card--reservations"
             aria-label="Active reservations"
@@ -662,9 +797,11 @@ const Profile: React.FC = () => {
               )}
             </div>
           </section>
+          )}
         </div>
 
         {/* Row 1b: Reservations on MY listings (seller side). */}
+        {isOwner && (
         <section className="profile-card profile-card--reservations" aria-label="Reservations on my listings">
           <div className="profile-card__header">
             <div className="profile-card__title-wrap">
@@ -745,8 +882,10 @@ const Profile: React.FC = () => {
             )}
           </div>
         </section>
+        )}
 
         {/* Row 2: My Listings */}
+        {isOwner && (
         <section className="profile-card profile-card--listings" aria-label="My listings summary">
           <div className="profile-card__header">
             <div className="profile-card__title-wrap">
@@ -830,8 +969,62 @@ const Profile: React.FC = () => {
             )}
           </div>
         </section>
+        )}
+
+                  {!isOwner && (
+          <section
+            className="profile-card profile-card--listings"
+            aria-label="Public listings"
+          >
+            <div className="profile-card__header">
+              <div className="profile-card__title-wrap">
+                <Package size={18} className="profile-card__header-icon" />
+                <h2 className="profile-card__title">Listings</h2>
+              </div>
+            </div>
+
+            <div className="profile-reservations__list">
+              {loading ? (
+                <p className="profile-empty-note">Loading…</p>
+              ) : publicListings.length === 0 ? (
+                <p className="profile-empty-note">
+                  {profileName} has no active listings.
+                </p>
+              ) : (
+                publicListings.map((item) => (
+                  <div className="profile-reservation-item" key={item.id}>
+                    {publicListingImageUrls[item.id] && (
+                      <img
+                        src={publicListingImageUrls[item.id]}
+                        alt=""
+                        className="profile-listing-thumb"
+                      />
+                    )}
+
+                    <div className="profile-reservation-item__info">
+                      <button
+                        type="button"
+                        className="profile-reservation-item__name profile-linkish"
+                        onClick={() => navigate(`/listing/${item.id}`)}
+                      >
+                        {item.title}
+                      </button>
+                    </div>
+
+                    <span className="profile-status-pill">
+                      <span className="profile-status-pill__dot" />
+                      {formatPeso(item.price)} · {item.city}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        )}
+
 
         {/* Row 3: Four Small Stat Cards */}
+        {isOwner && (
         <div className="profile-dashboard__row profile-dashboard__row--four-col" aria-label="Quick metrics">
           {/* Card 1: Reviews — FR-011 is Low priority, not built yet */}
           <div className="profile-stat-card">
@@ -892,8 +1085,10 @@ const Profile: React.FC = () => {
             </div>
           </button>
         </div>
+        )}
 
         {/* Row 4: Transaction History (finished reservations, as a buyer) */}
+        {isOwner && (
         <section className="profile-card profile-card--transactions" aria-label="Transaction history">
           <div className="profile-card__header">
             <div className="profile-card__title-wrap">
@@ -931,6 +1126,7 @@ const Profile: React.FC = () => {
             )}
           </div>
         </section>
+        )}
       </div>
     </div>
   );

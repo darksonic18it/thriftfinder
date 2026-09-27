@@ -35,7 +35,9 @@ function LandingPage() {
 function AppShell() {
   const location = useLocation();
 
-  const isProfileRoute = location.pathname === '/profile';
+  const isProfileRoute =
+    location.pathname === '/profile' ||
+    location.pathname.startsWith('/profile/');
 
   const isAppShell =
     location.pathname === '/dashboard' ||
@@ -112,6 +114,15 @@ function AppShell() {
 
           <Route
             path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/profile/:userId"
             element={
               <RequireAuth>
                 <Profile />
