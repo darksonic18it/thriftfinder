@@ -6,6 +6,7 @@ import {
   Calendar,
   Clock,
   Pencil,
+  Trash2,
   Package,
   Plus,
   Star,
@@ -118,6 +119,7 @@ const Profile: React.FC = () => {
   const [incoming, setIncoming] = useState<ReservationWithListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
 
   // Inline profile editing (FR-002)
   const [editing, setEditing] = useState(false);
@@ -331,6 +333,8 @@ const Profile: React.FC = () => {
     }
   };
 
+  
+
   const runReservationAction = async (
     action: () => Promise<{ error: { message: string } | null }>
   ) => {
@@ -342,6 +346,57 @@ const Profile: React.FC = () => {
     }
     await loadAll();
   };
+
+  const handleDeleteListing = async (listingId: string, title: string) => {
+  setDeletingListingId(listingId)
+  setActionError(null)
+
+  // rest of your existing code...
+  setActionError(null)
+
+  try {
+    const infoResult = await listingService.getDeleteInfo(listingId)
+
+    if (infoResult.error) {
+      setActionError(infoResult.error.message)
+      return
+    }
+
+    if (!infoResult.data) {
+      setActionError('Could not verify the listing.')
+      return
+    }
+
+    const { hasReservations } = infoResult.data
+
+    const confirmed = hasReservations
+      ? window.confirm(
+          `⚠️ This listing has existing reservation history.\n\n` +
+            `Deleting "${title}" will permanently delete the listing, ` +
+            `all of its photos, and the associated reservation records.\n\n` +
+            `This action cannot be undone.\n\n` +
+            `Do you want to permanently delete this listing?`
+        )
+      : window.confirm(
+          `Delete "${title}" permanently?\n\n` +
+            `This will permanently delete the listing and all of its photos. ` +
+            `This action cannot be undone.`
+        )
+
+    if (!confirmed) return
+
+    const { error } = await listingService.hardDeleteListing(listingId)
+
+    if (error) {
+      setActionError(error.message)
+      return
+    }
+
+    await loadAll()
+  } finally {
+    setDeletingListingId(null)
+  }
+};
 
   const activeReservations = myReservations.filter((r) => ['Pending', 'Confirmed'].includes(String(r.status)));
   const pastReservations = myReservations.filter((r) => ['Completed', 'Cancelled', 'Expired'].includes(String(r.status)));
@@ -749,13 +804,27 @@ const Profile: React.FC = () => {
                     <span className="profile-status-pill__dot" />
                     {formatPeso(item.price)} · {item.status === 'active' ? 'Active' : 'Archived'}
                   </span>
-                  <button
-                    type="button"
-                    className="profile-btn-sm-outline"
-                    onClick={() => navigate(`/edit-listing/${item.id}`)}
-                  >
-                    <span>Edit</span>
-                  </button>
+                  <div className="profile-listing-actions">
+                      <button
+                        type="button"
+                        className="profile-btn-sm-outline"
+                        onClick={() => navigate(`/edit-listing/${item.id}`)}
+                        disabled={deletingListingId === item.id}
+                      >
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="profile-listing-delete-btn"
+                        onClick={() => handleDeleteListing(item.id, item.title)}
+                        disabled={deletingListingId === item.id}
+                        aria-label={`Delete ${item.title}`}
+                        title="Delete listing permanently"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                 </div>
               ))
             )}

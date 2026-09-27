@@ -396,19 +396,15 @@ export const listingService = {
   },
 
   // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
   // ARCHIVE / DELETE (FR-003)
   // -------------------------------------------------------------------
+
   /**
    * The normal "remove this listing" action.
    *
-   * Archive (not hard delete) is the right default here because
-   * reservations.listing_id is ON DELETE CASCADE — a hard delete would erase
-   * the buyer's reservation history along with the listing, breaking FR-007
-   * (both parties can see reservation state) and the Low-priority FR-011
-   * ratings that hang off completed reservations. Archived listings are
-   * excluded from browse_listings(), so FR-003's acceptance criterion —
-   * "a deleted listing no longer appears in browse or search results" — still
-   * holds.
+   * Archive is still available for flows that need to preserve reservation
+   * history without permanently removing the listing.
    */
   async archiveListing(listingId: UUID): Promise<ServiceResult<true>> {
     const auth = await requireUserId()
@@ -424,14 +420,22 @@ export const listingService = {
 
     if (error) {
       console.error('[listingService.archiveListing]', error)
-      return { data: null, error: describeError(error, 'Could not archive the listing.') }
+      return {
+        data: null,
+        error: describeError(error, 'Could not archive the listing.'),
+      }
     }
+
     if (!data) {
       return {
         data: null,
-        error: { message: 'You can only archive your own listings.', code: '42501' },
+        error: {
+          message: 'You can only archive your own listings.',
+          code: '42501',
+        },
       }
     }
+
     return { data: true, error: null }
   },
 
@@ -449,35 +453,229 @@ export const listingService = {
 
     if (error) {
       console.error('[listingService.unarchiveListing]', error)
-      return { data: null, error: describeError(error, 'Could not restore the listing.') }
+      return {
+        data: null,
+        error: describeError(error, 'Could not restore the listing.'),
+      }
     }
+
     if (!data) {
-      return { data: null, error: { message: 'You can only restore your own listings.', code: '42501' } }
+      return {
+        data: null,
+        error: {
+          message: 'You can only restore your own listings.',
+          code: '42501',
+        },
+      }
     }
+
     return { data: true, error: null }
   },
 
   /**
-   * Permanent removal. Used by the create-listing rollback, and available to
-   * a seller for a listing that was never reserved. Storage objects are
-   * removed BEFORE the row, because the storage DELETE policy checks that the
-   * owning listing still exists.
+   * Check whether a listing has reservation records before showing the
+   * permanent-delete confirmation.
    */
-  async hardDeleteListing(listingId: UUID): Promise<ServiceResult<true>> {
+  async getDeleteInfo(
+    listingId: UUID
+  ): Promise<ServiceResult<{ hasReservations: boolean }>> {
+    const auth = await requireUserId()
+
+    if (auth.userId === null) {
+      return { data: null, error: auth.error }
+    }
+
+    const { data: listing, error: listingError } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('id', listingId)
+      .eq('seller_id', auth.userId)
+      .maybeSingle()
+
+    if (listingError) {
+      console.error('[listingService.getDeleteInfo:listing]', listingError)
+
+      return {
+        data: null,
+        error: describeError(
+          listingError,
+          'Could not verify the listing.'
+        ),
+      }
+    }
+
+    if (!listing) {
+      return {
+        data: null,
+        error: {
+          message: 'You can only delete your own listings.',
+          code: '42501',
+        },
+      }
+    }
+
+    const { count, error: reservationError } = await supabase
+      .from('reservations')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_id', listingId)
+
+    if (reservationError) {
+      console.error(
+        '[listingService.getDeleteInfo:reservations]',
+        reservationError
+      )
+
+      return {
+        data: null,
+        error: describeError(
+          reservationError,
+          'Could not check the listing reservations.'
+        ),
+      }
+    }
+
+    return {
+      data: {
+        hasReservations: (count ?? 0) > 0,
+      },
+      error: null,
+    }
+  },
+
+  /**
+   * Permanently delete a listing and its listing images.
+   *
+   * Storage objects are removed BEFORE the listing row because the Storage
+   * DELETE policy requires the owning listing to still exist.
+   *
+   * The existing database ON DELETE CASCADE behavior will remove related
+   * listing_images rows and any reservations associated with this listing.
+   */
+  async hardDeleteListing(
+    listingId: UUID
+  ): Promise<ServiceResult<{ deleted: true; hadReservations: boolean }>> {
+    const auth = await requireUserId()
+
+    if (auth.userId === null) {
+      return { data: null, error: auth.error }
+    }
+
+    // Verify that the signed-in user owns this listing.
+    const { data: listing, error: listingError } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('id', listingId)
+      .eq('seller_id', auth.userId)
+      .maybeSingle()
+
+    if (listingError) {
+      console.error(
+        '[listingService.hardDeleteListing:listing]',
+        listingError
+      )
+
+      return {
+        data: null,
+        error: describeError(
+          listingError,
+          'Could not verify the listing.'
+        ),
+      }
+    }
+
+    if (!listing) {
+      return {
+        data: null,
+        error: {
+          message: 'You can only delete your own listings.',
+          code: '42501',
+        },
+      }
+    }
+
+    // Check reservation history before doing anything destructive.
+    const { count, error: reservationError } = await supabase
+      .from('reservations')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_id', listingId)
+
+    if (reservationError) {
+      console.error(
+        '[listingService.hardDeleteListing:reservations]',
+        reservationError
+      )
+
+      return {
+        data: null,
+        error: describeError(
+          reservationError,
+          'Could not check the listing reservations.'
+        ),
+      }
+    }
+
+    const hadReservations = (count ?? 0) > 0
+
+    // Get all listing images before deleting the listing.
     const imagesResult = await listingImageService.listByListing(listingId)
+
+    if (imagesResult.error) {
+      return {
+        data: null,
+        error: imagesResult.error,
+      }
+    }
+
+    // Storage objects must be deleted before the listing row.
     if (imagesResult.data && imagesResult.data.length > 0) {
       await listingImageService.removeObjects(
         imagesResult.data.map((img) => img.storage_path)
       )
     }
 
-    const { error } = await supabase.from('listings').delete().eq('id', listingId)
+    // Delete the listing itself.
+    //
+    // The database FK will cascade to listing_images and reservations.
+    const { data, error } = await supabase
+      .from('listings')
+      .delete()
+      .eq('id', listingId)
+      .eq('seller_id', auth.userId)
+      .select('id')
+      .maybeSingle()
 
     if (error) {
-      console.error('[listingService.hardDeleteListing]', error)
-      return { data: null, error: describeError(error, 'Could not delete the listing.') }
+      console.error(
+        '[listingService.hardDeleteListing]',
+        error
+      )
+
+      return {
+        data: null,
+        error: describeError(
+          error,
+          'Could not delete the listing.'
+        ),
+      }
     }
-    return { data: true, error: null }
+
+    if (!data) {
+      return {
+        data: null,
+        error: {
+          message: 'The listing could not be deleted.',
+          code: 'P0001',
+        },
+      }
+    }
+
+    return {
+      data: {
+        deleted: true,
+        hadReservations,
+      },
+      error: null,
+    }
   },
 
   // -------------------------------------------------------------------
