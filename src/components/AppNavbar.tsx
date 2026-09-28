@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import {
-  Bell,
   Heart,
   LifeBuoy,
   LogOut,
@@ -18,6 +17,8 @@ import {
 import { gsap } from 'gsap'
 
 import ThemeToggle from './ThemeToggle'
+import NotificationBell from './NotificationBell'
+
 import './AppNavbar.css'
 
 import {
@@ -45,6 +46,7 @@ const AppNavbar: React.FC = () => {
   const location = useLocation()
 
   const isCreateListingActive = location.pathname === '/create-listing'
+  const isSavedItemsActive = location.pathname === '/saved-items'
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [profileNameReveal, setProfileNameReveal] = useState(false)
@@ -378,22 +380,15 @@ const AppNavbar: React.FC = () => {
 
             <button
               type="button"
-              className="app-navbar-icon-btn"
-              onClick={() => {}}
+              className={`app-navbar-icon-btn ${isSavedItemsActive ? 'app-navbar-icon-btn--active' : ''}`}
+              onClick={() => navigate('/saved-items')}
               aria-label="Saved items"
+              aria-current={isSavedItemsActive ? 'page' : undefined}
             >
               <Heart size={20} />
             </button>
 
-            <button
-              type="button"
-              className="app-navbar-icon-btn app-navbar-icon-btn--bell"
-              onClick={() => {}}
-              aria-label="Notifications"
-            >
-              <Bell size={20} />
-              <span className="app-navbar__notification-dot" aria-hidden="true" />
-            </button>
+              <NotificationBell />
           </div>
 
           <ThemeToggle />
@@ -496,7 +491,7 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  navigate('/dashboard')
+                  navigate('/saved-items')
                 }}
                 className="app-navbar-profile-menu-item"
               >
