@@ -14,25 +14,26 @@
    ========================================================================== */
 
 .profile-dashboard {
-  /* Dark theme defaults */
-  --profile-bg: #0b0f0d;
-  --profile-surface: #111714;
-  --profile-surface-raised: #151c18;
-  --profile-surface-hover: #1a231e;
+  /* Dark theme defaults — luxury monochrome (#02000D + white + white-alpha) */
+  --profile-bg: #02000D;
+  --profile-surface: rgba(255, 255, 255, 0.04);
+  --profile-surface-raised: rgba(255, 255, 255, 0.06);
+  --profile-surface-hover: rgba(255, 255, 255, 0.09);
 
-  --profile-border: rgba(255, 255, 255, 0.08);
-  --profile-border-strong: rgba(255, 255, 255, 0.14);
+  --profile-border: rgba(255, 255, 255, 0.1);
+  --profile-border-strong: rgba(255, 255, 255, 0.18);
 
-  --profile-text: #f4f7f5;
-  --profile-text-soft: #c5cec8;
-  --profile-muted: #8d9a92;
-  --profile-faint: #647069;
+  --profile-text: #FFFFFF;
+  --profile-text-soft: rgba(255, 255, 255, 0.75);
+  --profile-muted: rgba(255, 255, 255, 0.6);
+  --profile-faint: rgba(255, 255, 255, 0.4);
 
-  --profile-accent: #3f8f68;
-  --profile-accent-bright: #5bbd8a;
-  --profile-accent-soft: rgba(63, 143, 104, 0.13);
-  --profile-accent-border: rgba(63, 143, 104, 0.32);
+  --profile-accent: #FFFFFF;
+  --profile-accent-bright: #FFFFFF;
+  --profile-accent-soft: rgba(255, 255, 255, 0.08);
+  --profile-accent-border: rgba(255, 255, 255, 0.18);
 
+  /* Semantic status colors are intentionally preserved */
   --profile-success: #4ade80;
   --profile-warning: #fbbf24;
   --profile-danger: #f87171;
@@ -104,38 +105,41 @@
 
 [data-theme="dark"] .profile-dashboard,
 .profile-dashboard {
-  --profile-bg: rgba(15, 23, 42, 1);
+  /* Luxury monochrome dark palette: #02000D + white + white-alpha */
+  --profile-bg: #02000D;
 
-  --profile-surface: rgba(30, 41, 59, 0.92);
-  --profile-surface-raised: rgba(30, 41, 59, 0.98);
-  --profile-surface-hover: rgba(51, 65, 85, 0.75);
+  --profile-surface: rgba(255, 255, 255, 0.04);
+  --profile-surface-raised: rgba(255, 255, 255, 0.06);
+  --profile-surface-hover: rgba(255, 255, 255, 0.09);
 
-  --profile-border: rgba(148, 163, 184, 0.12);
-  --profile-border-strong: rgba(148, 163, 184, 0.22);
+  --profile-border: rgba(255, 255, 255, 0.1);
+  --profile-border-strong: rgba(255, 255, 255, 0.18);
 
-  --profile-text: #f8fafc;
-  --profile-text-soft: #cbd5e1;
-  --profile-muted: #94a3b8;
-  --profile-faint: #64748b;
+  --profile-text: #FFFFFF;
+  --profile-text-soft: rgba(255, 255, 255, 0.75);
+  --profile-muted: rgba(255, 255, 255, 0.6);
+  --profile-faint: rgba(255, 255, 255, 0.4);
 
-  --profile-accent: #3f8f68;
-  --profile-accent-bright: #5bbd8a;
-  --profile-accent-soft: rgba(63, 143, 104, 0.12);
-  --profile-accent-border: rgba(63, 143, 104, 0.32);
+  /* The former green/emerald accent becomes white. */
+  --profile-accent: #FFFFFF;
+  --profile-accent-bright: #FFFFFF;
+  --profile-accent-soft: rgba(255, 255, 255, 0.08);
+  --profile-accent-border: rgba(255, 255, 255, 0.18);
 
+  /* Semantic status colors are intentionally preserved. */
   --profile-success: #4ade80;
   --profile-warning: #fbbf24;
   --profile-danger: #f87171;
   --profile-info: #60a5fa;
 
-  --profile-input: rgba(15, 23, 42, 0.65);
-  --profile-overlay: rgba(148, 163, 184, 0.055);
+  --profile-input: rgba(255, 255, 255, 0.05);
+  --profile-overlay: rgba(255, 255, 255, 0.05);
 
   --profile-shadow:
-    0 10px 30px rgba(2, 6, 23, 0.35);
+    0 10px 30px rgba(0, 0, 0, 0.35);
 
   --profile-shadow-hover:
-    0 16px 40px rgba(2, 6, 23, 0.48);
+    0 16px 40px rgba(0, 0, 0, 0.48);
 }
 
 
@@ -1826,4 +1830,67 @@
     width: 54px;
     height: 54px;
   }
+}
+
+/* ==========================================================================
+   DARK THEME OVERRIDES — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   Only rules that hardcoded light-mode values (or white content sitting on an
+   accent fill) are remapped here. Semantic red / green / amber / blue status
+   colors are intentionally left untouched.
+   ========================================================================== */
+
+/* Small stat-card icons: slate in light mode, white-alpha in dark. */
+.profile-stat-icon {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .profile-stat-icon {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Accent fills are white in dark mode, so their content goes deep dark. */
+[data-theme='dark'] .profile-summary__avatar-edit-btn {
+  color: var(--profile-bg);
+}
+
+[data-theme='dark'] .profile-summary__avatar {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(255, 255, 255, 0.55)
+    );
+
+  color: var(--profile-bg);
+}
+
+/* Cover-photo edit chip: #02000D scrim instead of slate navy. */
+[data-theme='dark'] .profile-summary__cover-edit-btn {
+  background: rgba(2, 0, 13, 0.55);
+}
+
+[data-theme='dark'] .profile-summary__cover-edit-btn:hover {
+  background: rgba(2, 0, 13, 0.75);
+}
+
+[data-theme='dark'] .profile-stat-card--interactive:hover {
+  box-shadow:
+    0 12px 28px
+    rgba(255, 255, 255, 0.08);
+}
+
+/* Destructive delete listing control: still red, on a dark-tinted surface. */
+[data-theme='dark'] .profile-listing-delete-btn {
+  border: 1px solid rgba(239, 68, 68, 0.45);
+
+  background: rgba(239, 68, 68, 0.12);
+
+  color: #f87171;
+}
+
+[data-theme='dark'] .profile-listing-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #f87171;
+  color: #fecaca;
 }

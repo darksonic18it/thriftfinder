@@ -250,3 +250,48 @@
     height: 34px;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   The footer is already a dark block in both themes; in dark mode it adopts
+   the #02000D foundation with white-alpha foreground.
+   ========================================================================== */
+
+[data-theme='dark'] .footer {
+  background-color: #02000d;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='dark'] .footer-logo-icon {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+[data-theme='dark'] .footer-description,
+[data-theme='dark'] .footer-links a,
+[data-theme='dark'] .social-link {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='dark'] .footer-copyright,
+[data-theme='dark'] .footer-legal a {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme='dark'] .separator {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+@media (hover: hover) {
+  [data-theme='dark'] .social-link:hover {
+    background-color: #ffffff;
+    color: #02000d;
+  }
+
+  [data-theme='dark'] .footer-links a:hover,
+  [data-theme='dark'] .footer-legal a:hover {
+    color: #ffffff;
+  }
+}
+

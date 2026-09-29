@@ -341,3 +341,49 @@
     left: -75%;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .step-icon {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'] .community-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%),
+    var(--color-bg-main);
+}
+
+[data-theme='dark'] .cta-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .cta-btn-primary::after {
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(2, 0, 13, 0.16) 50%,
+    transparent 70%
+  );
+}
+
+[data-theme='dark'] .cta-btn-primary:hover {
+  box-shadow: 0 6px 26px rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='dark'] .cta-btn-secondary::after {
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 70%
+  );
+}
+
+[data-theme='dark'] .cta-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+

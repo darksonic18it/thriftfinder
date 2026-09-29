@@ -63,9 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggle
         >
           <Heart
             size={18}
-            className="heart-icon"
-            fill={isFavorite ? '#ec4899' : 'none'}
-            color={isFavorite ? '#ec4899' : '#475569'}
+            className={`heart-icon ${isFavorite ? 'heart-icon--active' : ''}`}
           />
         </button>
       </div>

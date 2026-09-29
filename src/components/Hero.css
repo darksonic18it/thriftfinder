@@ -308,6 +308,13 @@
   background: var(--color-bg-secondary);
 }
 
+/* Heart shown on the demo hero cards. */
+.hero-like-icon {
+  color: #ec4899;
+  fill: #ec4899;
+}
+
+
 .card-info {
   padding: 1.25rem;
 }
@@ -443,3 +450,60 @@
     transition: none;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   The landing hero keeps its green-free monochrome identity: deep #02000D
+   foundation, white / white-alpha foreground, white primary buttons.
+   ========================================================================== */
+
+[data-theme='dark'] .hero::before {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+}
+
+[data-theme='dark'] .text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme='dark'] .btn-primary {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .btn-primary::after {
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(2, 0, 13, 0.16) 50%,
+    transparent 70%
+  );
+}
+
+[data-theme='dark'] .btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='dark'] .btn-secondary::after {
+  background: linear-gradient(
+    var(--shine-angle),
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 70%
+  );
+}
+
+[data-theme='dark'] .like-btn,
+[data-theme='dark'] .like-btn:hover {
+  background: rgba(2, 0, 13, 0.72);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .hero-like-icon {
+  color: #ffffff;
+  fill: #ffffff;
+}
+

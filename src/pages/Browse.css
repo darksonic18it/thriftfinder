@@ -269,3 +269,23 @@
     align-items: stretch;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .location-indicator {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .search-input:focus {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+
+/* Active pill is white in dark mode, so its label must be deep dark. */
+[data-theme='dark'] .category-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-main);
+}
+

@@ -278,3 +278,34 @@
     height: 34px;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   Accent fills (logo mark, nav pill, signup button) become white /
+   white-alpha. No green, no violet.
+   ========================================================================== */
+
+[data-theme='dark'] .logo-icon {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+[data-theme='dark'] .pill-desktop-item .pill-bg {
+  background: #ffffff;
+}
+
+[data-theme='dark'] .pill-desktop-item .pill-label-hover {
+  color: #02000d;
+}
+
+[data-theme='dark'] .btn-signup {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .btn-signup:hover {
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.18);
+}
+

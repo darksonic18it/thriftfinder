@@ -64,3 +64,13 @@
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .sell-auth-primary-btn {
+  background: var(--color-primary) !important;
+  color: var(--color-bg-main) !important;
+  box-shadow: 0 10px 24px rgba(255, 255, 255, 0.1) !important;
+}

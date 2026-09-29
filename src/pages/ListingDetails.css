@@ -324,6 +324,16 @@
   color: #ec4899;
 }
 
+/* Heart inside the Save Item button. */
+.listing-heart {
+  fill: none;
+}
+
+.listing-heart--active {
+  color: #ec4899;
+  fill: #ec4899;
+}
+
 .reserve-btn {
   flex: 2;
   font-weight: 700;
@@ -483,3 +493,68 @@
   background-color: rgba(220, 38, 38, 0.08);
   color: #dc2626;
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   Indigo + pink decorative accents become white / white-alpha. Reservation
+   success stays semantically green and the error note stays red.
+   ========================================================================== */
+
+[data-theme='dark'] .listing-tag {
+  background: rgba(2, 0, 13, 0.88);
+}
+
+[data-theme='dark'] .thumbnail.active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='dark'] .listing-heart--active {
+  color: #ffffff;
+  fill: #ffffff;
+}
+
+[data-theme='dark'] .save-btn.saved {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .seller-avatar {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
+}
+
+[data-theme='dark'] .success-icon {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #4ade80;
+}
+
+[data-theme='dark'] .listing-status-note {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .listing-status-note--mine {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Condition grades — semantic, kept distinguishable */
+[data-theme='dark'] .condition-like-new {
+  background-color: rgba(16, 185, 129, 0.14);
+  color: #4ade80;
+}
+
+[data-theme='dark'] .condition-excellent {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .condition-good {
+  background-color: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+}
+
+[data-theme='dark'] .condition-fair {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+}
+

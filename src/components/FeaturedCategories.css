@@ -139,3 +139,25 @@
 .featured-categories .ag-panel__bar {
   display: none !important;
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .category-card:focus-visible {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@media (hover: hover) {
+  [data-theme='dark'] .category-card:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+[data-theme='dark'] .category-icon-badge {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+

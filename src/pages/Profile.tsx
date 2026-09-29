@@ -1029,7 +1029,7 @@ useEffect(() => {
           {/* Card 1: Reviews — FR-011 is Low priority, not built yet */}
           <div className="profile-stat-card">
             <div className="profile-stat-card__icon-wrap profile-stat-card__icon-wrap--star">
-              <Star size={18} color="#94a3b8" />
+              <Star size={18} className="profile-stat-icon" />
             </div>
             <div className="profile-stat-card__body">
               <div className="profile-stat-card__primary-text">No reviews yet</div>
@@ -1044,7 +1044,7 @@ useEffect(() => {
             onClick={() => navigate('/saved-items')}
           >
             <div className="profile-stat-card__icon-wrap">
-              <MessageSquare size={18} color="#94a3b8" />
+              <MessageSquare size={18} className="profile-stat-icon" />
             </div>
             <div className="profile-stat-card__body">
               <div className="profile-stat-card__primary-value">{savedCount}</div>
@@ -1055,7 +1055,7 @@ useEffect(() => {
           {/* Card 3: Incoming reservations — replaces the fake unread count */}
           <div className="profile-stat-card">
             <div className="profile-stat-card__icon-wrap profile-stat-card__icon-wrap--active">
-              <Bell size={18} color="#94a3b8" />
+              <Bell size={18} className="profile-stat-icon" />
               {stats.incoming_reservations > 0 ? (
                 <span className="profile-stat-card__dot" aria-hidden="true" />
               ) : null}
@@ -1075,7 +1075,7 @@ useEffect(() => {
           >
             <div className="profile-stat-card__top">
               <div className="profile-stat-card__icon-wrap">
-                <Settings size={18} color="#94a3b8" />
+                <Settings size={18} className="profile-stat-icon" />
               </div>
               <ChevronRight size={16} className="profile-stat-card__chevron" />
             </div>

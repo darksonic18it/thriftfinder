@@ -35,7 +35,7 @@ const About: React.FC = () => {
             <div className="problem-grid">
               <div className="problem-card">
                 <div className="problem-icon">
-                  <Search size={28} color="#6366f1" />
+                  <Search size={28} className="about-icon-indigo" />
                 </div>
                 <h3>Hard to Find Quality Thrift Items</h3>
                 <p>
@@ -45,7 +45,7 @@ const About: React.FC = () => {
               </div>
               <div className="problem-card">
                 <div className="problem-icon">
-                  <ShoppingBag size={28} color="#8b5cf6" />
+                  <ShoppingBag size={28} className="about-icon-violet" />
                 </div>
                 <h3>Buyers Need Better Discovery</h3>
                 <p>
@@ -55,7 +55,7 @@ const About: React.FC = () => {
               </div>
               <div className="problem-card">
                 <div className="problem-icon">
-                  <Store size={28} color="#ec4899" />
+                  <Store size={28} className="about-icon-pink" />
                 </div>
                 <h3>Sellers Lack a Simple Platform</h3>
                 <p>
@@ -103,7 +103,7 @@ const About: React.FC = () => {
             <div className="audience-grid">
               <div className="audience-card">
                 <div className="audience-icon">
-                  <ShoppingBag size={32} color="#6366f1" />
+                  <ShoppingBag size={32} className="about-icon-indigo" />
                 </div>
                 <h3>Buyers</h3>
                 <p>
@@ -113,7 +113,7 @@ const About: React.FC = () => {
               </div>
               <div className="audience-card">
                 <div className="audience-icon">
-                  <Store size={32} color="#8b5cf6" />
+                  <Store size={32} className="about-icon-violet" />
                 </div>
                 <h3>Sellers</h3>
                 <p>
@@ -123,7 +123,7 @@ const About: React.FC = () => {
               </div>
               <div className="audience-card">
                 <div className="audience-icon">
-                  <Heart size={32} color="#ec4899" />
+                  <Heart size={32} className="about-icon-pink" />
                 </div>
                 <h3>Thrift Enthusiasts</h3>
                 <p>
@@ -138,7 +138,7 @@ const About: React.FC = () => {
           <div className="about-section vision-section">
             <div className="vision-content">
               <div className="vision-icon">
-                <Target size={48} color="#6366f1" />
+                <Target size={48} className="about-icon-indigo" />
               </div>
               <h2 className="section-title">Our Vision</h2>
               <p className="section-text">

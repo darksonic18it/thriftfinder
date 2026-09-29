@@ -19,6 +19,32 @@
   --color-nav-bg: rgba(255, 255, 255, 0.95);
   --color-card-bg: rgba(255, 255, 255, 0.9);
 
+  /*
+    Opaque elevated surface for portals (dialogs, native option lists) that
+    cannot composite a translucent overlay. Light value mirrors
+    --color-bg-secondary so light mode is unchanged.
+  */
+  --color-bg-elevated: #f8fafc;
+
+  /*
+    Component color tokens.
+    The light values below are exactly the values those components used to
+    hardcode, so the light theme renders pixel-identical; only the dark
+    theme remaps them to the monochrome palette.
+  */
+  --button-primary-bg: #4f46e5;
+  --button-primary-bg-hover: #4338ca;
+  --button-primary-fg: #f8fafc;
+  --button-ghost-bg-hover: #f1f5f9;
+  --button-ghost-fg: #0f172a;
+  --button-link-fg: #0f172a;
+  --button-ring: #020617;
+  --button-ring-offset: #ffffff;
+
+  --input-border: #e2e8f0;
+  --input-placeholder: #64748b;
+  --input-ring: #020617;
+
   /* Typography */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
@@ -47,20 +73,53 @@
 }
 
 [data-theme='dark'] {
-  /* Color Palette */
+  /* ========================================================================
+     LUXURY MONOCHROME DARK THEME
+     ------------------------------------------------------------------------
+     The dark UI is built from exactly two colors:
+       #02000D (deep foundation)  +  #FFFFFF (foreground)
+     Hierarchy comes from white-alpha variations of those two, surfaced here
+     as the shared --color-* tokens. Semantic colors (error / warning /
+     success / pending / danger) are never remapped by this block.
+     ======================================================================== */
+  color-scheme: dark;
 
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
+  /* Accent system: the old green/emerald secondary accent becomes white. */
+  --color-primary: #FFFFFF;
+  --color-primary-dark: #FFFFFF;
+  --color-primary-light: rgba(255, 255, 255, 0.72);
+  --color-secondary: rgba(255, 255, 255, 0.72);
 
-  --color-bg-main: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-tertiary: #111827;
+  /* Foreground hierarchy */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.72);
+  --color-text-muted: rgba(255, 255, 255, 0.5);
 
-  --color-border: #334155;
-  --color-nav-bg: rgba(15, 23, 42, 0.85);
+  /* Surfaces: one foundation + white-alpha overlays */
+  --color-bg-main: #02000D;
+  --color-bg-secondary: rgba(255, 255, 255, 0.04);
+  --color-bg-tertiary: rgba(255, 255, 255, 0.07);
 
-  --color-card-bg: rgba(30, 41, 59, 0.9);
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: rgba(2, 0, 13, 0.85);
+  --color-card-bg: rgba(255, 255, 255, 0.05);
+
+  /* #02000D with a 3% white overlay, flattened so panels stay opaque */
+  --color-bg-elevated: #0A0814;
+
+  /* Component tokens */
+  --button-primary-bg: #FFFFFF;
+  --button-primary-bg-hover: rgba(255, 255, 255, 0.88);
+  --button-primary-fg: #02000D;
+  --button-ghost-bg-hover: rgba(255, 255, 255, 0.08);
+  --button-ghost-fg: #FFFFFF;
+  --button-link-fg: #FFFFFF;
+  --button-ring: rgba(255, 255, 255, 0.45);
+  --button-ring-offset: #02000D;
+
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-placeholder: rgba(255, 255, 255, 0.5);
+  --input-ring: rgba(255, 255, 255, 0.45);
 
   /* keep spacing/radius/shadow variables unchanged */
 }

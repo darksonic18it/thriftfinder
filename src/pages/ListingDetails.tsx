@@ -392,8 +392,7 @@ const ListingDetails: React.FC = () => {
               >
                 <Heart
                   size={20}
-                  fill={isSaved ? '#ec4899' : 'none'}
-                  color={isSaved ? '#ec4899' : 'currentColor'}
+                  className={`listing-heart ${isSaved ? 'listing-heart--active' : ''}`}
                 />
                 {isSaved ? 'Saved' : 'Save Item'}
               </Button>

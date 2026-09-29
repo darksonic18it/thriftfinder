@@ -453,3 +453,55 @@
     font-size: 1.65rem;
   }
 }
+
+/* ==========================================================================
+   ABOUT PAGE ICON TINTS
+   Declared as classes (instead of inline colors) so the dark theme can
+   collapse them into the monochrome system below.
+   ========================================================================== */
+
+.about-icon-indigo {
+  color: #6366f1;
+}
+
+.about-icon-violet {
+  color: #8b5cf6;
+}
+
+.about-icon-pink {
+  color: #ec4899;
+}
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .about-hero {
+  background: #02000d;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .about-hero-subtitle {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='dark'] .problem-icon {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .problem-card:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme='dark'] .step-number {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
+  box-shadow: none;
+}
+
+[data-theme='dark'] .about-icon-indigo,
+[data-theme='dark'] .about-icon-violet,
+[data-theme='dark'] .about-icon-pink {
+  color: #ffffff;
+}
+

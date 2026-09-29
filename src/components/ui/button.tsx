@@ -4,20 +4,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-ring-offset)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
+        /* Token-driven so the dark theme turns this into white-on-#02000D. */
         default:
-          "bg-indigo-600 text-white shadow hover:bg-indigo-700",
+          "bg-[var(--button-primary-bg)] text-[var(--button-primary-fg)] shadow hover:bg-[var(--button-primary-bg-hover)]",
+        /* Semantic destructive red — intentionally theme-independent. */
         destructive:
           "bg-red-500 text-slate-50 shadow-sm hover:bg-red-500/90",
         outline:
           "border border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-bg-tertiary)]",
         secondary:
           "bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-bg-tertiary)]",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
-        link: "text-slate-900 underline-offset-4 hover:underline",
+        ghost: "hover:bg-[var(--button-ghost-bg-hover)] hover:text-[var(--button-ghost-fg)]",
+        link: "text-[var(--button-link-fg)] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

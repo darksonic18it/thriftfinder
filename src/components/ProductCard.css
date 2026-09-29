@@ -84,7 +84,14 @@
 }
 
 .heart-icon {
+  color: #475569;
+  fill: none;
   transition: transform 0.2s ease, fill 0.2s ease, color 0.2s ease;
+}
+
+.heart-icon--active {
+  color: #ec4899;
+  fill: #ec4899;
 }
 
 .product-heart-btn:active .heart-icon {
@@ -143,7 +150,7 @@
   color: var(--color-text-primary);
   margin-bottom: 0.4rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -239,3 +246,62 @@
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   --------------------------------------------------------------------------
+   Decorative accents (indigo, pink) become white / white-alpha. Condition
+   grades stay semantic: green stays green, caution stays amber.
+   ========================================================================== */
+
+@media (hover: hover) {
+  [data-theme='dark'] .product-card:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  [data-theme='dark'] .product-heart-btn:hover {
+    background: rgba(2, 0, 13, 0.9);
+  }
+}
+
+[data-theme='dark'] .product-heart-btn,
+[data-theme='dark'] .product-heart-btn.active {
+  background: rgba(2, 0, 13, 0.72);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .heart-icon {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+[data-theme='dark'] .heart-icon--active {
+  color: #ffffff;
+  fill: #ffffff;
+}
+
+[data-theme='dark'] .product-tag {
+  background: rgba(2, 0, 13, 0.85);
+}
+
+/* Condition grades — semantic, kept distinguishable */
+[data-theme='dark'] .condition-like-new {
+  background-color: rgba(16, 185, 129, 0.14);
+  color: #4ade80;
+}
+
+[data-theme='dark'] .condition-excellent {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .condition-good {
+  background-color: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+}
+
+[data-theme='dark'] .condition-fair {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+}
+

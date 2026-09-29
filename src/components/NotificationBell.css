@@ -161,7 +161,8 @@
 }
 .notif-icon--error { color: #ef4444; }
 .notif-icon--warning { color: #d97706; }
-[data-theme='dark'] .notif-icon--success { color: var(--color-primary-light); }
+/* Success stays semantically green in dark mode (brightened for legibility). */
+[data-theme='dark'] .notif-icon--success { color: #4ade80; }
 
 .notif-unread-dot {
   position: absolute;
@@ -231,4 +232,14 @@
   text-align: center;
   border-top: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-bg-tertiary) 60%, transparent);
+}
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+/* Active tab is a white pill in dark mode, so its label must be deep dark. */
+[data-theme='dark'] .notif-tab[data-active='true'] {
+  background: var(--color-primary);
+  color: var(--color-bg-main);
 }

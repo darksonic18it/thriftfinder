@@ -175,49 +175,50 @@
    ========================================================================== */
 
 [data-theme="dark"] .saved-items-page {
-  background: rgba(15, 23, 42, 1);
-  color: #f8fafc;
+  background: #02000d;
+  color: #ffffff;
 }
 
 [data-theme="dark"] .saved-items-header {
-  background: rgba(15, 23, 42, 1);
+  background: #02000d;
 
   border-bottom-color:
-    rgba(148, 163, 184, 0.12);
+    rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] .saved-items-header h1 {
-  color: #f8fafc;
+  color: #ffffff;
 }
 
 [data-theme="dark"] .saved-items-header p {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 [data-theme="dark"] .saved-items-state {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 [data-theme="dark"] .saved-items-state h2 {
-  color: #f8fafc;
+  color: #ffffff;
 }
 
 [data-theme="dark"] .saved-items-retry {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #ffffff;
+  color: #02000d;
 }
 
 
 /* ==========================================================================
    DARK THEME — ICON
+   The saved-items heart is a monochrome control in the luxury dark theme.
    ========================================================================== */
 
 [data-theme="dark"] .saved-items-icon {
-  background: rgba(236, 72, 153, 0.12);
-  color: #f472b6;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 
   border:
-    1px solid rgba(236, 72, 153, 0.18);
+    1px solid rgba(255, 255, 255, 0.12);
 }
 
 

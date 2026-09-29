@@ -57,18 +57,19 @@ const Hero: React.FC = () => {
 
   const gradientProps = theme === 'dark'
     ? {
-        horizonColor: '#64748b',
-        waveColor: '#285943',
-        crestColor: '#f1f5f9',
+        // Monochrome wave field: white crests fading into the #02000D page.
+        horizonColor: '#02000D',
+        waveColor: '#FFFFFF',
+        crestColor: '#FFFFFF',
         speed: 0.25,
         amplitude: 2.0,
         waveScale: 0.6,
         waveRatio: 0.85,
         fogDepth: 45,
         detail: 'medium' as const,
-        brightness: 1.1,
+        brightness: 0.55,
         // Shader alpha (uOpacity)
-        opacity: 0.8,
+        opacity: 0.35,
         mouseInteraction: false,
         grain: false,
         className: 'hero-waves-inner',
@@ -315,7 +316,7 @@ const Hero: React.FC = () => {
                     className="like-btn"
                     aria-label="Favorite item"
                   >
-                    <Heart size={18} color="#ec4899" fill="#ec4899" />
+                    <Heart size={18} className="hero-like-icon" />
                   </button>
                 </div>
 
