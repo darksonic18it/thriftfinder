@@ -5,10 +5,12 @@ import { gsap } from 'gsap';
 
 import './Navbar.css';
 import ThemeToggle from './ThemeToggle';
+import { useAuthGate } from '../context/AuthGateContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { requireAuthToSell } = useAuthGate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -178,9 +180,12 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
           <Link
-            to="/create-listing"
-            className={`nav-link pill-desktop-item ${isCreateListingActive ? 'active' : ''}`}
-          >
+                  to="/create-listing"
+                  className={`nav-link pill-desktop-item ${isCreateListingActive ? 'active' : ''}`}
+                  onClick={(e) => {
+                    if (!requireAuthToSell()) e.preventDefault()
+                  }}
+                >
             <span className="pill-bg" aria-hidden="true" />
             <span className="pill-label-wrap">
               <span className="pill-label-normal">Sell an Item</span>
@@ -238,12 +243,19 @@ const Navbar: React.FC = () => {
               About
             </Link>
             <Link
-              to="/create-listing"
-              className={`mobile-nav-link ${isCreateListingActive ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Sell an Item
-            </Link>
+                to="/create-listing"
+                className={`mobile-nav-link ${isCreateListingActive ? 'active' : ''}`}
+                onClick={(e) => {
+                  if (!requireAuthToSell()) {
+                    e.preventDefault()
+                    setIsMenuOpen(false)
+                    return
+                  }
+                  setIsMenuOpen(false)
+                }}
+              >
+                Sell an Item
+              </Link>
           </nav>
           <div className="mobile-actions">
             <Link to="/login" className="btn-login full-width">

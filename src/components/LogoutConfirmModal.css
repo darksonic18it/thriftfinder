@@ -1,0 +1,66 @@
+.logout-confirm-modal {
+  max-width: 400px !important;
+  padding: 2.25rem 2.25rem !important;
+  gap: 1.25rem !important;
+  border-radius: var(--radius-xl) !important;
+  text-align: center;
+}
+
+.logout-confirm-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, #ef4444 14%, transparent);
+  color: #ef4444;
+}
+
+.logout-confirm-header {
+  text-align: center;
+  align-items: center;
+  gap: 0.5rem !important;
+}
+
+.logout-confirm-title {
+  font-size: 1.3rem !important;
+  letter-spacing: -0.01em;
+}
+
+.logout-confirm-description {
+  font-size: 0.95rem !important;
+  line-height: 1.55;
+  max-width: 30ch;
+  margin: 0 auto;
+}
+
+.logout-confirm-footer {
+  flex-direction: column-reverse;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.logout-confirm-footer button {
+  width: 100%;
+  min-height: 46px;
+  font-size: 0.925rem;
+}
+
+.logout-confirm-btn {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.22) !important;
+}
+
+.logout-confirm-btn:hover {
+  filter: brightness(1.05);
+}
+
+@media (min-width: 380px) {
+  .logout-confirm-footer {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

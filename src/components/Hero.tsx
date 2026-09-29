@@ -5,12 +5,13 @@ import { ArrowRight, Tag, Heart } from 'lucide-react';
 
 import GradientWaves from './GradientWaves';
 import { useTheme } from '../context/ThemeContext';
-
+import { useAuthGate } from '../context/AuthGateContext';
 import './Hero.css';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { requireAuthToSell } = useAuthGate();
 
   const heroRef = useRef<HTMLElement | null>(null);
   const [wavesOpacity, setWavesOpacity] = useState(1);
@@ -283,13 +284,15 @@ const Hero: React.FC = () => {
             </button>
 
             <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => navigate('/create-listing')}
-            >
-              <Tag size={18} />
-              <span>Sell an Item</span>
-            </button>
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  if (requireAuthToSell()) navigate('/create-listing')
+                }}
+              >
+                <Tag size={18} />
+                <span>Sell an Item</span>
+              </button>
           </div>
         </div>
 

@@ -252,21 +252,13 @@ const Signup: React.FC = () => {
                       />
                       <span>
                         I agree to the{' '}
-                        <button
-                          type="button"
-                          className="signup-legal-link"
-                          onClick={() => {}}
-                        >
-                          Terms and Conditions
-                        </button>{' '}
-                        and{' '}
-                        <button
-                          type="button"
-                          className="signup-legal-link"
-                          onClick={() => {}}
-                        >
-                          Privacy Policy
-                        </button>
+                        <Link to="/terms" className="signup-legal-link">
+                            Terms and Conditions
+                          </Link>{' '}
+                          and{' '}
+                          <Link to="/privacy" className="signup-legal-link">
+                            Privacy Policy
+                          </Link>
                         .
                       </span>
                     </label>

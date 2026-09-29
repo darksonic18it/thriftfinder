@@ -1,0 +1,66 @@
+.sell-auth-modal {
+  max-width: 480px !important;
+  padding: 2.5rem 2.75rem !important;
+  gap: 1.5rem !important;
+  border-radius: var(--radius-xl) !important;
+  text-align: center;
+}
+
+.sell-auth-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.sell-auth-header {
+  text-align: center;
+  align-items: center;
+  gap: 0.6rem !important;
+}
+
+.sell-auth-title {
+  font-size: 1.5rem !important;
+  letter-spacing: -0.01em;
+}
+
+.sell-auth-description {
+  font-size: 0.975rem !important;
+  line-height: 1.6;
+  max-width: 34ch;
+  margin: 0 auto;
+}
+
+.sell-auth-footer {
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.sell-auth-footer button {
+  width: 100%;
+  min-height: 48px;
+  font-size: 0.95rem;
+}
+
+.sell-auth-primary-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(40, 89, 67, 0.22) !important;
+}
+
+.sell-auth-primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+@media (min-width: 420px) {
+  .sell-auth-footer {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

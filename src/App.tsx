@@ -16,8 +16,20 @@ import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 import RequireAuth from './components/RequireAuth';
 import SavedItems from './pages/SavedItems';
-
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import AppNavbar from './components/AppNavbar';
+
+import { AuthGateProvider } from './context/AuthGateContext';
+import SellAuthModal from './components/SellAuthModal';
+// ...
+<Router>
+  <AuthGateProvider>
+    <ScrollToTop />
+    <AppShell />
+    <SellAuthModal />
+  </AuthGateProvider>
+</Router>
 
 import './App.css';
 
@@ -109,6 +121,8 @@ function AppShell() {
           <Route path="/login" element={<Login />} />
 
           <Route path="/signup" element={<Signup />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           <Route path="/ui-test" element={<UITest />} />
 
@@ -140,8 +154,12 @@ function AppShell() {
 function App() {
   return (
     <Router>
-      <ScrollToTop />
-      <AppShell />
+      <AuthGateProvider>
+        <ScrollToTop />
+        <AppShell />
+        <SellAuthModal />
+      </AuthGateProvider>
+      
     </Router>
   );
 }

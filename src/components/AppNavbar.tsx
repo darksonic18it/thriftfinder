@@ -18,6 +18,7 @@ import { gsap } from 'gsap'
 
 import ThemeToggle from './ThemeToggle'
 import NotificationBell from './NotificationBell'
+import LogoutConfirmModal from './LogoutConfirmModal'
 
 import './AppNavbar.css'
 
@@ -42,6 +43,7 @@ const AppNavbar: React.FC = () => {
   const navHiddenRef = useRef(navHidden)
   const profileMenuOpenRef = useRef(false)
   const profileNameRevealRef = useRef(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -535,8 +537,10 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuSeparator className="app-navbar-profile-menu-separator" />
 
               <DropdownMenuItem
-                onSelect={() => {
-                  handleLogout()
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setProfileMenuOpen(false)
+                  setLogoutConfirmOpen(true)
                 }}
                 className="app-navbar-profile-menu-item app-navbar-profile-menu-item--danger"
               >
@@ -545,6 +549,14 @@ const AppNavbar: React.FC = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <LogoutConfirmModal
+              open={logoutConfirmOpen}
+              onOpenChange={setLogoutConfirmOpen}
+              onConfirm={() => {
+                setLogoutConfirmOpen(false)
+                handleLogout()
+              }}
+            />
         </div>
       </div>
     </header>
