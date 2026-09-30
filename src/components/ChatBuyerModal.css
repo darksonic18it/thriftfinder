@@ -1,0 +1,75 @@
+.chatbuyer-modal {
+  max-width: 440px !important;
+  padding: 2.25rem 2.25rem !important;
+  gap: 1.25rem !important;
+  border-radius: var(--radius-xl) !important;
+  text-align: center;
+}
+
+.chatbuyer-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.chatbuyer-header {
+  text-align: center;
+  align-items: center;
+  gap: 0.5rem !important;
+}
+
+.chatbuyer-title {
+  font-size: 1.3rem !important;
+  letter-spacing: -0.01em;
+}
+
+.chatbuyer-description {
+  font-size: 0.95rem !important;
+  line-height: 1.6;
+  max-width: 32ch;
+  margin: 0 auto;
+}
+
+.chatbuyer-description strong {
+  color: var(--color-text-primary);
+}
+
+.chatbuyer-footer {
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.chatbuyer-footer button {
+  width: 100%;
+  min-height: 46px;
+  font-size: 0.925rem;
+}
+
+.chatbuyer-primary-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 22px rgba(40, 89, 67, 0.2) !important;
+}
+
+.chatbuyer-primary-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.chatbuyer-primary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.chatbuyer-note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: -0.5rem;
+}

@@ -22,6 +22,7 @@ import {
 import { listingService, type MyListingRow } from '../services/listingService';
 import { reservationService } from '../services/reservationService';
 import { profileService, type ProfileDisplay } from '../services/profileService';
+import ChatBuyerModal from '../components/ChatBuyerModal';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
 import { supabase } from '../lib/supabaseClient';
@@ -137,6 +138,8 @@ const memberSince = memberSinceDate
   const [myListings, setMyListings] = useState<MyListingRow[]>([]);
   const [myReservations, setMyReservations] = useState<ReservationWithListing[]>([]);
   const [incoming, setIncoming] = useState<ReservationWithListing[]>([]);
+  const [buyerDisplays, setBuyerDisplays] = useState<Record<string, ProfileDisplay>>({});
+const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
@@ -168,12 +171,21 @@ const memberSince = memberSinceDate
       favoriteService.countMyFavorites(),
     ]);
 
-    setStats(statsResult.data ?? EMPTY_STATS);
+        setStats(statsResult.data ?? EMPTY_STATS);
     setMyListings(listingsResult.data ?? []);
     setMyReservations(mineResult.data ?? []);
-    setIncoming(incomingResult.data ?? []);
+    const incomingRows = incomingResult.data ?? [];
+    setIncoming(incomingRows);
     setSavedCount(saved);
     setLoading(false);
+
+    const buyerIds = Array.from(new Set(incomingRows.map((r) => r.buyer_id).filter(Boolean)));
+    if (buyerIds.length > 0) {
+      const displays = await profileService.getProfileDisplays(buyerIds);
+      setBuyerDisplays(displays);
+    } else {
+      setBuyerDisplays({});
+    }
   }, []);
 
     const loadViewedProfile = useCallback(async () => {
@@ -816,7 +828,7 @@ useEffect(() => {
             ) : activeIncoming.length === 0 ? (
               <p className="profile-empty-note">No one has reserved your items yet.</p>
             ) : (
-              activeIncoming.map((reservation) => (
+                            activeIncoming.map((reservation) => (
                 <div className="profile-reservation-item" key={reservation.id}>
                   <div className="profile-reservation-item__info">
                     <button
@@ -826,6 +838,12 @@ useEffect(() => {
                     >
                       {reservation.listing?.title ?? 'Listing removed'}
                     </button>
+                    <span className="profile-reservation-item__buyer">
+                      Reserved by{' '}
+                      <strong>
+                        {buyerDisplays[reservation.buyer_id]?.full_name?.trim() || 'a buyer'}
+                      </strong>
+                    </span>
                   </div>
 
                   <span
@@ -841,11 +859,19 @@ useEffect(() => {
                       <button
                         type="button"
                         className="profile-btn-sm-outline"
-                        onClick={() =>
-                          runReservationAction(() =>
-                            reservationService.confirmReservation(reservation.id)
-                          )
-                        }
+                        onClick={async () => {
+                          const buyerName =
+                            buyerDisplays[reservation.buyer_id]?.full_name?.trim() || 'The buyer';
+                          const listingTitle = reservation.listing?.title ?? 'this listing';
+                          setActionError(null);
+                          const { error } = await reservationService.confirmReservation(reservation.id);
+                          if (error) {
+                            setActionError(error.message);
+                            return;
+                          }
+                          await loadAll();
+                          setChatModal({ buyerName, listingTitle });
+                        }}
                       >
                         <span>Confirm</span>
                       </button>
@@ -1127,7 +1153,16 @@ useEffect(() => {
           </div>
         </section>
         )}
-      </div>
+            </div>
+
+      <ChatBuyerModal
+        open={chatModal !== null}
+        onOpenChange={(open) => {
+          if (!open) setChatModal(null);
+        }}
+        buyerName={chatModal?.buyerName ?? ''}
+        listingTitle={chatModal?.listingTitle ?? ''}
+      />
     </div>
   );
 };
