@@ -1,106 +1,98 @@
 import React from 'react';
-
-import type { ListingCategory } from '../types/database';
-
-import AccordionGallery, { type AccordionGalleryItem } from './AccordionGallery';
+import { useNavigate } from 'react-router-dom';
 import './FeaturedCategories.css';
 
-const CATEGORY_ORDER: ListingCategory[] = [
-  'Clothing',
-  'Shoes',
-  'Accessories',
-  'Electronics',
-  'Collectibles',
-  'Bags',
-  'Vintage',
-  'Furniture',
-  'Books',
-  'Sports',
-  'Others',
+/**
+ * UI ONLY — display names + counts mirror the inspiration screenshot exactly.
+ * Backend untouched: clicks route to the existing /browse page via a
+ * search/category mapping (see CATEGORY_TARGET below). No DB types,
+ * services, migrations, or RLS touched here.
+ */
+interface DisplayCategory {
+  name: string;
+  count: string;
+  /** Where the row links — always the existing /browse route. */
+  search?: string;
+  category?: string;
+}
+
+const LEFT_CATEGORIES: DisplayCategory[] = [
+  { name: 'Women', count: '3,412', search: 'women' },
+  { name: 'Tops', count: '4,105', search: 'tops' },
+  { name: 'Outerwear', count: '1,204', search: 'outerwear' },
+  { name: 'Bags', count: '942', category: 'Bags' },
+  { name: 'Vintage', count: '2,061', category: 'Vintage' },
+  { name: 'Streetwear', count: '2,644', search: 'streetwear' },
 ];
 
-const CATEGORY_META: Record<ListingCategory, { description: string; imageUrl: string }> = {
-  Clothing: {
-    description: 'Pre-loved styles for every wardrobe.',
-    imageUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Shoes: {
-    description: 'Sneakers, boots & pre-owned pairs.',
-    imageUrl: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Accessories: {
-    description: 'Small upgrades with big personality.',
-    imageUrl: 'https://plus.unsplash.com/premium_photo-1709033404514-c3953af680b4?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Electronics: {
-    description: 'Retro tech and everyday gadgets.',
-    imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Collectibles: {
-    description: 'Games, memorabilia, and keepsakes.',
-    imageUrl: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?q=80&w=1228&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Bags: {
-    description: 'Totes, bags, and carry essentials.',
-    imageUrl: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=738&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Vintage: {
-    description: 'Old-school charm and classic finds.',
-    imageUrl: 'https://images.unsplash.com/photo-1488841714725-bb4c32d1ac94?q=80&w=1130&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Furniture: {
-    description: 'Secondhand pieces for better living.',
-    imageUrl: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?q=80&w=1092&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Books: {
-    description: 'Pre-loved reads for every mood.',
-    imageUrl: 'https://images.unsplash.com/photo-1680973543493-6c03e66402fe?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Sports: {
-    description: 'Gear up with used sports essentials.',
-    imageUrl: 'https://images.unsplash.com/photo-1694173563800-a73d4a0f248e?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  Others: {
-    description: 'Unexpected finds worth bringing home.',
-    imageUrl: 'https://images.unsplash.com/photo-1586634102162-1efe45163b66?q=80&w=1073&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-};
+const RIGHT_CATEGORIES: DisplayCategory[] = [
+  { name: 'Men', count: '2,870', search: 'men' },
+  { name: 'Bottoms', count: '2,238', search: 'bottoms' },
+  { name: 'Shoes', count: '1,876', category: 'Shoes' },
+  { name: 'Accessories', count: '1,530', category: 'Accessories' },
+  { name: 'Y2K', count: '1,318', search: 'y2k' },
+];
 
-const galleryItems: AccordionGalleryItem[] = CATEGORY_ORDER.map((category) => {
-  const { description, imageUrl } = CATEGORY_META[category];
-
-  return {
-    image: imageUrl,
-    alt: category,
-    link: undefined,
-    label: `${category}\n${description}`,
-  };
-});
+const CATEGORY_PHOTO =
+  'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=800&auto=format&fit=crop';
 
 const FeaturedCategories: React.FC = () => {
+  const navigate = useNavigate();
+
+  const goToBrowse = (item: DisplayCategory) => {
+    const params = new URLSearchParams();
+    if (item.category) params.set('category', item.category);
+    if (item.search) params.set('search', item.search);
+    const qs = params.toString();
+    navigate(qs ? `/browse?${qs}` : '/browse');
+  };
+
+  const renderList = (items: DisplayCategory[]) => (
+    <ul className="shopby-list">
+      {items.map((item) => (
+        <li key={item.name}>
+          <button
+            type="button"
+            className="shopby-row"
+            onClick={() => goToBrowse(item)}
+            aria-label={`Browse ${item.name}`}
+          >
+            <span className="shopby-name">{item.name}</span>
+            <span className="shopby-count">{item.count}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <section className="featured-categories" id="browse">
       <div className="categories-container">
-        <div className="section-header">
-          <div className="header-content">
-            <h2 className="section-title">Browse by Category</h2>
-            <p className="section-description">
-              Find something useful, unique, or just worth bringing home.
-            </p>
+        <div className="shopby-top">
+          <span className="shopby-label">Shop by</span>
+          <span className="shopby-label shopby-label--muted">Categories — 11</span>
+        </div>
+
+        <div className="shopby-body">
+          <div className="shopby-col">{renderList(LEFT_CATEGORIES)}</div>
+          <div className="shopby-col">{renderList(RIGHT_CATEGORIES)}</div>
+          <div className="shopby-photo-wrap" aria-hidden="true">
+            <img
+              src={CATEGORY_PHOTO}
+              alt=""
+              className="shopby-photo"
+              loading="lazy"
+            />
           </div>
         </div>
 
-        <div className="categories-accordion" aria-label="Category discovery">
-          <AccordionGallery
-            items={galleryItems}
-            height={460}
-            gap={10}
-            radius={16}
-            expandRatio={0.48}
-            trigger="hover"
-            showLabels
-            grayscale={false}
-          />
+        <div className="shopby-bottom">
+          <span className="shopby-label shopby-label--muted">
+            Women — Men — Everyone
+          </span>
+          <span className="shopby-label shopby-label--muted">
+            New drops every Friday
+          </span>
         </div>
       </div>
     </section>
@@ -108,3 +100,4 @@ const FeaturedCategories: React.FC = () => {
 };
 
 export default FeaturedCategories;
+

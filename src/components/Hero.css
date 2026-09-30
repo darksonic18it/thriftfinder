@@ -41,24 +41,46 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: center;
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 .hero-content {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  width: 100%;
 }
 
-.hero-title {
-  font-size: clamp(2.5rem, 6vw, 5rem);
+.hero-kicker {
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 4vw, 3rem);
   font-weight: 800;
-  line-height: 0.93;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
+}
+
+.hero-giant {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  font-family: 'Archivo Black', var(--font-heading), sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 10.5vw, 9.5rem);
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.hero-giant-letter {
+  display: inline-block;
 }
 
 .text-gradient {
@@ -73,13 +95,15 @@
   font-size: clamp(1rem, 2vw, 1.125rem);
   color: var(--color-text-secondary);
   line-height: 1.7;
-  max-width: 540px;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .hero-actions {
   display: flex;
+  justify-content: center;
   gap: 1rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -205,172 +229,25 @@
   transform: translateY(0);
 }
 
-/* Right column visual */
-.hero-visual {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.hero-card-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 430px;
-}
-
-.hero-card {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--color-border);
-}
-
-/* Ensure stacked fan spread has enough room */
-.hero-card[data-stack-index='0'] {
-  transform: translateY(0) translateX(0) rotate(0deg) scale(1);
-  z-index: 3;
-  opacity: 1;
-}
-
-/* Ensure stacked fan spread has enough room */
-.hero-card-wrap {
-  height: 350px;
-}
-
-@media (max-width: 768px) {
-  .hero-card-wrap {
-    height: 320px;
-  }
-}
-
-.hero-card[data-stack-index='1'] {
-  transform: translateY(14px) translateX(18px) rotate(4deg) scale(0.96);
-  z-index: 2;
-  opacity: 0.9;
-}
-
-.hero-card[data-stack-index='2'] {
-  transform: translateY(28px) translateX(36px) rotate(8deg) scale(0.92);
-  z-index: 1;
-  opacity: 0.75;
-}
-
-/* Prevent CSS transition from fighting GSAP */
-.hero-card {
-  transition: none;
-}
-
-.image-wrapper {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  overflow: hidden;
-}
-
-.card-image {
-  will-change: transform;
-}
-
-.card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.hero-card:hover .card-image {
-  transform: scale(1.04);
-}
-
-.like-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 40px;
-  height: 40px;
-  background: var(--color-bg-secondary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: none;
-  cursor: pointer;
-}
-
-.like-btn:hover {
-  transform: scale(1.06);
-  background: var(--color-bg-secondary);
-}
-
-/* Heart shown on the demo hero cards. */
-.hero-like-icon {
-  color: #ec4899;
-  fill: #ec4899;
-}
-
-
-.card-info {
-  padding: 1.25rem;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 0.5rem;
-}
-
-.card-header h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  font-family: var(--font-heading);
-  flex-shrink: 0;
-}
-
+/* Legacy photo-stack styles kept dormant (no markup renders them now).
+   Left in place so a future visual can reuse them without re-creating. */
+.hero-visual,
+.hero-card-wrap,
+.hero-card,
+.image-wrapper,
+.card-image,
+.like-btn,
+.hero-like-icon,
+.card-info,
+.card-header,
+.card-price,
 .card-meta {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+  display: none;
 }
 
 @media (max-width: 1024px) {
   .hero {
     padding: 3.5rem 1.5rem;
-  }
-
-  .hero-container {
-    grid-template-columns: 1fr;
-    gap: 2.25rem;
-    text-align: center;
-  }
-
-  .hero-content {
-    align-items: center;
-  }
-
-  .hero-actions {
-    justify-content: center;
-  }
-
-  .hero-visual {
-    margin: 0 auto;
   }
 }
 
@@ -378,6 +255,14 @@
   .hero {
     padding: 2.5rem 1.25rem;
     min-height: auto;
+  }
+
+  .hero-kicker {
+    font-size: clamp(1.5rem, 7vw, 2.25rem);
+  }
+
+  .hero-giant {
+    font-size: clamp(2rem, 13vw, 3.5rem);
   }
 
   .hero-actions {
@@ -390,10 +275,6 @@
   .btn-secondary {
     width: 100%;
   }
-
-  .image-wrapper {
-    height: 260px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -401,16 +282,12 @@
     padding: 2rem 1rem;
   }
 
-  .image-wrapper {
-    height: 230px;
+  .hero-kicker {
+    font-size: clamp(1.35rem, 8vw, 2rem);
   }
 
-  .hero-card-wrap {
-    max-width: 100%;
-  }
-
-  .hero-card:hover {
-    transform: none;
+  .hero-giant {
+    font-size: clamp(1.75rem, 13vw, 2.75rem);
   }
 }
 

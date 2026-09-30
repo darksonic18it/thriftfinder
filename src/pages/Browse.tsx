@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, MapPin, Loader2, PackageOpen, AlertCircle } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
@@ -32,10 +33,19 @@ const conditions = ['All', ...LISTING_CONDITIONS];
 
 const Browse: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
 
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  // UI-only deep link: /browse?category=X&search=Y pre-fills the existing
+  // filters. Backend/services untouched — values flow into the same state
+  // that browse_listings() already consumes.
+  const initialCategory = searchParams.get('category') ?? 'All';
+  const initialSearch = searchParams.get('search') ?? '';
+
+  const [selectedCategory, setSelectedCategory] = useState(
+    categories.includes(initialCategory) ? initialCategory : 'All'
+  );
   const [selectedCondition, setSelectedCondition] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
