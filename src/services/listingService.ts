@@ -58,9 +58,40 @@ export interface MyListingRow {
   title: string
   price: number | string
   status: string
+  /** Free text in the DB; run through `asCondition()` before rendering. */
+  condition: string
   city: string
+  barangay: string
   created_at: string
   cover_image_path: string | null
+}
+
+/** Columns + cover image needed by every MyListingRow query below. */
+const MY_LISTING_SELECT =
+  'id, title, price, status, condition, city, barangay, created_at, listing_images(storage_path, sort_order)'
+
+/** Shape returned by the queries above, before cover-image extraction. */
+type MyListingQueryRow = MyListingRow & {
+  listing_images?: { storage_path: string; sort_order: number }[] | null
+}
+
+/** Cover = the image with the lowest sort_order; same rule as browse_listings(). */
+function toMyListingRow(row: MyListingQueryRow): MyListingRow {
+  const cover = (row.listing_images ?? [])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)[0]
+
+  return {
+    id: row.id,
+    title: row.title,
+    price: row.price,
+    status: row.status,
+    condition: row.condition,
+    city: row.city,
+    barangay: row.barangay,
+    created_at: row.created_at,
+    cover_image_path: cover?.storage_path ?? null,
+  }
 }
 
 async function requireUserId(): Promise<
@@ -214,7 +245,7 @@ export const listingService = {
 
     let query = supabase
       .from('listings')
-      .select('id, title, price, status, city, created_at, listing_images(storage_path, sort_order)')
+      .select(MY_LISTING_SELECT)
       .eq('seller_id', auth.userId)
       .order('created_at', { ascending: false })
 
@@ -227,24 +258,7 @@ export const listingService = {
       return { data: null, error: describeError(error, 'Could not load your listings.') }
     }
 
-    const rows: MyListingRow[] = (data ?? []).map((row) => {
-      const r = row as MyListingRow & {
-        listing_images?: { storage_path: string; sort_order: number }[]
-      }
-      const cover = (r.listing_images ?? [])
-        .slice()
-        .sort((a, b) => a.sort_order - b.sort_order)[0]
-
-      return {
-        id: r.id,
-        title: r.title,
-        price: r.price,
-        status: r.status,
-        city: r.city,
-        created_at: r.created_at,
-        cover_image_path: cover?.storage_path ?? null,
-      }
-    })
+    const rows = ((data ?? []) as MyListingQueryRow[]).map(toMyListingRow)
 
     return { data: rows, error: null }
   },
@@ -257,9 +271,7 @@ export const listingService = {
   ): Promise<ServiceResult<MyListingRow[]>> {
     const { data, error } = await supabase
       .from('listings')
-      .select(
-        'id, title, price, status, city, created_at, listing_images(storage_path, sort_order)'
-      )
+      .select(MY_LISTING_SELECT)
       .eq('seller_id', sellerId)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -272,25 +284,7 @@ export const listingService = {
       }
     }
 
-    const rows: MyListingRow[] = (data ?? []).map((row) => {
-      const r = row as MyListingRow & {
-        listing_images?: { storage_path: string; sort_order: number }[]
-      }
-
-      const cover = (r.listing_images ?? [])
-        .slice()
-        .sort((a, b) => a.sort_order - b.sort_order)[0]
-
-      return {
-        id: r.id,
-        title: r.title,
-        price: r.price,
-        status: r.status,
-        city: r.city,
-        created_at: r.created_at,
-        cover_image_path: cover?.storage_path ?? null,
-      }
-    })
+    const rows = ((data ?? []) as MyListingQueryRow[]).map(toMyListingRow)
 
     return { data: rows, error: null }
   },

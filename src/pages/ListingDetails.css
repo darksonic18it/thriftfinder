@@ -119,6 +119,10 @@
 }
 
 .listing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
@@ -557,4 +561,12 @@
   background-color: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.72);
 }
+
+/* Dark theme — the flag keeps the semantic amber warning colour. */
+[data-theme='dark'] .listing-report-btn:hover {
+  background-color: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+}
+
 

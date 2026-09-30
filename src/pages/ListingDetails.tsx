@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, MapPin, Package, Loader2, Pencil, Archive } from 'lucide-react';
+import { ArrowLeft, Heart, MapPin, Package, Loader2, Pencil, Archive, Flag } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -73,6 +73,7 @@ const ListingDetails: React.FC = () => {
 
   const [archiving, setArchiving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -230,6 +231,7 @@ const ListingDetails: React.FC = () => {
     await loadDetail();
   };
 
+  
   const deadlineText = formatDeadline(listing.reservation_expires_at);
 
   return (
@@ -271,11 +273,23 @@ const ListingDetails: React.FC = () => {
 
         {/* Right Column - Details */}
         <div className="listing-info">
-          {/* Condition Badge */}
+          {/* Condition Badge + Report control */}
           <div className="listing-header">
             <span className={`condition-pill ${getConditionClass(listing.condition)}`}>
               {listing.condition}
             </span>
+
+            <button
+              type="button"
+              className="listing-report-btn"
+              onClick={() =>
+              navigate(`/listing/${listing.id}/report`, { state: location.state })
+                }
+              aria-label="Report listing"
+              title="Report listing"
+            >
+              <Flag size={18} aria-hidden="true" />
+            </button>
           </div>
 
           {/* Title */}

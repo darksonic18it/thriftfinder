@@ -1,0 +1,564 @@
+/* ==========================================================================
+   MY LISTINGS
+   Theme-aware page built from the existing tokens in src/index.css, so light
+   and dark mode both work without a second palette. Danger reds are kept
+   semantic (same values Profile already uses).
+   ========================================================================== */
+
+.my-listings-page {
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.my-listings-header {
+  background: var(--color-bg-main);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.my-listings-header-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+
+  padding: 2.25rem 1.5rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.my-listings-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.my-listings-header-icon {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.my-listings-header-text {
+  min-width: 0;
+}
+
+.my-listings-header h1 {
+  margin: 0;
+
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+
+  color: var(--color-text-primary);
+}
+
+.my-listings-header p {
+  margin: 0.4rem 0 0;
+
+  font-size: 1rem;
+
+  color: var(--color-text-secondary);
+}
+
+.my-listings-header-action {
+  flex-shrink: 0;
+}
+
+/*
+  Text action (mirrors the existing .profile-linkish pattern: no background,
+  no border, accent colour, underline on hover). Uses the global theme tokens
+  so it also works in dark mode.
+*/
+.my-listings-create-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  padding: 0;
+
+  background: none;
+  border: 0;
+
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  color: var(--color-primary);
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease;
+}
+
+.my-listings-create-action:hover {
+  text-decoration: underline;
+}
+
+.my-listings-create-action:focus-visible {
+  outline: 2px solid var(--button-ring);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+
+/* ==========================================================================
+   CONTENT
+   ========================================================================== */
+
+.my-listings-content {
+  padding: 2.25rem 1.5rem 3.5rem;
+}
+
+.my-listings-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+
+/* ==========================================================================
+   INLINE NOTICES
+   ========================================================================== */
+
+.my-listings-inline {
+  margin-bottom: 1.25rem;
+
+  padding: 0.85rem 1rem;
+
+  border-radius: 12px;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Danger stays red — never remapped by the dark theme blocks below. */
+.my-listings-inline--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+}
+
+
+/* ==========================================================================
+   STATUS TABS
+   ========================================================================== */
+
+.my-listings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  margin-bottom: 1.5rem;
+}
+
+.my-listings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.5rem 1rem;
+
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+
+  background: var(--color-bg-main);
+  color: var(--color-text-secondary);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.my-listings-tab:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.my-listings-tab.is-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.my-listings-tab__count {
+  min-width: 1.5rem;
+
+  padding: 0.05rem 0.4rem;
+
+  border-radius: 9999px;
+
+  background: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.my-listings-tab.is-active .my-listings-tab__count {
+  background: color-mix(in srgb, #ffffff 24%, transparent);
+}
+
+
+/* ==========================================================================
+   SECTION HEADING
+   ========================================================================== */
+
+.my-listings-section-title {
+  margin: 0 0 1rem;
+
+  font-size: 1.15rem;
+  font-weight: 800;
+
+  color: var(--color-text-primary);
+}
+
+.my-listings-empty-note {
+  margin: 0;
+
+  padding: 1.25rem 0;
+
+  font-size: 0.9rem;
+
+  color: var(--color-text-secondary);
+}
+
+
+/* ==========================================================================
+   CARD GRID
+   ========================================================================== */
+
+.my-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.my-listings-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+
+  background: var(--color-card-bg);
+
+  box-shadow: var(--shadow-sm);
+
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+@media (hover: hover) {
+  .my-listings-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  }
+}
+
+/*
+  Photo box. Same sizing/cropping contract as the dashboard product card
+  (.product-image-container): width 100%, aspect-ratio 4 / 3 and
+  overflow: hidden. `overflow: hidden` matters twice here — it crops the
+  photo and it is what lets the 4 / 3 ratio win over the photo's own
+  intrinsic height, because a column-flex item only gets an automatic
+  minimum height of 0 when its overflow is not visible.
+*/
+.my-listings-card__media {
+  position: relative;
+
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 0;
+
+  background-color: var(--color-bg-tertiary);
+
+  cursor: pointer;
+}
+
+.my-listings-card__image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.my-listings-card__status {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+
+  padding: 0.2rem 0.55rem;
+
+  border-radius: var(--radius-sm);
+
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  /* Solid chips so the label stays readable over any photo. */
+  background: rgba(2, 0, 13, 0.82);
+  color: #ffffff;
+}
+
+/* Semantic: green = still selling. Not remapped by the dark theme. */
+.my-listings-card__status--active {
+  background: #047857;
+}
+
+.my-listings-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  gap: 0.4rem;
+
+  padding: 0.9rem 1rem 1rem;
+}
+
+.my-listings-card__meta-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.my-listings-card__title {
+  margin: 0;
+
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.my-listings-card__title-btn {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  padding: 0;
+
+  background: none;
+  border: 0;
+
+  font: inherit;
+  color: var(--color-text-primary);
+  text-align: left;
+
+  min-height: 2.7em;
+}
+
+.my-listings-card__title-btn:hover {
+  text-decoration: underline;
+}
+
+.my-listings-card__price {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+
+  color: var(--color-primary-dark);
+}
+
+.my-listings-card__location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  font-size: 0.8rem;
+
+  color: var(--color-text-secondary);
+}
+
+.my-listings-card__location svg {
+  flex-shrink: 0;
+
+  color: var(--color-text-muted);
+}
+
+.my-listings-card__location span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-listings-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  margin-top: auto;
+  padding-top: 0.9rem;
+
+  border-top: 1px solid var(--color-border);
+}
+
+
+/* ==========================================================================
+   LOADING / ERROR / EMPTY STATES
+   ========================================================================== */
+
+.my-listings-state {
+  min-height: 320px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.75rem;
+
+  text-align: center;
+
+  color: var(--color-text-secondary);
+}
+
+.my-listings-state h2 {
+  margin: 0;
+
+  font-size: 1.25rem;
+
+  color: var(--color-text-primary);
+}
+
+.my-listings-state p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.my-listings-state-spinner {
+  color: var(--color-primary);
+
+  animation: my-listings-spin 0.9s linear infinite;
+}
+
+@keyframes my-listings-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ==========================================================================
+   DARK THEME — LUXURY MONOCHROME
+   ========================================================================== */
+
+[data-theme='dark'] .my-listings-header-icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Active pill is white in dark mode, so its label must be deep dark. */
+[data-theme='dark'] .my-listings-tab.is-active {
+  color: var(--color-bg-main);
+}
+
+[data-theme='dark'] .my-listings-tab.is-active .my-listings-tab__count {
+  background: rgba(2, 0, 13, 0.16);
+}
+
+[data-theme='dark'] .my-listings-inline--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #f87171;
+}
+
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .my-listings-card,
+  .my-listings-tab {
+    transition: none;
+  }
+
+  .my-listings-state-spinner {
+    animation: none;
+  }
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .my-listings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .my-listings-header-container {
+    padding: 1.75rem 1.25rem;
+
+    align-items: flex-start;
+  }
+
+  .my-listings-content {
+    padding: 1.75rem 1.25rem 3rem;
+  }
+
+  .my-listings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .my-listings-header-container {
+    flex-direction: column;
+  }
+
+  .my-listings-header-action {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-listings-grid {
+    grid-template-columns: 1fr;
+  }
+}

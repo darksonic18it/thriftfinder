@@ -482,7 +482,7 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  navigate('/dashboard')
+                  navigate('/my-listings')
                 }}
                 className="app-navbar-profile-menu-item"
               >

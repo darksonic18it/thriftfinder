@@ -16,9 +16,11 @@ import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 import RequireAuth from './components/RequireAuth';
 import SavedItems from './pages/SavedItems';
+import MyListings from './pages/MyListings';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import AppNavbar from './components/AppNavbar';
+import ReportListing from './pages/ReportListing';
 
 import { AuthGateProvider } from './context/AuthGateContext';
 import SellAuthModal from './components/SellAuthModal';
@@ -55,9 +57,10 @@ function AppShell() {
     location.pathname === '/dashboard' ||
     location.pathname === '/create-listing' ||
     location.pathname === '/saved-items' ||
+    location.pathname === '/my-listings' ||
     location.pathname.startsWith('/edit-listing/') ||
     (location.pathname.startsWith('/listing/') &&
-    ['/dashboard', '/saved-items'].includes(
+    ['/dashboard', '/saved-items', '/my-listings'].includes(
         (location.state as { from?: string } | null)?.from ?? ''
       ))
 
@@ -87,6 +90,8 @@ function AppShell() {
           />
 
           <Route path="/listing/:id" element={<ListingDetails />} />
+          <Route path="/listing/:id" element={<ListingDetails />} />
+          <Route path="/listing/:id/report" element={<ReportListing />} />
 
           {/* Create listing */}
           <Route
@@ -114,6 +119,16 @@ function AppShell() {
             element={
               <RequireAuth>
                 <SavedItems />
+              </RequireAuth>
+            }
+          />
+
+          {/* The signed-in seller's own listings */}
+          <Route
+            path="/my-listings"
+            element={
+              <RequireAuth>
+                <MyListings />
               </RequireAuth>
             }
           />
