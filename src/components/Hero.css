@@ -62,10 +62,11 @@
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--color-primary), #8b5cf6, var(--color-accent));
+  background: linear-gradient(135deg, var(--color-primary), #8b5cf6, var(--color-primary-dark));
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .hero-description {
@@ -505,5 +506,25 @@
 [data-theme='dark'] .hero-like-icon {
   color: #ffffff;
   fill: #ffffff;
+}
+
+/* Stacked cards: opaque surface so back-card text can't bleed through. */
+[data-theme='dark'] .hero-card {
+  background: var(--color-bg-elevated);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5);
+}
+
+/* Title stays pure white; price steps down so they don't merge. */
+[data-theme='dark'] .card-header h3 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .card-price {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='dark'] .card-meta {
+  color: rgba(255, 255, 255, 0.65);
 }
 

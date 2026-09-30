@@ -32,6 +32,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<AuthResult>
   signOut: () => Promise<void>
   sendPasswordReset: (email: string) => Promise<AuthResult>
+  resendConfirmation: (email: string) => Promise<AuthResult>
   refreshProfile: () => Promise<void>
 }
 
@@ -139,6 +140,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return { error: error ? error.message : null }
   }, [])
 
+  const resendConfirmation = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: `${window.location.origin}/login` },
+    })
+    return { error: error ? error.message : null }
+  }, [])
+
   const displayName =
     profile?.full_name?.trim() ||
     (user?.user_metadata?.full_name as string | undefined)?.trim() ||
@@ -160,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signIn,
       signOut,
       sendPasswordReset,
+      resendConfirmation,
       refreshProfile,
     }),
     [
@@ -173,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signIn,
       signOut,
       sendPasswordReset,
+      resendConfirmation,
       refreshProfile,
     ]
   )

@@ -1,0 +1,83 @@
+/* Email-not-confirmed auth warning — follows SellAuthModal pattern. */
+.email-confirm-modal {
+  max-width: 480px !important;
+  padding: 2.25rem 2.5rem !important;
+  gap: 1.25rem !important;
+  border-radius: var(--radius-xl) !important;
+  text-align: center;
+}
+
+.email-confirm-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, #f59e0b 14%, transparent);
+  color: #b45309;
+}
+
+.email-confirm-header {
+  text-align: center;
+  align-items: center;
+  gap: 0.6rem !important;
+}
+
+.email-confirm-title {
+  font-size: 1.4rem !important;
+  letter-spacing: -0.01em;
+}
+
+.email-confirm-description {
+  font-size: 0.95rem !important;
+  line-height: 1.6;
+  max-width: 36ch;
+  margin: 0 auto;
+}
+
+.email-confirm-note {
+  padding: 0.7rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-text-primary);
+  font-size: 0.88rem;
+}
+
+.email-confirm-error {
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: var(--radius-md);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font-size: 0.88rem;
+}
+
+[data-theme='dark'] .email-confirm-error {
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .email-confirm-icon {
+  color: #fbbf24;
+}
+
+.email-confirm-footer {
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.email-confirm-footer button {
+  width: 100%;
+  min-height: 48px;
+  font-size: 0.95rem;
+}
+
+@media (min-width: 420px) {
+  .email-confirm-footer {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

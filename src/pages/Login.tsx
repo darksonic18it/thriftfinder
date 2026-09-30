@@ -13,11 +13,18 @@ import {
   DialogTitle,
 } from '../components/ui/dialog';
 import { useAuth } from '../context/AuthContext';
+import EmailNotConfirmedModal from '../components/EmailNotConfirmedModal';
 import './Login.css';
 
 type LoginErrors = Partial<Record<'email' | 'password', string>>;
 
 type ForgotErrors = Partial<Record<'email', string>>;
+
+/** Supabase blocks sign-in until the signup link is confirmed. */
+function isEmailNotConfirmedError(message: string): boolean {
+  const m = message.toLowerCase();
+  return m.includes('email not confirmed') || m.includes('email_not_confirmed');
+}
 
 function isValidEmail(email: string) {
   // Simple, good-enough MVP validation.
@@ -26,7 +33,7 @@ function isValidEmail(email: string) {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, signOut, sendPasswordReset, displayName } = useAuth();
+  const { signIn, signOut, sendPasswordReset, resendConfirmation, displayName } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +50,12 @@ const Login: React.FC = () => {
   const [forgotErrors, setForgotErrors] = useState<ForgotErrors>({});
   const [forgotSending, setForgotSending] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+
+  const [emailConfirmOpen, setEmailConfirmOpen] = useState(false);
+  const [emailConfirmAddress, setEmailConfirmAddress] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   const errorSummaryId = useMemo(() => 'login-error-summary', []);
 
@@ -72,6 +85,14 @@ const Login: React.FC = () => {
     setSubmitting(false);
 
     if (error) {
+      if (isEmailNotConfirmedError(error)) {
+        setEmailConfirmAddress(email.trim());
+        setResent(false);
+        setResendError(null);
+        setResending(false);
+        setEmailConfirmOpen(true);
+        return;
+      }
       // Surface the server error in the existing password error slot.
       setErrors({ password: error });
       return;
@@ -79,6 +100,19 @@ const Login: React.FC = () => {
 
     setWelcomeTitle(displayName ? `Welcome back, ${displayName}!` : 'Welcome back!');
     setSuccess(true);
+  };
+
+  const handleResendConfirmation = async () => {
+    if (resending) return;
+    setResending(true);
+    setResendError(null);
+    const { error } = await resendConfirmation(emailConfirmAddress || email);
+    setResending(false);
+    if (error) {
+      setResendError(error);
+      return;
+    }
+    setResent(true);
   };
 
   const resetForgotDialog = () => {
@@ -376,6 +410,15 @@ const Login: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      <EmailNotConfirmedModal
+        open={emailConfirmOpen}
+        onOpenChange={setEmailConfirmOpen}
+        email={emailConfirmAddress}
+        resending={resending}
+        resent={resent}
+        resendError={resendError}
+        onResend={handleResendConfirmation}
+      />
     </div>
   );
 };
