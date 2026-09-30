@@ -52,18 +52,50 @@
 }
 
 .shopby-row {
+  position: relative;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
-  padding: 0.45rem 0;
+  padding: 0.5rem 0.85rem;
+  margin: 0 -0.85rem;
   border: 0;
   border-bottom: 1px solid var(--color-border);
   background: transparent;
   cursor: pointer;
   text-align: left;
-  transition: transform 0.2s ease, color 0.2s ease;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.2s ease;
+}
+
+/* Color-fill panel that sweeps in from the left on hover/focus. */
+.shopby-row-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.shopby-row-left {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.shopby-arrow {
+  flex-shrink: 0;
+  align-self: center;
+  opacity: 0;
+  transform: translateX(-10px) rotate(-8deg);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  color: #ffffff;
 }
 
 .shopby-name {
@@ -72,6 +104,7 @@
   letter-spacing: -0.02em;
   line-height: 1.05;
   color: var(--color-text-primary);
+  transition: color 0.2s ease, transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .shopby-count {
@@ -79,6 +112,7 @@
   font-weight: 500;
   color: var(--color-text-muted);
   flex-shrink: 0;
+  transition: color 0.2s ease;
 }
 
 .shopby-photo-wrap {
@@ -94,15 +128,48 @@
   aspect-ratio: 3 / 4;
   object-fit: cover;
   display: block;
+  animation: shopbyPhotoIn 0.5s ease;
+}
+
+@keyframes shopbyPhotoIn {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopby-photo {
+    animation: none;
+  }
 }
 
 @media (hover: hover) {
-  .shopby-row:hover {
-    transform: translateX(4px);
+  .shopby-row:hover .shopby-row-fill,
+  .shopby-row:focus-visible .shopby-row-fill {
+    transform: scaleX(1);
   }
 
-  .shopby-row:hover .shopby-name {
-    color: var(--color-primary);
+  .shopby-row:hover .shopby-name,
+  .shopby-row:hover .shopby-count,
+  .shopby-row:focus-visible .shopby-name,
+  .shopby-row:focus-visible .shopby-count {
+    color: #ffffff;
+  }
+
+  .shopby-row:hover .shopby-name,
+  .shopby-row:focus-visible .shopby-name {
+    transform: translateX(0.4rem);
+  }
+
+  .shopby-row:hover .shopby-arrow,
+  .shopby-row:focus-visible .shopby-arrow {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
   }
 }
 
@@ -150,3 +217,14 @@
    DARK THEME — LUXURY MONOCHROME
    ========================================================================== */
 
+[data-theme="dark"] .shopby-row:hover .shopby-name,
+[data-theme="dark"] .shopby-row:hover .shopby-count,
+[data-theme="dark"] .shopby-row:focus-visible .shopby-name,
+[data-theme="dark"] .shopby-row:focus-visible .shopby-count {
+  color: var(--color-bg-main);
+}
+
+[data-theme="dark"] .shopby-row:hover .shopby-arrow,
+[data-theme="dark"] .shopby-row:focus-visible .shopby-arrow {
+  color: var(--color-bg-main);
+}
