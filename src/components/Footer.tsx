@@ -8,6 +8,16 @@ const Footer: React.FC = () => {
   return (
     <footer className="footer">
       <div className="footer-container">
+        {/* Promo utility row */}
+        <div className="footer-promo">
+          <a href="#sell" className="footer-promo-link">
+            Start selling <span aria-hidden="true">↗</span>
+          </a>
+          <span className="footer-promo-note">
+            Free to list — sustainable shopping made easy
+          </span>
+        </div>
+
         {/* Top Footer Section */}
         <div className="footer-top">
           {/* Brand Column */}
@@ -82,7 +92,25 @@ const Footer: React.FC = () => {
                 <li><a href="#faq">FAQ</a></li>
               </ul>
             </div>
+
+            <div className="footer-column">
+              <h4 className="footer-heading">Say hi</h4>
+              <ul className="footer-links">
+                <li><a href="#email">hello@thriftfinder.ph</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#about">About</a></li>
+              </ul>
+            </div>
           </div>
+        </div>
+
+        {/* Giant wordmark */}
+        <div className="footer-giant" aria-hidden="true">
+          {'ThriftFinder'.split('').map((ch, i) => (
+            <span key={i} className="footer-giant-letter">
+              {ch}
+            </span>
+          ))}
         </div>
 
         {/* Bottom Footer Section */}
