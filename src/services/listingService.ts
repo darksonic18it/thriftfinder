@@ -7,6 +7,8 @@ import type {
   ListingDetail,
   ListingDetailRow,
   MyStatsRow,
+  PublicSellerListingRow,
+  PublicSellerStats,
   ServiceResult,
   UUID,
 } from '../types/database'
@@ -64,10 +66,12 @@ export interface MyListingRow {
   barangay: string
   created_at: string
   cover_image_path: string | null
+  /** Seller pin for the public "Featured Finds" row; false pre-migration. */
+  is_featured: boolean
 }
 
 /** Columns + cover image needed by every MyListingRow query below. */
-const MY_LISTING_SELECT =
+const MY_LISTING_SELECT_BASE =
   'id, title, price, status, condition, city, barangay, created_at, listing_images(storage_path, sort_order)'
 
 /** Shape returned by the queries above, before cover-image extraction. */
@@ -91,6 +95,7 @@ function toMyListingRow(row: MyListingQueryRow): MyListingRow {
     barangay: row.barangay,
     created_at: row.created_at,
     cover_image_path: cover?.storage_path ?? null,
+    is_featured: Boolean((row as { is_featured?: unknown }).is_featured),
   }
 }
 
@@ -102,6 +107,56 @@ async function requireUserId(): Promise<
     return { userId: null, error: { message: 'You need to sign in to do that.' } }
   }
   return { userId: data.user.id, error: null }
+}
+
+function toNumberSafe(value: unknown): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value === 'string') {
+    const n = Number(value)
+    return Number.isFinite(n) ? n : 0
+  }
+  return 0
+}
+
+function myListingSelect(): string {
+  // is_featured only exists after the storefront migration; keep the base
+  // select as the safe default and add the column opportunistically.
+  return `${MY_LISTING_SELECT_BASE}, is_featured`;
+}
+
+interface ListingRowsQueryResult {
+  data: MyListingQueryRow[] | null
+  error: { code?: string; message?: string } | null
+}
+
+async function queryListingRows(
+  buildQuery: (select: string) => PromiseLike<unknown>,
+  fallbackMessage: string
+): Promise<ServiceResult<MyListingRow[]>> {
+  const withFeatured = (await buildQuery(myListingSelect())) as unknown as ListingRowsQueryResult
+  if (!withFeatured.error) {
+    return {
+      data: ((withFeatured.data ?? []) as MyListingQueryRow[]).map(toMyListingRow),
+      error: null,
+    };
+  }
+  const err = withFeatured.error as { code?: string; message?: string };
+  const missingColumn =
+    err.code === '42703' || /is_featured|column|does not exist/i.test(err.message ?? '');
+  if (!missingColumn) {
+    console.error('[listingService.myListings]', err);
+    return { data: null, error: describeError(withFeatured.error, fallbackMessage) };
+  }
+
+  const base = (await buildQuery(MY_LISTING_SELECT_BASE)) as unknown as ListingRowsQueryResult
+  if (base.error) {
+    console.error('[listingService.myListings]', base.error);
+    return { data: null, error: describeError(base.error, fallbackMessage) };
+  }
+  return {
+    data: ((base.data ?? []) as MyListingQueryRow[]).map(toMyListingRow),
+    error: null,
+  };
 }
 
 export const listingService = {
@@ -243,50 +298,128 @@ export const listingService = {
     const auth = await requireUserId()
     if (auth.userId === null) return { data: null, error: auth.error }
 
-    let query = supabase
-      .from('listings')
-      .select(MY_LISTING_SELECT)
-      .eq('seller_id', auth.userId)
-      .order('created_at', { ascending: false })
+    return queryListingRows(
+      (select) => {
+        let query = supabase
+          .from('listings')
+          .select(select)
+          .eq('seller_id', auth.userId)
+          .order('created_at', { ascending: false })
+        if (options.status) query = query.eq('status', options.status)
+        return query
+      },
+      'Could not load your listings.'
+    )
+  },
 
-    if (options.status) query = query.eq('status', options.status)
+    // -------------------------------------------------------------------
+  // READ — public listings by seller (active only, featured first)
+  // -------------------------------------------------------------------
+  async getPublicListingsBySeller(
+    sellerId: UUID
+  ): Promise<ServiceResult<PublicSellerListingRow[]>> {
+    const viaRpc = await supabase.rpc('get_public_seller_listings', {
+      p_seller_id: sellerId,
+    })
 
-    const { data, error } = await query
-
-    if (error) {
-      console.error('[listingService.getMyListings]', error)
-      return { data: null, error: describeError(error, 'Could not load your listings.') }
+    if (!viaRpc.error) {
+      const rows = ((viaRpc.data ?? []) as PublicSellerListingRow[]).map((row) => ({
+        ...row,
+        is_featured: Boolean(row.is_featured),
+      }))
+      return { data: rows, error: null }
     }
 
-    const rows = ((data ?? []) as MyListingQueryRow[]).map(toMyListingRow)
+    const rpcError = viaRpc.error as { code?: string; message?: string }
+    const missingFn =
+      rpcError.code === '42883' ||
+      /could not find the function|does not exist/i.test(rpcError.message ?? '')
+    // Pre-migration DBs may also lack is_featured: fall back to plain query.
+    if (!missingFn && !/is_featured|column/i.test(rpcError.message ?? '')) {
+      console.error('[listingService.getPublicListingsBySeller]', rpcError)
+      return {
+        data: null,
+        error: describeError(viaRpc.error, 'Could not load this user’s listings.'),
+      }
+    }
+
+    const fallback = await queryListingRows(
+      (select) =>
+        supabase
+          .from('listings')
+          .select(select)
+          .eq('seller_id', sellerId)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false }),
+      'Could not load this user’s listings.'
+    )
+
+    if (fallback.error || !fallback.data) {
+      return { data: null, error: fallback.error ?? { message: 'Could not load this user’s listings.' } }
+    }
+
+    const rows: PublicSellerListingRow[] = fallback.data
+      .slice()
+      .sort((a, b) => Number(b.is_featured) - Number(a.is_featured))
 
     return { data: rows, error: null }
   },
 
-    // -------------------------------------------------------------------
-  // READ — public listings by seller
-  // -------------------------------------------------------------------
-  async getPublicListingsBySeller(
-    sellerId: UUID
-  ): Promise<ServiceResult<MyListingRow[]>> {
-    const { data, error } = await supabase
-      .from('listings')
-      .select(MY_LISTING_SELECT)
-      .eq('seller_id', sellerId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
+  /**
+   * Public-safe seller aggregates: active listings + completed sales.
+   * Rating/review counts stay omitted until a real reviews backend exists.
+   */
+  async getPublicSellerStats(sellerId: UUID): Promise<ServiceResult<PublicSellerStats>> {
+    const { data, error } = await supabase.rpc('get_public_seller_stats', {
+      p_seller_id: sellerId,
+    })
 
     if (error) {
-      console.error('[listingService.getPublicListingsBySeller]', error)
-      return {
-        data: null,
-        error: describeError(error, 'Could not load this user’s listings.'),
+      const err = error as { code?: string; message?: string }
+      if (err.code === '42883' || /could not find the function|does not exist/i.test(err.message ?? '')) {
+        return { data: null, error: { message: 'Seller stats are not available yet.' } }
       }
+      console.error('[listingService.getPublicSellerStats]', error)
+      return { data: null, error: describeError(error, 'Could not load seller stats.') }
     }
 
-    const rows = ((data ?? []) as MyListingQueryRow[]).map(toMyListingRow)
+    const row = ((data ?? []) as Array<{ active_listings: unknown; sold_listings: unknown }>)[0]
+    return {
+      data: {
+        active_listings: toNumberSafe(row?.active_listings),
+        sold_listings: toNumberSafe(row?.sold_listings),
+      },
+      error: null,
+    }
+  },
 
-    return { data: rows, error: null }
+  /**
+   * Toggle the seller-controlled "Featured" pin (owner only, max 3 active).
+   * The DB trigger enforces the limit; its message is surfaced as-is.
+   */
+  async setFeatured(listingId: UUID, featured: boolean): Promise<ServiceResult<true>> {
+    const auth = await requireUserId()
+    if (auth.userId === null) return { data: null, error: auth.error }
+
+    const { error } = await supabase
+      .from('listings')
+      .update({ is_featured: featured })
+      .eq('id', listingId)
+      .eq('seller_id', auth.userId)
+
+    if (error) {
+      const err = error as { code?: string; message?: string }
+      if (err.code === '42703' || /is_featured|column|does not exist/i.test(err.message ?? '')) {
+        return { data: null, error: { message: 'Featuring listings is not available yet.' } }
+      }
+      console.error('[listingService.setFeatured]', error)
+      if (/feature up to 3/i.test(err.message ?? '')) {
+        return { data: null, error: { message: 'You can feature up to 3 listings at a time.' } }
+      }
+      return { data: null, error: describeError(error, 'Could not update the featured listing.') }
+    }
+
+    return { data: true, error: null }
   },
 
   /** Raw row + images for the edit form. Owner only (checked here and by RLS). */

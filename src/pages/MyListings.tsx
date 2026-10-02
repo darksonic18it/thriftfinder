@@ -10,6 +10,7 @@ import {
   PackageOpen,
   Pencil,
   Plus,
+  Star,
   Trash2,
 } from 'lucide-react';
 
@@ -48,10 +49,12 @@ function listingLocation(listing: MyListingRow): string {
 interface MyListingCardProps {
   listing: MyListingRow;
   busy: boolean;
+  featuredBusyId: string | null;
   onOpen: (listing: MyListingRow) => void;
   onEdit: (listing: MyListingRow) => void;
   onToggleStatus: (listing: MyListingRow) => void;
   onDelete: (listing: MyListingRow) => void;
+  onToggleFeatured: (listing: MyListingRow) => void;
 }
 
 /**
@@ -65,13 +68,16 @@ interface MyListingCardProps {
 const MyListingCard: React.FC<MyListingCardProps> = ({
   listing,
   busy,
+  featuredBusyId,
   onOpen,
   onEdit,
   onToggleStatus,
   onDelete,
+  onToggleFeatured,
 }) => {
   const isActive = listing.status === 'active';
   const condition = asCondition(listing.condition);
+  const featuredBusy = featuredBusyId === listing.id;
 
   return (
     <article className="my-listings-card">
@@ -150,6 +156,25 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
 
           <Button
             type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleFeatured(listing)}
+            disabled={busy || featuredBusy || !isActive}
+            aria-pressed={listing.is_featured}
+            title={
+              !isActive
+                ? 'Only active listings can be featured'
+                : listing.is_featured
+                  ? 'Remove from Featured Finds'
+                  : 'Show in Featured Finds (max 3)'
+            }
+          >
+            <Star aria-hidden="true" />
+            {featuredBusy ? 'Working…' : listing.is_featured ? 'Featured' : 'Feature'}
+          </Button>
+
+          <Button
+            type="button"
             variant="destructive"
             size="sm"
             onClick={() => onDelete(listing)}
@@ -187,6 +212,7 @@ const MyListings: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [featuredBusyId, setFeaturedBusyId] = useState<string | null>(null);
 
   const loadMyListings = useCallback(async () => {
     setLoading(true);
@@ -253,6 +279,29 @@ const MyListings: React.FC = () => {
       isActive
         ? 'Listing archived. You can restore it from the Archived tab anytime.'
         : 'Listing restored — it is visible to buyers again.'
+    );
+  };
+
+  const handleToggleFeatured = async (listing: MyListingRow) => {
+    if (listing.status !== 'active') return;
+    setFeaturedBusyId(listing.id);
+    setActionError(null);
+    setNotice(null);
+
+    const { error } = await listingService.setFeatured(listing.id, !listing.is_featured);
+
+    if (error) {
+      setFeaturedBusyId(null);
+      setActionError(error.message);
+      return;
+    }
+
+    await loadMyListings();
+    setFeaturedBusyId(null);
+    setNotice(
+      listing.is_featured
+        ? 'Listing removed from Featured Finds.'
+        : 'Listing pinned to Featured Finds on your public profile.'
     );
   };
 
@@ -427,10 +476,12 @@ const MyListings: React.FC = () => {
                         key={listing.id}
                         listing={listing}
                         busy={busyId === listing.id}
+                        featuredBusyId={featuredBusyId}
                         onOpen={handleOpen}
                         onEdit={handleEdit}
                         onToggleStatus={handleToggleStatus}
                         onDelete={handleDelete}
+                        onToggleFeatured={handleToggleFeatured}
                       />
                     ))}
                   </div>

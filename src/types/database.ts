@@ -73,6 +73,10 @@ export interface Profile {
   contact_phone: string | null
   avatar_path: string | null
   cover_path: string | null
+  /** Optional public seller bio (max 500 chars). Null/empty = not set. */
+  bio: string | null
+  /** Optional public city shown on the seller storefront. Never a full address. */
+  location_city: string | null
   created_at: string
   updated_at: string
 }
@@ -93,6 +97,8 @@ export interface Listing {
   city: string
   barangay: string
   status: ListingStatus | string
+  /** Seller-controlled pin shown in the public "Featured Finds" row (max 3). */
+  is_featured: boolean
   created_at: string
   updated_at: string
 }
@@ -114,6 +120,26 @@ export interface Reservation {
   resolved_at: string | null
   created_at: string
   updated_at: string
+}
+
+/** One row of public.get_public_seller_listings(...) — active only, public-safe. */
+export interface PublicSellerListingRow {
+  id: UUID
+  title: string
+  price: number | string
+  status: string
+  condition: string
+  city: string
+  barangay: string
+  created_at: string
+  is_featured: boolean
+  cover_image_path: string | null
+}
+
+/** One row of public.get_public_seller_stats(...) — public-safe aggregates only. */
+export interface PublicSellerStats {
+  active_listings: number
+  sold_listings: number
 }
 
 /** OPTIONAL module — only exists if migration 04 was applied. */

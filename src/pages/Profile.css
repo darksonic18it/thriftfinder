@@ -1781,6 +1781,317 @@
 
 
 /* ==========================================================================
+   PUBLIC SELLER STOREFRONT
+   - Reuses profile-card tokens, borders, shadows, and responsive behavior.
+   - Minimal storefront sections: location/bio hooks, stats, featured finds,
+     follow + ... menu affordances.
+   ========================================================================== */
+
+.profile-summary__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  color: var(--profile-muted);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.profile-summary__bio {
+  margin: 0.45rem 0 0;
+
+  color: var(--profile-text-soft);
+
+  font-size: 0.9rem;
+  line-height: 1.55;
+
+  display: -webkit-box;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.profile-more-wrap {
+  position: relative;
+}
+
+.profile-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  color: var(--profile-muted);
+
+  background: transparent;
+
+  border: 1px solid var(--profile-border);
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.profile-more-btn:hover {
+  color: var(--profile-text);
+
+  background: var(--profile-overlay);
+
+  border-color: var(--profile-border-strong);
+}
+
+.profile-more-btn:focus-visible {
+  outline: 2px solid var(--profile-accent);
+  outline-offset: 2px;
+}
+
+.profile-more-menu {
+  position: absolute;
+  right: 0;
+  top: auto;
+  bottom: calc(100% + 8px);
+  z-index: 100;
+
+  min-width: 180px;
+  padding: 6px;
+
+  background: var(--profile-surface-raised);
+
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+
+  box-shadow: var(--profile-shadow);
+}
+
+.profile-more-menu {
+  transform-origin: bottom right;
+  animation: profile-menu-in 0.12s ease-out;
+}
+
+@keyframes profile-menu-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.profile-more-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+
+  color: var(--profile-text-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 8px;
+
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-more-menu__item:hover {
+  background: var(--profile-overlay);
+}
+
+.profile-more-menu__item--danger {
+  color: var(--profile-danger);
+}
+
+.profile-action-error {
+  width: 100%;
+  margin: 0.35rem 0 0;
+
+  color: var(--profile-danger);
+
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.profile-card--storefront {
+  margin-top: 1rem;
+}
+
+.profile-storefront-bio {
+  margin: 0;
+
+  color: var(--profile-text-soft);
+
+  font-size: 0.92rem;
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.profile-storefront-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.profile-storefront-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  padding: 0.8rem;
+
+  background: var(--profile-overlay);
+
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+
+  text-align: center;
+}
+
+.profile-storefront-stat__value {
+  color: var(--profile-text);
+
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.profile-storefront-stat__label {
+  color: var(--profile-muted);
+
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.profile-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.profile-featured-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  padding: 0;
+
+  background: var(--profile-overlay);
+
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+
+  cursor: pointer;
+  text-align: left;
+
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.profile-featured-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--profile-accent-border);
+
+  box-shadow: var(--profile-shadow-hover);
+}
+
+.profile-featured-card:focus-visible {
+  outline: 2px solid var(--profile-accent);
+  outline-offset: 2px;
+}
+
+.profile-featured-card__image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+
+  background: var(--profile-overlay);
+
+  display: block;
+}
+
+.profile-featured-card__image--empty {
+  min-height: 120px;
+}
+
+.profile-featured-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  padding: 0.65rem 0.7rem 0.75rem;
+}
+
+.profile-featured-card__title {
+  color: var(--profile-text);
+
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.35;
+
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.profile-featured-card__meta {
+  color: var(--profile-muted);
+
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.profile-edit-field textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 0.65rem 0.75rem;
+
+  color: var(--profile-text);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+
+  background: var(--profile-input);
+
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+
+  resize: vertical;
+}
+
+.profile-edit-field textarea:focus {
+  outline: none;
+
+  border-color: var(--profile-accent);
+}
+
+.profile-edit-counter {
+  align-self: flex-end;
+
+  color: var(--profile-faint);
+
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .profile-featured-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-storefront-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+}
+
+/* ==========================================================================
    PUBLIC PROFILE EMPTY STATE
    ========================================================================== */
 
@@ -1893,4 +2204,38 @@
   background: rgba(239, 68, 68, 0.2);
   border-color: #f87171;
   color: #fecaca;
+}
+
+/* ==========================================================================
+   PUBLIC SELLER PROFILE — DROPDOWN LAYERING
+   ========================================================================== */
+
+.profile-card--summary-public {
+  /*
+   * The base .profile-card uses overflow:hidden for visual clipping.
+   * The public seller ... menu needs to escape the card bounds.
+   */
+  overflow: visible;
+  z-index: 20;
+}
+
+.profile-card--summary-public .profile-summary__cover {
+  /*
+   * Preserve the rounded top corners that were previously provided
+   * by the profile card's overflow:hidden.
+   */
+  border-radius: var(--profile-radius) var(--profile-radius) 0 0;
+}
+
+.profile-card--summary-public .profile-more-wrap {
+  position: relative;
+  z-index: 50;
+}
+
+.profile-card--summary-public .profile-more-menu {
+  position: absolute;
+  right: 0;
+  top: auto;
+  bottom: calc(100% + 8px);
+  z-index: 100;
 }

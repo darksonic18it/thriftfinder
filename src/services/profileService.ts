@@ -8,6 +8,10 @@ export interface ProfileDisplay {
   full_name: string
   avatar_path: string | null
   cover_path: string | null
+  /** Optional seller bio; null when the column does not exist yet or is unset. */
+  bio: string | null
+  /** Optional public city; null when unset. Never a full address. */
+  location_city: string | null
   created_at: string
 }
 
@@ -15,8 +19,28 @@ export const profileService = {
   /**
    * Loads the profile row for a user id.
    * Returns null when no row exists yet (RLS also returns null for other users).
+   * Tolerates databases before the storefront migration (no bio/location_city).
    */
   async getProfileById(profileId: string): Promise<Profile | null> {
+    const withOptional = await supabase
+      .from('profiles')
+      .select('id, full_name, contact_phone, avatar_path, cover_path, bio, location_city, created_at, updated_at')
+      .eq('id', profileId)
+      .maybeSingle()
+
+    if (!withOptional.error) {
+      return normalizeProfile(withOptional.data as Record<string, unknown> | null)
+    }
+
+    const err = withOptional.error as { code?: string; message?: string }
+    const missingColumn =
+      err.code === '42703' ||
+      /bio|location_city|column|does not exist/i.test(err.message ?? '')
+    if (!missingColumn) {
+      console.error('[profileService.getProfileById]', err.message)
+      return null
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
@@ -28,7 +52,7 @@ export const profileService = {
       return null
     }
 
-    return (data as Profile | null) ?? null
+    return normalizeProfile(data as unknown as Record<string, unknown> | null)
   },
 
   /**
@@ -50,8 +74,18 @@ export const profileService = {
       return null
     }
 
-    const rows = (data ?? []) as ProfileDisplay[]
-    return rows[0] ?? null
+    const rows = (data ?? []) as Array<Record<string, unknown>>
+    const row = rows[0] ?? null
+    if (!row) return null
+    return {
+      id: row.id as UUID,
+      full_name: (row.full_name as string) ?? '',
+      avatar_path: (row.avatar_path as ProfileDisplay['avatar_path']) ?? null,
+      cover_path: typeof row.cover_path === 'string' ? row.cover_path : null,
+      bio: typeof row.bio === 'string' ? row.bio : null,
+      location_city: typeof row.location_city === 'string' ? row.location_city : null,
+      created_at: (row.created_at as string) ?? '',
+    }
   },
 
   /** Batch version for lists; de-duplicates ids before calling. */
@@ -78,6 +112,8 @@ export const profileService = {
       contact_phone?: string | null
       avatar_path?: string | null
       cover_path?: string | null
+      bio?: string | null
+      location_city?: string | null
     }
   ): Promise<ServiceResult<Profile>> {
     const { data: auth, error: authError } = await supabase.auth.getUser()
@@ -85,12 +121,37 @@ export const profileService = {
       return { data: null, error: { message: 'Sign in to update your profile.' } }
     }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(patch)
-      .eq('id', auth.user.id)
-      .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
-      .maybeSingle()
+    const attempt = async (body: Record<string, unknown>) => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(body)
+        .eq('id', auth.user.id)
+        .select('id, full_name, contact_phone, avatar_path, cover_path, bio, location_city, created_at, updated_at')
+        .maybeSingle()
+      return { data, error }
+    }
+
+    let result = await attempt(patch as Record<string, unknown>)
+
+    if (result.error) {
+      const err = result.error as { code?: string; message?: string }
+      const missingColumn =
+        err.code === '42703' ||
+        /bio|location_city|column|does not exist/i.test(err.message ?? '')
+      if (missingColumn) {
+        const { bio: _bio, location_city: _city, ...rest } = patch as Record<string, unknown>
+        void _bio
+        void _city
+        result = await supabase
+          .from('profiles')
+          .update(rest)
+          .eq('id', auth.user.id)
+          .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
+          .maybeSingle()
+      }
+    }
+
+    const { data, error } = result
 
     if (error) {
       console.error('[profileService.updateMyProfile]', error)
@@ -100,6 +161,21 @@ export const profileService = {
       return { data: null, error: { message: 'Profile not found.' } }
     }
 
-    return { data: data as Profile, error: null }
+    return { data: normalizeProfile(data as unknown as Record<string, unknown>) as Profile, error: null }
   },
+}
+
+function normalizeProfile(row: Record<string, unknown> | null): Profile | null {
+  if (!row) return null
+  return {
+    id: row.id as Profile['id'],
+    full_name: (row.full_name as string) ?? '',
+    contact_phone: (row.contact_phone as Profile['contact_phone']) ?? null,
+    avatar_path: (row.avatar_path as Profile['avatar_path']) ?? null,
+    cover_path: (row.cover_path as Profile['cover_path']) ?? null,
+    bio: typeof row.bio === 'string' ? row.bio : null,
+    location_city: typeof row.location_city === 'string' ? row.location_city : null,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  }
 }

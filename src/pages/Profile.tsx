@@ -18,11 +18,16 @@ import {
   ArrowLeft,
   Inbox,
   Camera,
+  MapPin,
+  MoreHorizontal,
+  Flag,
+  BadgeCheck,
 } from 'lucide-react';
 import { listingService, type MyListingRow } from '../services/listingService';
 import { reservationService } from '../services/reservationService';
 import { profileService, type ProfileDisplay } from '../services/profileService';
 import ChatBuyerModal from '../components/ChatBuyerModal';
+import ReportSellerModal from '../components/ReportSellerModal';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
 import { supabase } from '../lib/supabaseClient';
@@ -32,6 +37,8 @@ import {
   PROFILE_AVATARS_BUCKET,
   PROFILE_COVERS_BUCKET,
   type MyStatsRow,
+  type PublicSellerListingRow,
+  type PublicSellerStats,
   type ReservationWithListing,
 } from '../types/database';
 import './Profile.css';
@@ -82,6 +89,25 @@ function hoursLeft(expiresAt: string | null): string {
   return ` · ${Math.max(1, Math.round(ms / 60_000))}m left`;
 }
 
+/** Most frequent non-empty city across the seller's active listings. */
+function mostCommonCity(listings: { city: string }[]): string {
+  const counts = new Map<string, number>();
+  for (const listing of listings) {
+    const city = listing.city?.trim();
+    if (!city) continue;
+    counts.set(city, (counts.get(city) ?? 0) + 1);
+  }
+  let best = '';
+  let bestCount = 0;
+  for (const [city, count] of counts) {
+    if (count > bestCount) {
+      best = city;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
 const EMPTY_STATS: MyStatsRow = {
   active_listings: 0,
   archived_listings: 0,
@@ -106,7 +132,17 @@ const Profile: React.FC = () => {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   const [viewedProfile, setViewedProfile] = useState<ProfileDisplay | null>(null);
-  const [publicListings, setPublicListings] = useState<MyListingRow[]>([]);
+  const [publicListings, setPublicListings] = useState<PublicSellerListingRow[]>([]);
+  const [publicStats, setPublicStats] = useState<PublicSellerStats | null>(null);
+  const [publicStatsFailed, setPublicStatsFailed] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [bioDraft, setBioDraft] = useState('');
+  const [locationDraft, setLocationDraft] = useState('');
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [publicListingImageUrls, setPublicListingImageUrls] = useState<
   Record<string, string>
@@ -211,22 +247,48 @@ const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: st
   }, [userId, isOwner]);
 
   const loadPublicListings = useCallback(async () => {
-  if (!userId || isOwner) {
-    setPublicListings([]);
-    return;
-  }
+    if (!userId || isOwner) {
+      setPublicListings([]);
+      return;
+    }
 
-  const result = await listingService.getPublicListingsBySeller(userId);
+    const result = await listingService.getPublicListingsBySeller(userId);
 
-  if (result.error) {
-    console.error('[Profile] Failed to load public listings:', result.error);
-    setPublicListings([]);
-    setActionError(result.error.message);
-    return;
-  }
+    if (result.error) {
+      console.error('[Profile] Failed to load public listings:', result.error);
+      setPublicListings([]);
+      setActionError(result.error.message);
+      return;
+    }
 
-  setPublicListings(result.data ?? []);
-}, [userId, isOwner]);
+    setPublicListings(result.data ?? []);
+  }, [userId, isOwner]);
+
+  const loadPublicSellerExtras = useCallback(async () => {
+    if (!userId || isOwner) {
+      setPublicStats(null);
+      setPublicStatsFailed(false);
+      setIsFollowing(false);
+      setFollowError(null);
+      return;
+    }
+
+    setFollowError(null);
+    const [statsResult, following] = await Promise.all([
+      listingService.getPublicSellerStats(userId),
+      followService.isFollowing(userId),
+    ]);
+
+    if (statsResult.data) {
+      setPublicStats(statsResult.data);
+      setPublicStatsFailed(false);
+    } else {
+      setPublicStats(null);
+      // Missing-function means pre-migration DB: hide stats rather than error.
+      setPublicStatsFailed(!/not available yet/i.test(statsResult.error?.message ?? ''));
+    }
+    setIsFollowing(following);
+  }, [userId, isOwner]);
 
   const loadPublicListingImages = useCallback(async () => {
   if (isOwner || publicListings.length === 0) {
@@ -266,22 +328,25 @@ const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: st
 }, [isOwner, publicListings]);
 
     useEffect(() => {
-  if (isOwner) {
-    void loadAll();
-    return;
-  }
+    if (isOwner) {
+      void loadAll();
+      return;
+    }
 
-  if (userId) {
-    void loadViewedProfile();
-    void loadPublicListings();
-  }
-}, [
-  isOwner,
-  userId,
-  loadAll,
-  loadViewedProfile,
-  loadPublicListings,
-]);
+    if (userId) {
+      void loadViewedProfile();
+      void loadPublicListings();
+      void loadPublicSellerExtras();
+    }
+    // loadPublicSellerExtras is stable per userId; keep deps explicit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isOwner,
+    userId,
+    loadAll,
+    loadViewedProfile,
+    loadPublicListings,
+  ]);
 
 useEffect(() => {
   void loadPublicListingImages();
@@ -290,6 +355,8 @@ useEffect(() => {
   useEffect(() => {
     setFullNameDraft(profile?.full_name ?? displayName ?? '');
     setPhoneDraft(profile?.contact_phone ?? '');
+    setBioDraft(profile?.bio ?? '');
+    setLocationDraft(profile?.location_city ?? '');
   }, [profile, displayName]);
 
   useEffect(() => {
@@ -410,9 +477,13 @@ useEffect(() => {
       contact_phone: string | null;
       avatar_path?: string | null;
       cover_path?: string | null;
+      bio?: string | null;
+      location_city?: string | null;
     } = {
       full_name: fullNameDraft.trim(),
       contact_phone: phoneDraft.trim() || null,
+      bio: bioDraft.trim() || null,
+      location_city: locationDraft.trim() || null,
     };
 
     let saveError: string | null = null;
@@ -493,6 +564,52 @@ useEffect(() => {
     await loadAll();
   };
 
+  const handleToggleFollow = async () => {
+    if (!userId || isOwner || followBusy) return;
+    if (!user) {
+      navigate('/login', { state: { from: `/profile/${userId}` } });
+      return;
+    }
+    setFollowBusy(true);
+    setFollowError(null);
+    const result = isFollowing
+      ? await followService.unfollow(userId)
+      : await followService.follow(userId);
+    if (result.error) {
+      setFollowError(result.error.message);
+    } else {
+      setIsFollowing(!isFollowing);
+      const counts = await followService.getFollowCounts(userId);
+      if (counts.data) {
+        setFollowCounts({
+          followers: counts.data.followers_count,
+          following: counts.data.following_count,
+        });
+      }
+    }
+    setFollowBusy(false);
+  };
+
+  useEffect(() => {
+    if (moreOpen) {
+      const onPointerDown = (event: PointerEvent) => {
+        if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+          setMoreOpen(false);
+        }
+      };
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') setMoreOpen(false);
+      };
+      document.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('keydown', onKeyDown);
+      return () => {
+        document.removeEventListener('pointerdown', onPointerDown);
+        document.removeEventListener('keydown', onKeyDown);
+      };
+    }
+    return undefined;
+  }, [moreOpen]);
+
   const handleDeleteListing = async (listingId: string, title: string) => {
   setDeletingListingId(listingId)
   setActionError(null)
@@ -558,6 +675,18 @@ useEffect(() => {
 
   const followersLabel = followCounts ? followCounts.followers : '—';
   const followingLabel = followCounts ? followCounts.following : '—';
+  const profileBio = isOwner
+    ? profile?.bio?.trim() || ''
+    : viewedProfile?.bio?.trim() || '';
+  // Public city: reuse the profile field; fall back to the seller's most
+  // common listing city (real listing data, never an invented location).
+  const sellerLocation = isOwner
+    ? profile?.location_city?.trim() || ''
+    : viewedProfile?.location_city?.trim() ||
+      mostCommonCity(publicListings) ||
+      '';
+  const featuredListings = publicListings.filter((item) => item.is_featured).slice(0, 3);
+  const showFeatured = !isOwner && featuredListings.length > 0;
 
   return (
     <div className="profile-dashboard">
@@ -583,7 +712,12 @@ useEffect(() => {
         {/* Row 1: Profile Summary & Active Reservations */}
         <div className="profile-dashboard__row profile-dashboard__row--two-col">
           {/* Left Card: Profile Summary */}
-          <section className="profile-card profile-card--summary" aria-label="Profile summary">
+          <section
+                  className={`profile-card profile-card--summary ${
+                    !isOwner ? 'profile-card--summary-public' : ''
+                  }`}
+                  aria-label="Profile summary"
+                >
             <div className="profile-summary__cover">
               {editing && coverPreview ? (
                     <img src={coverPreview} alt="" />
@@ -638,7 +772,19 @@ useEffect(() => {
 
               <div className="profile-summary__identity">
                 <h1 className="profile-summary__name">{profileName}</h1>
-                <p className="profile-summary__role">User</p>
+                <p className="profile-summary__role">
+                  {!isOwner && sellerLocation ? (
+                    <span className="profile-summary__location">
+                      <MapPin size={13} aria-hidden="true" />
+                      <span>{sellerLocation}</span>
+                    </span>
+                  ) : (
+                    'User'
+                  )}
+                </p>
+                {!isOwner && profileBio ? (
+                  <p className="profile-summary__bio">{profileBio}</p>
+                ) : null}
               </div>
             </div>
 
@@ -703,6 +849,29 @@ useEffect(() => {
                   />
                 </label>
 
+                <label className="profile-edit-field">
+                  <span>City (shown publicly)</span>
+                  <input
+                    type="text"
+                    value={locationDraft}
+                    maxLength={120}
+                    placeholder="e.g. Davao City"
+                    onChange={(e) => setLocationDraft(e.target.value)}
+                  />
+                </label>
+
+                <label className="profile-edit-field">
+                  <span>Seller bio (shown publicly)</span>
+                  <textarea
+                    value={bioDraft}
+                    maxLength={500}
+                    rows={3}
+                    placeholder="Tell buyers what you sell…"
+                    onChange={(e) => setBioDraft(e.target.value)}
+                  />
+                  <span className="profile-edit-counter">{bioDraft.trim().length}/500</span>
+                </label>
+
                 <div className="profile-summary__actions">
                   <button
                     type="button"
@@ -739,17 +908,62 @@ useEffect(() => {
                     <span>Edit profile</span>
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    className="profile-btn-sm-outline"
-                    disabled
-                    aria-disabled="true"
-                    title="Messaging is not available yet"
-                  >
-                    <MessageSquare size={15} />
-                    <span>Message / Get in Touch</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={isFollowing ? 'profile-btn-outline' : 'profile-btn-sm-outline'}
+                      onClick={handleToggleFollow}
+                      disabled={followBusy}
+                      aria-pressed={isFollowing}
+                    >
+                      <span>{followBusy ? 'Working…' : isFollowing ? 'Following' : 'Follow'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="profile-btn-sm-outline"
+                      disabled
+                      aria-disabled="true"
+                      title="Messaging is not available yet"
+                    >
+                      <MessageSquare size={15} />
+                      <span>Message / Get in Touch</span>
+                    </button>
+                    <div className="profile-more-wrap" ref={moreMenuRef}>
+                      <button
+                        type="button"
+                        className="profile-more-btn"
+                        onClick={() => setMoreOpen((open) => !open)}
+                        aria-haspopup="menu"
+                        aria-expanded={moreOpen}
+                        aria-label="More options"
+                        title="More options"
+                      >
+                        <MoreHorizontal size={17} />
+                      </button>
+                      {moreOpen ? (
+                        <div className="profile-more-menu" role="menu">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="profile-more-menu__item profile-more-menu__item--danger"
+                            onClick={() => {
+                              setMoreOpen(false);
+                              setReportOpen(true);
+                            }}
+                          >
+                            <Flag size={14} aria-hidden="true" />
+                            <span>Report seller</span>
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
                 )}
+                {followError ? (
+                  <p className="profile-action-error" role="alert">
+                    {followError}
+                  </p>
+                ) : null}
               </div>
             )}
           </section>
@@ -998,6 +1212,100 @@ useEffect(() => {
         )}
 
                   {!isOwner && (
+          <>
+            {publicStats ? (
+              <section className="profile-card profile-card--storefront" aria-label="Seller stats">
+                <div className="profile-card__header">
+                  <div className="profile-card__title-wrap">
+                    <BadgeCheck size={18} className="profile-card__header-icon" />
+                    <h2 className="profile-card__title">Seller stats</h2>
+                  </div>
+                </div>
+                <div className="profile-storefront-stats">
+                  <div className="profile-storefront-stat">
+                    <span className="profile-storefront-stat__value">{publicStats.active_listings}</span>
+                    <span className="profile-storefront-stat__label">Active listings</span>
+                  </div>
+                  <div className="profile-storefront-stat">
+                    <span className="profile-storefront-stat__value">{publicStats.sold_listings}</span>
+                    <span className="profile-storefront-stat__label">Items sold</span>
+                  </div>
+                  <div className="profile-storefront-stat">
+                    <span className="profile-storefront-stat__value">{followCounts ? followCounts.followers : '—'}</span>
+                    <span className="profile-storefront-stat__label">Followers</span>
+                  </div>
+                </div>
+              </section>
+            ) : publicStatsFailed ? (
+              <p className="profile-empty-note" role="alert">
+                Could not load seller stats.
+              </p>
+            ) : null}
+
+            <section className="profile-card profile-card--storefront" aria-label="About this seller">
+              <div className="profile-card__header">
+                <div className="profile-card__title-wrap">
+                  <h2 className="profile-card__title">About this seller</h2>
+                </div>
+              </div>
+              {profileBio ? (
+                <p className="profile-storefront-bio">{profileBio}</p>
+              ) : (
+                <p className="profile-empty-note">No seller bio yet.</p>
+              )}
+            </section>
+
+            <section className="profile-card profile-card--storefront" aria-label="Seller ratings">
+              <div className="profile-card__header">
+                <div className="profile-card__title-wrap">
+                  <Star size={18} className="profile-card__header-icon" />
+                  <h2 className="profile-card__title">Seller ratings</h2>
+                </div>
+              </div>
+              <p className="profile-empty-note">No reviews yet.</p>
+            </section>
+
+            {showFeatured ? (
+              <section className="profile-card profile-card--storefront" aria-label="Featured finds">
+                <div className="profile-card__header">
+                  <div className="profile-card__title-wrap">
+                    <h2 className="profile-card__title">Featured finds</h2>
+                  </div>
+                </div>
+                <div className="profile-featured-grid">
+                  {featuredListings.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="profile-featured-card"
+                      onClick={() => navigate(`/listing/${item.id}`)}
+                      aria-label={`View listing: ${item.title}`}
+                    >
+                      {publicListingImageUrls[item.id] ? (
+                        <img
+                          src={publicListingImageUrls[item.id]}
+                          alt=""
+                          className="profile-featured-card__image"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="profile-featured-card__image profile-featured-card__image--empty" aria-hidden="true" />
+                      )}
+                      <span className="profile-featured-card__body">
+                        <span className="profile-featured-card__title">{item.title}</span>
+                        <span className="profile-featured-card__meta">
+                          {formatPeso(item.price)}{item.city ? ` · ${item.city}` : ''}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </>
+        )}
+
+        {!isOwner && (
           <section
             className="profile-card profile-card--listings"
             aria-label="Public listings"
@@ -1163,6 +1471,13 @@ useEffect(() => {
         buyerName={chatModal?.buyerName ?? ''}
         listingTitle={chatModal?.listingTitle ?? ''}
       />
+      {!isOwner ? (
+        <ReportSellerModal
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          sellerName={profileName}
+        />
+      ) : null}
     </div>
   );
 };
