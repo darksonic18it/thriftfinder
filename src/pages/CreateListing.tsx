@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   Image as ImageIcon,
@@ -139,6 +139,14 @@ const ListingPreviewCard: React.FC<{
 
 const CreateListing: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Preserve the caller's origin (Dashboard / My Listings / Browse) that was
+  // carried as `location.state.from` into /edit-listing/:id, so "View Listing"
+  // and "Cancel" can return to /listing/:id with the same context.
+  const originState = (location.state as { from?: string } | null) ?? undefined;
+  const originFrom = originState?.from;
+  const viewListingState = originFrom ? { from: originFrom } : undefined;
 
   // When the route is /edit-listing/:id we run the same form in edit mode.
   const { id: routeListingId } = useParams<{ id: string }>();
@@ -758,7 +766,7 @@ const CreateListing: React.FC = () => {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => navigate(`/listing/${routeListingId}`)}
+                  onClick={() => navigate(`/listing/${routeListingId}`, { state: viewListingState })}
                   disabled={submitting}
                 >
                   Cancel
@@ -835,7 +843,8 @@ const CreateListing: React.FC = () => {
               variant="outline"
               onClick={() => {
                 setPublishOpen(false);
-                if (savedListingId) navigate(`/listing/${savedListingId}`);
+                if (savedListingId)
+                  navigate(`/listing/${savedListingId}`, { state: viewListingState });
               }}
             >
               View Listing

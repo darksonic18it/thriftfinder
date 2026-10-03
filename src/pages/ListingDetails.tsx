@@ -381,7 +381,7 @@ const ListingDetails: React.FC = () => {
               <Button
                 variant="outline"
                 className="save-btn"
-                onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                onClick={() => navigate(`/edit-listing/${listing.id}`, { state: location.state })}
               >
                 <Pencil size={18} />
                 Edit Listing

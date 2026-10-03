@@ -253,7 +253,7 @@ const MyListings: React.FC = () => {
   };
 
   const handleEdit = (listing: MyListingRow) => {
-    navigate(`/edit-listing/${listing.id}`);
+    navigate(`/edit-listing/${listing.id}`, { state: { from: '/my-listings' } });
   };
 
   const handleToggleStatus = async (listing: MyListingRow) => {

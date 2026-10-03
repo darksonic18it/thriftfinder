@@ -31,7 +31,7 @@ function MiniProductCard({ product }: { product: Product }) {
   const navigate = useNavigate();
 
   const handleOpen = () => {
-    navigate(`/listing/${product.id}`);
+    navigate(`/listing/${product.id}`, { state: { from: '/dashboard' } });
   };
 
   return (
