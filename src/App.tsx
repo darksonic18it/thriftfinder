@@ -90,7 +90,6 @@ function AppShell() {
           />
 
           <Route path="/listing/:id" element={<ListingDetails />} />
-          <Route path="/listing/:id" element={<ListingDetails />} />
           <Route path="/listing/:id/report" element={<ReportListing />} />
 
           {/* Create listing */}
