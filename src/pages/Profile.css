@@ -728,6 +728,46 @@
   flex-shrink: 0;
 }
 
+/* PeekRating in the Profile Summary badges (view-seller only).
+   Row 1: Member since + Followers + Following
+   Row 2: star rating */
+.profile-summary__badges--seller {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  column-gap: 0.55rem;
+  row-gap: 0;               /* was 0.6rem */
+}
+
+.profile-summary__peek-rating {
+  order: 1;
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;   /* label on top, stars below */
+  align-items: flex-start;
+  line-height: 1;
+  margin-top: 0.9rem;       /* breathing room under the badges row */
+}
+
+.profile-summary__peek-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--profile-text-soft);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
+
+.profile-summary__peek-stars {
+  position: relative;       /* keeps the hover tip above the label */
+  z-index: 1;
+  margin-top: -0.9rem;      /* pulls stars up into PeekRating's reserved tip room */
+}
+
 
 /* ==========================================================================
    BUTTON SYSTEM
@@ -2238,4 +2278,180 @@
   top: auto;
   bottom: calc(100% + 8px);
   z-index: 100;
+}
+
+/* Public profile: put Follow / Message / ... on the same row as the rating */
+@media (min-width: 761px) {
+  .profile-card--summary-public .profile-summary__actions {
+    position: absolute;
+    right: 1.75rem;                 /* matches the card's padding */
+    bottom: calc(1.75rem - 7px);    /* -7px centers the buttons on the stars */
+    justify-content: flex-end;
+    width: auto;                    /* so it doesn't cover the stars and block hover/clicks */
+  }
+}
+
+/* ==========================================================================
+   PROFILE HERO: bigger avatar with the name beside it
+   ========================================================================== */
+
+.profile-summary__header {
+  --avatar-size: 120px;   /* change this to resize the picture */
+  --avatar-gap: 20px;     /* space between the picture and the name */
+}
+
+.profile-summary__avatar-wrap {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  top: -80px;             /* how far the picture overlaps the cover */
+}
+
+.profile-summary__avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  font-size: 2.1rem;      /* initials fallback */
+}
+
+/* Name + location sit to the right of the picture */
+.profile-summary__identity {
+  margin-top: 0;
+}
+
+.profile-summary__name,
+.profile-summary__role {
+  margin-left: calc(var(--avatar-size) + var(--avatar-gap));
+}
+
+/* Bio goes back to full width, below the picture */
+.profile-summary__bio {
+  margin-top: 1rem;
+}
+
+/* Re-seat the little badges on the bigger circle */
+.profile-verified-badge {
+  top: 6px;
+  right: 6px;
+}
+
+.profile-summary__avatar-edit-btn {
+  bottom: 6px;
+  right: 6px;
+}
+
+/* ==========================================================================
+   PROFILE HERO: bigger avatar, name beside it, location under it
+   ========================================================================== */
+
+.profile-summary__header {
+  --avatar-size: 120px;     /* change this to resize the picture */
+  --avatar-gap: 20px;       /* space between the picture and the name */
+  --avatar-overlap: 80px;   /* how far the picture overlaps the cover */
+}
+
+.profile-summary__avatar-wrap {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  top: calc(-1 * var(--avatar-overlap));
+}
+
+.profile-summary__avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  font-size: 2.1rem;        /* initials fallback */
+}
+
+.profile-summary__identity {
+  margin-top: 0;
+}
+
+/* Name: to the right of the picture, centered on the part below the cover */
+/* Name: to the right of the picture, centered on the part below the cover */
+.profile-summary__name {
+  margin-left: calc(var(--avatar-size) + var(--avatar-gap));
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--avatar-size) - var(--avatar-overlap) + 0.5rem);
+
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);   /* was 1.35rem to 1.65rem */
+  line-height: 1.1;
+}
+
+/* Location: directly under the picture, left-aligned with it */
+.profile-summary__role {
+  margin-left: 0;
+  margin-top: 0.15rem;
+}
+
+/* Bio goes below the location */
+.profile-summary__bio {
+  margin-top: 0.75rem;
+}
+
+/* Re-seat the little badges on the bigger circle */
+.profile-verified-badge {
+  top: 6px;
+  right: 6px;
+}
+
+.profile-summary__avatar-edit-btn {
+  bottom: 6px;
+  right: 6px;
+}
+
+@media (max-width: 640px) {
+  .profile-summary__header {
+    --avatar-size: 84px;
+    --avatar-gap: 16px;
+    --avatar-overlap: 56px;
+  }
+
+  .profile-summary__avatar {
+    font-size: 1.4rem;
+  }
+
+  .profile-summary__identity {
+    margin-top: 0;
+  }
+}
+
+/* ==========================================================================
+   PROFILE HERO: cover fills the whole card, blurring toward the bottom
+   ========================================================================== */
+
+.profile-card--summary {
+  isolation: isolate;       /* keeps the cover behind the content, inside the card */
+  padding-top: 190px;       /* keeps the content where it was (the cover used to take this space) */
+}
+
+/* Cover now covers the entire card */
+.profile-summary__cover {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  height: 100%;
+  margin: 0;
+  border-radius: var(--profile-radius);
+}
+
+/* Blur + fade, getting stronger toward the bottom */
+.profile-summary__cover-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(2, 0, 13, 0.25) 0%,
+    rgba(2, 0, 13, 0) 30%,
+    rgba(2, 0, 13, 0.55) 70%,
+    var(--profile-bg) 100%
+  );
+
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+
+  /* transparent at the top = sharp image, solid at the bottom = fully blurred */
+  -webkit-mask-image: linear-gradient(180deg, transparent 25%, #000 75%);
+  mask-image: linear-gradient(180deg, transparent 25%, #000 75%);
+}
+
+/* The "Change cover" chip used to sit in the middle of a 190px cover */
+.profile-summary__cover-edit-btn {
+  top: 95px;
 }

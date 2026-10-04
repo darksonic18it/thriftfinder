@@ -27,6 +27,7 @@ import { listingService, type MyListingRow } from '../services/listingService';
 import { reservationService } from '../services/reservationService';
 import { profileService, type ProfileDisplay } from '../services/profileService';
 import ChatBuyerModal from '../components/ChatBuyerModal';
+import PeekRating from '../components/PeekRating';
 import ReportSellerModal from '../components/ReportSellerModal';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
@@ -140,6 +141,9 @@ const Profile: React.FC = () => {
   const [followError, setFollowError] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  // UI-only demo value for the reference PeekRating interaction
+  // (hover preview + click commit). No backend wiring.
+  const [peekRatingValue, setPeekRatingValue] = useState(0);
   const [bioDraft, setBioDraft] = useState('');
   const [locationDraft, setLocationDraft] = useState('');
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
@@ -809,11 +813,29 @@ useEffect(() => {
               </>
             ) : null}
 
-            <div className="profile-summary__badges" aria-label="Account status badges">
+            <div
+              className={`profile-summary__badges${!isOwner ? ' profile-summary__badges--seller' : ''}`}
+              aria-label="Account status badges"
+            >
               <span className="profile-badge profile-badge--neutral">
                 <Calendar size={14} className="profile-badge__icon" />
                 <span>Member since {memberSince}</span>
               </span>
+
+              {!isOwner ? (
+                <span className="profile-summary__peek-rating" aria-label="Seller rating">
+                  <span className="profile-summary__peek-label">Rate:  {profileName}</span>
+                  <span className="profile-summary__peek-stars">
+                    <PeekRating
+                      value={peekRatingValue}
+                      onChange={setPeekRatingValue}
+                      count={5}
+                      shape="star"
+                      size={28}
+                    />
+                  </span>
+                </span>
+              ) : null}
 
               <span className="profile-badge profile-badge--neutral">
                 <span>Followers {followersLabel}</span>
