@@ -45,11 +45,11 @@
 
 /* Controls (Search & Category Filter) */
 .browse-controls {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-elevated); /* was var(--color-bg-secondary), which is see-through in dark mode */
   padding: 1.5rem;
   border-bottom: 1px solid var(--color-border);
   position: sticky;
-  top: 70px; /* Adjust based on navbar height */
+  top: 70px;
   z-index: 900;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }

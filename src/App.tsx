@@ -21,6 +21,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import AppNavbar from './components/AppNavbar';
 import ReportListing from './pages/ReportListing';
+import FloatingMessages from './components/messaging/FloatingMessages';
 
 import { AuthGateProvider } from './context/AuthGateContext';
 import SellAuthModal from './components/SellAuthModal';
@@ -159,6 +160,8 @@ function AppShell() {
           />
         </Routes>
       </main>
+
+       <FloatingMessages />
 
       {!isAppShell && !isProfileRoute ? <Footer /> : null}
     </div>
