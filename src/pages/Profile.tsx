@@ -11,6 +11,7 @@ import {
   Plus,
   Star,
   MessageSquare,
+   ShoppingBag,
   Bell,
   Settings,
   ChevronRight,
@@ -28,6 +29,7 @@ import { reservationService } from '../services/reservationService';
 import { profileService, type ProfileDisplay } from '../services/profileService';
 import ChatBuyerModal from '../components/ChatBuyerModal';
 import PeekRating from '../components/PeekRating';
+import DeleteListingModal from '../components/DeleteListingModal';
 import ReportSellerModal from '../components/ReportSellerModal';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
@@ -179,10 +181,15 @@ const memberSince = memberSinceDate
   const [myReservations, setMyReservations] = useState<ReservationWithListing[]>([]);
   const [incoming, setIncoming] = useState<ReservationWithListing[]>([]);
   const [buyerDisplays, setBuyerDisplays] = useState<Record<string, ProfileDisplay>>({});
-const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: string } | null>(null);
+  const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+  id: string;
+  title: string;
+  hasReservations: boolean;
+} | null>(null);
 
   // Inline profile editing (FR-002)
   const [editing, setEditing] = useState(false);
@@ -614,55 +621,49 @@ useEffect(() => {
     return undefined;
   }, [moreOpen]);
 
-  const handleDeleteListing = async (listingId: string, title: string) => {
-  setDeletingListingId(listingId)
-  setActionError(null)
+  // Step 1: check the listing, then open the modal (no window.confirm).
+const handleDeleteListing = async (listingId: string, title: string) => {
+  setDeletingListingId(listingId);
+  setActionError(null);
 
-  // rest of your existing code...
-  setActionError(null)
+  const infoResult = await listingService.getDeleteInfo(listingId);
+  setDeletingListingId(null);
 
-  try {
-    const infoResult = await listingService.getDeleteInfo(listingId)
-
-    if (infoResult.error) {
-      setActionError(infoResult.error.message)
-      return
-    }
-
-    if (!infoResult.data) {
-      setActionError('Could not verify the listing.')
-      return
-    }
-
-    const { hasReservations } = infoResult.data
-
-    const confirmed = hasReservations
-      ? window.confirm(
-          `⚠️ This listing has existing reservation history.\n\n` +
-            `Deleting "${title}" will permanently delete the listing, ` +
-            `all of its photos, and the associated reservation records.\n\n` +
-            `This action cannot be undone.\n\n` +
-            `Do you want to permanently delete this listing?`
-        )
-      : window.confirm(
-          `Delete "${title}" permanently?\n\n` +
-            `This will permanently delete the listing and all of its photos. ` +
-            `This action cannot be undone.`
-        )
-
-    if (!confirmed) return
-
-    const { error } = await listingService.hardDeleteListing(listingId)
-
-    if (error) {
-      setActionError(error.message)
-      return
-    }
-
-    await loadAll()
-  } finally {
-    setDeletingListingId(null)
+  if (infoResult.error) {
+    setActionError(infoResult.error.message);
+    return;
   }
+
+  if (!infoResult.data) {
+    setActionError('Could not verify the listing.');
+    return;
+  }
+
+  setDeleteTarget({
+    id: listingId,
+    title,
+    hasReservations: infoResult.data.hasReservations,
+  });
+};
+
+// Step 2: runs when the user confirms in the modal.
+const handleConfirmDelete = async () => {
+  if (!deleteTarget) return;
+
+  setDeletingListingId(deleteTarget.id);
+  setActionError(null);
+
+  const { error } = await listingService.hardDeleteListing(deleteTarget.id);
+
+  setDeletingListingId(null);
+  setDeleteTarget(null);
+
+  if (error) {
+    setActionError(error.message);
+    return;
+  }
+
+  await loadAll();
 };
 
   const activeReservations = myReservations.filter((r) => ['Pending', 'Confirmed'].includes(String(r.status)));
@@ -1400,7 +1401,7 @@ useEffect(() => {
             onClick={() => navigate('/saved-items')}
           >
             <div className="profile-stat-card__icon-wrap">
-              <MessageSquare size={18} className="profile-stat-icon" />
+              <ShoppingBag size={18} className="profile-stat-icon" />
             </div>
             <div className="profile-stat-card__body">
               <div className="profile-stat-card__primary-value">{savedCount}</div>
@@ -1500,6 +1501,14 @@ useEffect(() => {
           sellerName={profileName}
         />
       ) : null}
+      <DeleteListingModal
+          open={deleteTarget !== null}
+          listingTitle={deleteTarget?.title ?? ''}
+          hasReservations={deleteTarget?.hasReservations ?? false}
+          busy={deletingListingId !== null && deletingListingId === deleteTarget?.id}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleConfirmDelete}
+        />
     </div>
   );
 };
