@@ -11,7 +11,6 @@ import {
   Send,
   SendHorizontal,
   Smile,
-  Sticker,
   SquarePen,
   X,
 } from 'lucide-react'
@@ -23,10 +22,11 @@ import './FloatingMessages.css'
 
 type View = 'closed' | 'list' | 'chat'
 
-/** Routes where the floating widget should not appear. */
-
-const SHOW_ON_ROUTES = ['/dashboard', '/saved-items', '/my-listings']
-
+/**
+ * The only routes where the floating widget appears.
+ * To show it on more pages, add them here, e.g. '/saved-items', '/my-listings'.
+ */
+const SHOW_ON_ROUTES = ['/dashboard']
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -157,7 +157,7 @@ const FloatingMessages: FC = () => {
                   onClick={backToList}
                   aria-label="Back to messages"
                 >
-                  <ChevronLeft size={26} />
+                  <ChevronLeft size={22} />
                 </button>
                 <Avatar
                   name={active.fullName}
@@ -180,7 +180,7 @@ const FloatingMessages: FC = () => {
                 onClick={() => setExpanded((v) => !v)}
                 aria-label={expanded ? 'Shrink messages' : 'Expand messages'}
               >
-                {expanded ? <Minimize2 size={22} /> : <Maximize2 size={22} />}
+                {expanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
               </button>
               <button
                 type="button"
@@ -188,7 +188,7 @@ const FloatingMessages: FC = () => {
                 onClick={closeAll}
                 aria-label="Close messages"
               >
-                <X size={28} />
+                <X size={22} />
               </button>
             </div>
           </header>
@@ -231,7 +231,7 @@ const FloatingMessages: FC = () => {
                 aria-label="New message"
                 title="New message"
               >
-                <SquarePen size={26} />
+                <SquarePen size={22} />
               </button>
             </div>
           )}
@@ -277,9 +277,9 @@ const FloatingMessages: FC = () => {
               </div>
 
               <div className="fm-composer">
-                {/* Phase 3+: emoji picker, voice notes, photo + sticker sending */}
+                {/* Phase 3+: emoji picker, voice notes, photo sending */}
                 <button type="button" className="fm-icon-btn" aria-label="Emoji">
-                  <Smile size={28} />
+                  <Smile size={24} />
                 </button>
                 <input
                   className="fm-composer__input"
@@ -302,18 +302,15 @@ const FloatingMessages: FC = () => {
                     onClick={sendMessage}
                     aria-label="Send message"
                   >
-                    <SendHorizontal size={22} />
+                    <SendHorizontal size={18} />
                   </button>
                 ) : (
                   <>
                     <button type="button" className="fm-icon-btn" aria-label="Voice message">
-                      <Mic size={26} />
+                      <Mic size={22} />
                     </button>
                     <button type="button" className="fm-icon-btn" aria-label="Send a photo">
-                      <ImageIcon size={26} />
-                    </button>
-                    <button type="button" className="fm-icon-btn" aria-label="Stickers">
-                      <Sticker size={26} />
+                      <ImageIcon size={22} />
                     </button>
                   </>
                 )}

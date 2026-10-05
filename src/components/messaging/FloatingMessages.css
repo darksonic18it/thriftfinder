@@ -20,10 +20,10 @@
 .fm-pill {
   display: flex;
   align-items: center;
-  gap: 14px;
-  width: 340px;
-  height: 68px;
-  padding: 0 14px 0 20px;
+  gap: 12px;
+  width: 270px;
+  height: 56px;
+  padding: 0 10px 0 16px;
   border-radius: 999px;
   border: 1px solid var(--color-border, #e5e5e0);
   background: var(--color-bg-elevated, #f8fafc);
@@ -42,15 +42,15 @@
 }
 
 .fm-pill__icon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   flex: none;
 }
 
 .fm-pill__label {
   flex: 1;
   text-align: left;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -60,9 +60,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 540px;
-  height: min(780px, calc(100vh - 48px));
-  border-radius: 20px;
+  width: 380px;
+  height: min(560px, calc(100vh - 48px));
+  border-radius: 18px;
   border: 1px solid var(--color-border, #e5e5e0);
   background: var(--color-bg-elevated, #f8fafc);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
@@ -73,8 +73,8 @@
 }
 
 .fm-panel--expanded {
-  width: min(760px, calc(100vw - 48px));
-  height: calc(100vh - 48px);
+  width: min(560px, calc(100vw - 48px));
+  height: min(720px, calc(100vh - 48px));
 }
 
 @keyframes fm-open {
@@ -93,20 +93,20 @@
 .fm-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 84px;
-  padding: 0 18px 0 24px;
+  gap: 10px;
+  min-height: 64px;
+  padding: 0 12px 0 18px;
   border-bottom: 1px solid var(--color-border, #e5e5e0);
   flex: none;
 }
 
 .fm-header:has(.fm-icon-btn:first-child) {
-  padding-left: 12px;
+  padding-left: 8px;
 }
 
 .fm-header__title {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
@@ -116,7 +116,7 @@
 
 .fm-header__name {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.25;
   white-space: nowrap;
@@ -126,14 +126,14 @@
 
 .fm-header__sub {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted, #94a3b8);
 }
 
 .fm-header__actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   margin-left: auto;
 }
 
@@ -143,8 +143,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border: 0;
   border-radius: 50%;
@@ -179,27 +179,27 @@
 }
 
 .fm-avatar--pill {
-  width: 44px;
-  height: 44px;
-  font-size: 0.9rem;
+  width: 36px;
+  height: 36px;
+  font-size: 0.8rem;
 }
 
 .fm-avatar--header {
-  width: 48px;
-  height: 48px;
-  font-size: 1rem;
+  width: 38px;
+  height: 38px;
+  font-size: 0.85rem;
 }
 
 .fm-avatar--list {
-  width: 84px;
-  height: 84px;
-  font-size: 1.6rem;
+  width: 56px;
+  height: 56px;
+  font-size: 1.1rem;
 }
 
 .fm-avatar--intro {
-  width: 126px;
-  height: 126px;
-  font-size: 2.4rem;
+  width: 88px;
+  height: 88px;
+  font-size: 1.7rem;
 }
 
 /* ---------- Conversation list ---------- */
@@ -215,7 +215,7 @@
 .fm-list {
   list-style: none;
   margin: 0;
-  padding: 8px 0 96px;
+  padding: 6px 0 80px;
   overflow-y: auto;
   flex: 1;
 }
@@ -223,9 +223,9 @@
 .fm-list__item {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   width: 100%;
-  padding: 12px 24px;
+  padding: 10px 18px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -245,12 +245,12 @@
 }
 
 .fm-list__name {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
 .fm-list__sub {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: var(--color-text-muted, #94a3b8);
 }
 
@@ -264,13 +264,13 @@
 
 .fm-fab {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 16px;
+  bottom: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 68px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 1px solid var(--color-border, #e5e5e0);
   background: var(--color-bg-tertiary, #f1f5f9);
@@ -291,7 +291,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 36px 24px 12px;
+  padding: 24px 18px 8px;
   overflow-y: auto;
 }
 
@@ -303,22 +303,23 @@
 }
 
 .fm-intro__name {
-  margin: 18px 0 2px;
-  font-size: 1.45rem;
+  margin: 12px 0 2px;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
 .fm-intro__sub {
-  margin: 0 0 20px;
+  margin: 0 0 14px;
   color: var(--color-text-muted, #94a3b8);
-  font-size: 1.05rem;
+  font-size: 0.88rem;
 }
 
 .fm-intro__btn {
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 8px 18px;
+  border-radius: 10px;
   background: var(--color-bg-tertiary, #f1f5f9);
   color: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
   transition: background-color 0.15s ease;
@@ -330,15 +331,15 @@
 
 .fm-hint {
   margin: auto 0 8px;
-  padding-top: 24px;
+  padding-top: 18px;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   color: var(--color-text-muted, #94a3b8);
 }
 
 .fm-messages {
   list-style: none;
-  margin: 28px 0 0;
+  margin: 20px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -347,9 +348,9 @@
 
 .fm-bubble {
   max-width: 75%;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 0.98rem;
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 0.9rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -371,8 +372,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin: 8px 20px 20px;
-  padding: 6px 10px;
+  margin: 6px 14px 14px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid var(--color-border, #e5e5e0);
   flex: none;
@@ -381,12 +382,12 @@
 .fm-composer__input {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 36px;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   outline: none;
 }
 
@@ -398,8 +399,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border: 0;
   border-radius: 50%;
@@ -430,8 +431,8 @@
 
   .fm-pill {
     width: auto;
-    height: 60px;
-    gap: 12px;
+    height: 52px;
+    gap: 10px;
   }
 
   .fm-panel,
@@ -441,14 +442,14 @@
   }
 
   .fm-avatar--list {
-    width: 64px;
-    height: 64px;
-    font-size: 1.3rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1rem;
   }
 
   .fm-avatar--intro {
-    width: 104px;
-    height: 104px;
+    width: 80px;
+    height: 80px;
   }
 }
 
