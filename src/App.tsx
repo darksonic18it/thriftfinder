@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FeaturedCategories from './components/FeaturedCategories';
+import CirculationCTA from './components/CirculationCTA';
 import FeaturedProducts from './components/FeaturedProducts';
 import CallToAction from './components/CallToAction';
 import Footer from './components/Footer';
@@ -41,6 +42,7 @@ function LandingPage() {
     <>
       <Hero />
       <FeaturedCategories />
+      <CirculationCTA />
       <FeaturedProducts />
       <CallToAction />
     </>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { gsap } from 'gsap';
@@ -7,8 +7,13 @@ import './Navbar.css';
 import ThemeToggle from './ThemeToggle';
 import { useAuthGate } from '../context/AuthGateContext';
 
+const NAV_SCROLL_DELTA_PX = 10;
+const NAV_TOGGLE_COOLDOWN_MS = 140;
+
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
+  const navHiddenRef = useRef(navHidden);
   const location = useLocation();
   const { requireAuthToSell } = useAuthGate();
 
@@ -20,6 +25,62 @@ const Navbar: React.FC = () => {
   const isBrowseActive = location.pathname === '/browse';
   const isAboutActive = location.pathname === '/about';
   const isCreateListingActive = location.pathname === '/create-listing';
+
+  useEffect(() => {
+    navHiddenRef.current = navHidden;
+  }, [navHidden]);
+
+  // Instagram-style hide-on-scroll-down / show-on-scroll-up,
+  // mirroring AppNavbar (same delta + cooldown + rAF throttle).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setNavHidden(false);
+      return;
+    }
+
+    let lastScrollY = window.scrollY;
+    let lastToggleAt = 0;
+    let rafId: number | null = null;
+
+    const onScroll = () => {
+      if (rafId !== null) return;
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+
+        const currentY = window.scrollY;
+        const deltaY = currentY - lastScrollY;
+        lastScrollY = currentY;
+
+        if (Math.abs(deltaY) < NAV_SCROLL_DELTA_PX) return;
+
+        const now = performance.now();
+        if (now - lastToggleAt < NAV_TOGGLE_COOLDOWN_MS) return;
+
+        if (deltaY > 0 && currentY > 0) {
+          if (!navHiddenRef.current) {
+            navHiddenRef.current = true;
+            setNavHidden(true);
+            lastToggleAt = now;
+          }
+        } else if (deltaY < 0) {
+          if (navHiddenRef.current) {
+            navHiddenRef.current = false;
+            setNavHidden(false);
+            lastToggleAt = now;
+          }
+        }
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -130,7 +191,7 @@ const Navbar: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <header className="navbar">
+    <header className={`navbar${navHidden && !isMenuOpen ? ' navbar--hidden' : ''}`}>
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
           <div className="logo-icon">
