@@ -121,35 +121,35 @@ const CallToAction: React.FC = () => {
             shopping easier.
           </p>
         </div>
+      </div>
 
-        {/* Final CTA — big type + plain actions */}
-        <div
-          className="final-cta cta-reveal"
-          style={{ '--cta-i': 5 } as React.CSSProperties}
-        >
-          <h2 className="final-title">Ready to find your next great find?</h2>
-          <p className="final-description">
-            Browse what&rsquo;s available near you — or list your own pre-loved items to help
-            someone else find theirs.
-          </p>
-          <div className="cta-actions">
-            <button
-              type="button"
-              className="cta-link cta-link--primary"
-              onClick={() => navigate('/browse')}
-            >
-              <span>Browse items</span>
-              <ArrowUpRight size={17} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="cta-link"
-              onClick={() => navigate('/create-listing')}
-            >
-              <span>Sell an item</span>
-              <ArrowUpRight size={17} aria-hidden="true" />
-            </button>
-          </div>
+      {/* Final CTA — Framer moment, full viewport */}
+      <div
+        className="final-cta final-cta--moment cta-reveal"
+        style={{ '--cta-i': 5 } as React.CSSProperties}
+      >
+        <h2 className="final-moment-title">
+          Something
+          <br />
+          is waiting for you.
+        </h2>
+        <div className="cta-actions cta-actions--moment">
+          <button
+            type="button"
+            className="cta-pill"
+            onClick={() => navigate('/browse')}
+          >
+            <span>Explore all finds</span>
+            <ArrowUpRight size={17} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="cta-link cta-link--moment"
+            onClick={() => navigate('/create-listing')}
+          >
+            <span>Sell an item</span>
+            <ArrowUpRight size={17} aria-hidden="true" />
+          </button>
         </div>
       </div>
     </section>
@@ -157,4 +157,3 @@ const CallToAction: React.FC = () => {
 };
 
 export default CallToAction;
-

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, MapPin, Loader2, PackageOpen, AlertCircle } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
+import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import { listingService } from '../services/listingService';
 import { favoriteService } from '../services/favoriteService';
 import { browseRowToProduct } from '../lib/listingMappers';
@@ -54,6 +55,10 @@ const Browse: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+
+  // Instagram-style hide-on-scroll for the sticky search/filter bar —
+  // same DELTA + COOLDOWN + rAF throttle as Navbar so they move together.
+  const controlsHidden = useHideOnScroll(false);
 
   // Debounce the keyword so typing doesn't fire a query per keystroke.
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -167,7 +172,7 @@ const Browse: React.FC = () => {
       </div>
 
       {/* Search & Filters Section */}
-      <div className="browse-controls">
+      <div className={`browse-controls${controlsHidden ? ' browse-controls--hidden' : ''}`}>
         <div className="browse-controls-container">
           {/* Search Bar */}
           <div className="search-wrapper">

@@ -52,6 +52,15 @@
   top: 70px;
   z-index: 900;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+  will-change: transform, opacity;
+}
+
+/* Instagram-style hide-on-scroll — mirrors .navbar--hidden timing. */
+.browse-controls--hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .browse-controls-container {
@@ -170,6 +179,21 @@
   top: auto;
   z-index: auto;
   box-shadow: none;
+  transition: none;
+  transform: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .browse-controls {
+    transition-duration: 0.001ms !important;
+  }
+
+  .browse-controls--hidden {
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 }
 
 /* =====================================================================
