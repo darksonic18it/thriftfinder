@@ -1,10 +1,15 @@
+import { ArrowRight, Tag } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Tag } from 'lucide-react';
-import GradientWaves from './GradientWaves';
-import { useTheme } from '../context/ThemeContext';
 import { useAuthGate } from '../context/AuthGateContext';
+import { useTheme } from '../context/ThemeContext';
+import GradientWaves from './GradientWaves';
 import './Hero.css';
+import HeroBackgroundVideo from './HeroBackgroundVideo';
+
+// Which animated backdrop the hero uses. Flip to 'waves' to bring back the
+// WebGL wave field (the video layer is then not rendered at all).
+const HERO_BACKGROUND = 'video' as 'video' | 'waves';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +20,9 @@ const Hero: React.FC = () => {
   const [wavesOpacity, setWavesOpacity] = useState(1);
 
   useEffect(() => {
+    // The scroll-fade only belongs to the wave field.
+    if (HERO_BACKGROUND !== 'waves') return;
+
     const el = heroRef.current;
     if (!el) return;
 
@@ -98,11 +106,15 @@ const Hero: React.FC = () => {
 
   return (
     <section className="hero" id="home" ref={heroRef}>
-      <div className="hero-waves" aria-hidden="true">
-        <div className="hero-waves-fade" style={{ opacity: wavesOpacity }}>
-          <GradientWaves {...gradientProps} />
+      {HERO_BACKGROUND === 'video' ? (
+        <HeroBackgroundVideo />
+      ) : (
+        <div className="hero-waves" aria-hidden="true">
+          <div className="hero-waves-fade" style={{ opacity: wavesOpacity }}>
+            <GradientWaves {...gradientProps} />
+          </div>
         </div>
-      </div>
+      )}
       <div className="hero-container">
         {/* Centered editorial column */}
         <div className="hero-content">

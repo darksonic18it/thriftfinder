@@ -1,6 +1,6 @@
+import { ArrowUpRight } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight } from 'lucide-react';
 import './FeaturedCategories.css';
 
 /**
