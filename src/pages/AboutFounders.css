@@ -1,0 +1,267 @@
+/* ==========================================================================
+   About page — FOUNDERS section (reference layout)
+   Full-bleed dark section:
+   1. Giant FOUNDERS word, cropped off both viewport edges
+   2. Photo (left) with "Meet The Founders" overlapping its right edge
+   3. Two founder cards underneath
+
+   Tweak knobs live on .about-founders (sizes, colors, indent).
+   ========================================================================== */
+
+.about-founders {
+  --founders-bg: #111214;
+  --founders-fg: #f2f2f0;
+  --founders-giant: #dcdcdc;
+  --founders-accent: #f2682a;
+  --founders-giant-size: 15.5vw; /* word spans ~the same width as the photo + cards; raise for bigger, lower for smaller */
+  --founders-eyebrow: clamp(1.5rem, 3.35vw, 3.4rem);
+  --founders-indent: 2.6rem; /* arrow width + gap; role/bio/links line up to this */
+
+  position: relative;
+  overflow: clip;
+  background: var(--founders-bg);
+  color: var(--founders-fg);
+  padding: clamp(1.5rem, 5vw, 4.5rem) 0 clamp(4rem, 10vw, 9rem);
+}
+
+/* ---------- 1. Giant word ---------- */
+
+.founders-giant {
+  display: flex;
+  justify-content: center; /* overflows equally left + right = cropped both sides */
+  margin: 0 0 clamp(2rem, 6.5vw, 6rem);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: var(--founders-giant-size);
+  line-height: 0.78;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--founders-giant);
+  user-select: none;
+}
+
+/* ---------- Content container ---------- */
+
+.founders {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 8.25vw;
+}
+
+/* ---------- 2. Photo + intro ---------- */
+
+.founders-hero {
+  position: relative;
+}
+
+.founders-photo-wrap {
+  margin: 0;
+  width: 68.2%;
+}
+
+.founders-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: #232326;
+}
+
+/* Sits on top of the photo's right edge, vertically centered on the photo */
+.founders-intro {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 59.3%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.founders-eyebrow {
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0;
+  padding-left: 0.62em;
+  font-size: var(--founders-eyebrow);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--founders-fg);
+}
+
+/* Hand-drawn double-stroke ring around "Meet" */
+.founders-eyebrow__ring {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3.5em;
+  height: 1.55em;
+  margin-top: -0.78em;
+  border: 1px solid rgba(242, 242, 240, 0.8);
+  border-radius: 50%;
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+
+.founders-eyebrow__ring::after {
+  content: '';
+  position: absolute;
+  inset: -2px -4px;
+  border: 1px solid rgba(242, 242, 240, 0.45);
+  border-radius: 50%;
+  transform: rotate(5deg);
+}
+
+.founders-eyebrow__text {
+  position: relative;
+}
+
+.founders-tagline {
+  margin: 0.1em 0 0 calc(var(--founders-eyebrow) * 2.5);
+  font-size: clamp(0.95rem, 1.67vw, 1.6rem);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--founders-accent);
+}
+
+/* ---------- 3. Founder cards ---------- */
+
+.founders-grid {
+  display: grid;
+  grid-template-columns: 56.7% minmax(0, 1fr);
+  margin-top: clamp(3rem, 6.7vw, 6.5rem);
+}
+
+.founders-card {
+  min-width: 0;
+}
+
+.founders-name-row {
+  margin: 0 0 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.founders-arrow {
+  flex: none;
+  width: 1.5rem;
+  color: var(--founders-fg);
+}
+
+.founders-name {
+  font-family: var(--font-heading);
+  font-size: clamp(1.05rem, 1.67vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--founders-accent);
+}
+
+.founders-role {
+  margin: 0 0 1.6rem var(--founders-indent);
+  font-size: clamp(0.62rem, 1vw, 0.8rem);
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(242, 242, 240, 0.85);
+}
+
+.founders-bio {
+  margin: 0 0 1.25em var(--founders-indent);
+  max-width: 30em;
+  font-size: clamp(0.8rem, 1.13vw, 0.98rem);
+  line-height: 1.5;
+  font-weight: 300;
+  color: rgba(242, 242, 240, 0.88);
+}
+
+.founders-links {
+  margin: 2.2rem 0 0 var(--founders-indent);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.founders-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.6rem;
+  height: 2.25rem;
+  border: 1px solid rgba(242, 242, 240, 0.7);
+  border-radius: 999px;
+  font-family: ui-monospace, 'SF Mono', 'Space Mono', Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em; /* optically re-centers tracked text */
+  text-decoration: none;
+  color: var(--founders-fg);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.founders-pill:hover {
+  background: var(--founders-fg);
+  border-color: var(--founders-fg);
+  color: var(--founders-bg);
+}
+
+.founders-pill:focus-visible {
+  outline: 2px solid var(--founders-fg);
+  outline-offset: 3px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .about-founders {
+    --founders-eyebrow: clamp(1.7rem, 7vw, 2.6rem);
+  }
+
+  .founders {
+    padding: 0 1.25rem;
+  }
+
+  .founders-photo-wrap {
+    width: 100%;
+  }
+
+  /* Intro drops below the photo instead of overlapping it */
+  .founders-intro {
+    position: static;
+    padding-top: 1.75rem;
+  }
+
+  .founders-tagline {
+    font-size: 1rem;
+  }
+
+  .founders-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .founders-name {
+    font-size: 1.2rem;
+  }
+
+  .founders-role {
+    font-size: 0.7rem;
+  }
+
+  .founders-bio {
+    font-size: 0.9rem;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .founders-pill {
+    transition: none;
+  }
+}
