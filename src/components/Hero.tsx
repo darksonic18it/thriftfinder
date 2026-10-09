@@ -118,12 +118,6 @@ const Hero: React.FC = () => {
       <div className="hero-container">
         {/* Centered editorial column */}
         <div className="hero-content">
-          <h1 className="hero-kicker">
-            Find Great{' '}
-            <span className="text-gradient">Secondhand</span>
-            <br />
-            Items Near You
-          </h1>
 
           <div className="hero-giant" aria-hidden="true">
             {'ThriftFinder'.split('').map((ch, i) => (

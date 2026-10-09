@@ -120,16 +120,22 @@ const FOUNDERS = [
 
 const VALUES = [
   {
+    index: '01',
+    tag: 'Planet first',
     title: 'Keep things in circulation',
     text: 'Every listing is one less thing made new. We keep useful items moving between people, not into landfills.',
     Icon: Recycle,
   },
   {
+    index: '02',
+    tag: 'Community powered',
     title: 'Made for the community',
     text: 'Buyers and sellers around you — real people, real pickups, real second chances for great pieces.',
     Icon: Users,
   },
   {
+    index: '03',
+    tag: 'Wallet approved',
     title: 'Secondhand first',
     text: 'Choosing pre-loved saves money and reduces waste. Small choices, compounded across a community.',
     Icon: Leaf,
@@ -405,13 +411,28 @@ const About: React.FC = () => {
               className="about-reveal about-creed"
               style={{ '--about-i': 2 } as React.CSSProperties}
             >
-              <p className="about-creed__label">
-                <Target size={16} aria-hidden="true" /> Why it matters
+              <div className="about-creed__top">
+                <p className="about-creed__label">
+                  <Target size={14} aria-hidden="true" /> Why it matters
+                </p>
+                <span className="about-creed__pill" aria-hidden="true">
+                  ✦ manifesto — 001
+                </span>
+              </div>
+              <p className="about-creed__title">
+                Keep good <em>things</em>
+                <br />
+                in circulation.
               </p>
-              <p className="about-creed__title">Keep good things in circulation.</p>
               <p className="about-creed__text">
                 Every listing is one less thing made new — good for wallets, closets, and the planet.
               </p>
+              <div className="about-creed__marquee" aria-hidden="true">
+                <div className="about-creed__track">
+                  <span>one less thing made new ✦ good for wallets ✦ good for closets ✦ good for the planet ✦&nbsp;</span>
+                  <span>one less thing made new ✦ good for wallets ✦ good for closets ✦ good for the planet ✦&nbsp;</span>
+                </div>
+              </div>
             </div>
             <ul className="about-values">
               {VALUES.map((value, i) => (
@@ -420,9 +441,18 @@ const About: React.FC = () => {
                   className="about-reveal about-values__item"
                   style={{ '--about-i': i + 3 } as React.CSSProperties}
                 >
-                  <value.Icon size={20} className="about-values__glyph" aria-hidden="true" />
+                  <div className="about-values__head">
+                    <span className="about-values__icon">
+                      <value.Icon size={20} aria-hidden="true" />
+                    </span>
+                    <span className="about-values__index">{value.index}</span>
+                  </div>
+                  <p className="about-values__tag">{value.tag}</p>
                   <p className="about-values__title">{value.title}</p>
                   <p className="about-values__text">{value.text}</p>
+                  <span className="about-values__foot" aria-hidden="true">
+                    <ArrowUpRight size={18} />
+                  </span>
                 </li>
               ))}
             </ul>

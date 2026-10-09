@@ -1,10 +1,13 @@
 /* Hero */
 .hero {
-  min-height: calc(100vh - 80px);
+  --hero-pad-b: 2.5rem;            /* bottom padding, cancelled out by the wordmark */
+  --nav-h: 71px;                   /* height of your navbar: set this to match it exactly */
+
+  min-height: calc(100vh - var(--nav-h));
   display: flex;
-  align-items: center;
+  align-items: stretch;
   background: linear-gradient(180deg, var(--color-bg-main) 0%, var(--color-bg-secondary) 100%);
-  padding: 4rem 1.5rem;
+  padding: 2rem 2rem var(--hero-pad-b);
   position: relative;
   overflow: hidden;
   width: 100%;
@@ -38,49 +41,59 @@
 .hero-container {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: none;
   width: 100%;
   margin: 0 auto;
   display: flex;
-  justify-content: center;
-  text-align: center;
+  text-align: left;
 }
 
 .hero-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1.5rem;
-  width: 100%;
-}
+  --giant-stretch: 1.05;           /* vertical stretch of the wordmark: tune this (1 = no stretch) */
 
-.hero-kicker {
-  font-family: var(--font-heading);
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 24vw, 340px);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "giant desc"
+    "giant actions";
+  align-content: end;              /* keeps everything pinned to the bottom */
+  column-gap: 2rem;
+  row-gap: 1.25rem;
+  text-align: left;
 }
 
 .hero-giant {
+  grid-area: giant;
+  align-self: end;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: baseline;
-  width: 100%;
-  font-family: 'Archivo Black', var(--font-heading), sans-serif;
+  min-width: 0;
+  white-space: nowrap;
+  font-family: 'Anton', var(--font-heading), sans-serif;
   font-weight: 400;
-  font-size: clamp(2.5rem, 10.5vw, 9.5rem);
+  font-size: clamp(3rem, 14.5vw, 18rem);
   letter-spacing: 0.01em;
-  line-height: 0.9;
-  text-transform: uppercase;
+  line-height: 1;
   color: var(--color-text-primary);
   user-select: none;
+
+  /* Cancel the hero's bottom padding so the letters touch the bottom edge */
+  margin-bottom: calc(var(--hero-pad-b) * -1);
+
+  /* Stretch upward only, so the bottom edge stays put */
+  transform: scaleY(var(--giant-stretch));
+  transform-origin: left bottom;
 }
 
 .hero-giant-letter {
   display: inline-block;
+
+  /* Trim the empty space above the capitals and below the baseline of EACH letter,
+     so the bottom of the letters is exactly the bottom of the box. */
+  text-box: trim-both cap alphabetic;
 }
 
 .text-gradient {
@@ -92,19 +105,23 @@
 }
 
 .hero-description {
-  font-size: clamp(1rem, 2vw, 1.125rem);
+  grid-area: desc;
+  align-self: end;
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
-  line-height: 1.7;
-  max-width: 640px;
-  margin: 0 auto;
+  line-height: 1.6;
+  max-width: 300px;
+  margin: 0;
 }
 
 .hero-actions {
+  grid-area: actions;
+  align-self: end;
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0;
 }
 
 /* Buttons (keep existing behavior via class names) */
@@ -245,28 +262,70 @@
   display: none;
 }
 
+/* The wordmark's font size shrinks with the screen but the right column
+   doesn't, so the stretch grows on smaller screens to stay level with
+   the top of the description. */
+@media (max-width: 1700px) {
+  .hero-content { --giant-stretch: 1.2; }
+}
+
+@media (max-width: 1500px) {
+  .hero-content { --giant-stretch: 1.35; }
+}
+
+@media (max-width: 1380px) {
+  .hero-content { --giant-stretch: 1.5; }
+}
+
+@media (max-width: 1200px) {
+  .hero-content { --giant-stretch: 1.7; }
+}
+
+@media (max-width: 1050px) {
+  .hero-content { --giant-stretch: 2; }
+}
+
 @media (max-width: 1024px) {
   .hero {
-    padding: 3.5rem 1.5rem;
+    --hero-pad-b: 2.25rem;
+    padding: 2rem 1.5rem var(--hero-pad-b);
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: calc(100vh - var(--nav-h));
+  }
+
+  .hero-content {
+    --giant-stretch: 1.2;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "giant"
+      "desc"
+      "actions";
+    row-gap: 1.25rem;
+  }
+
+  .hero-giant {
+    font-size: clamp(2.5rem, 20vw, 10rem);
+    margin-top: 1.5rem;            /* room for the upward stretch */
+    margin-bottom: 0;              /* stacked layout: wordmark isn't at the bottom */
+  }
+
+  .hero-description {
+    max-width: 420px;
   }
 }
 
 @media (max-width: 768px) {
   .hero {
-    padding: 2.5rem 1.25rem;
-    min-height: auto;
-  }
-
-  .hero-kicker {
-    font-size: clamp(1.5rem, 7vw, 2.25rem);
-  }
-
-  .hero-giant {
-    font-size: clamp(2rem, 13vw, 3.5rem);
+    --hero-pad-b: 2rem;
+    padding: 1.5rem 1.25rem var(--hero-pad-b);
   }
 
   .hero-actions {
-    flex-direction: column;
     width: 100%;
     max-width: 360px;
   }
@@ -279,15 +338,8 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 2rem 1rem;
-  }
-
-  .hero-kicker {
-    font-size: clamp(1.35rem, 8vw, 2rem);
-  }
-
-  .hero-giant {
-    font-size: clamp(1.75rem, 13vw, 2.75rem);
+    --hero-pad-b: 1.75rem;
+    padding: 1.25rem 1rem var(--hero-pad-b);
   }
 }
 
@@ -404,4 +456,3 @@
 [data-theme='dark'] .card-meta {
   color: rgba(255, 255, 255, 0.65);
 }
-
