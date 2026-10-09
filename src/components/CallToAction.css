@@ -273,6 +273,46 @@
   max-width: 16ch;
 }
 
+/* Second line of the seller moment ("Their next find.") renders muted gray,
+   matching the Framer reference: solid first line, gray second line. */
+.final-moment-title--muted {
+  color: var(--color-text-muted);
+}
+
+/* Stacked moments: only the last moment pulls the footer up. The first
+   moment keeps no bottom overlap so the closet line sits directly under it. */
+.final-cta--moment:not(:last-child) {
+  margin-bottom: 0;
+}
+
+.final-cta--moment + .final-cta--moment {
+  margin-top: 0;
+}
+
+/* Closet line — text only, no buttons. Full-viewport moment like the
+   Framer reference screenshot: tall empty space above, big solid
+   "Your closet." over muted gray "Their next find.", tucked to the
+   right bottom edge, sitting above the footer. */
+.final-cta--closet {
+  min-height: 100svh;
+  padding-top: 6rem;
+  padding-bottom: clamp(2rem, 6vw, 4rem);
+  margin-bottom: -4.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.final-moment-title--closet {
+  margin: 0;
+  margin-left: auto;
+  max-width: none;
+  font-size: clamp(3.2rem, 10vw, 8.5rem);
+  text-align: right;
+}
+
 .cta-actions--moment {
   justify-content: center !important;
   align-items: center !important;
@@ -413,6 +453,24 @@
     margin-bottom: -3.25rem;
     min-height: 100svh;
     padding: 4rem 1.25rem;
+  }
+
+  .final-cta--moment:not(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .final-cta--moment + .final-cta--moment {
+    margin-top: 0;
+  }
+
+  .final-cta--closet {
+    min-height: 100svh;
+    margin-bottom: -3.25rem;
+    padding: 4rem 1.25rem 2rem;
+  }
+
+  .final-moment-title--closet {
+    font-size: clamp(2.6rem, 13vw, 4rem);
   }
 
   .final-moment-title {

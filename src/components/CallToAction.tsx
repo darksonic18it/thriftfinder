@@ -152,6 +152,21 @@ const CallToAction: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Seller line — Framer "Your closet. Their next find." text only, no buttons.
+          Sits right under the "Something is waiting for you." moment,
+          anchored to the right bottom like the reference screenshot. */}
+      <div
+        className="final-cta final-cta--moment final-cta--closet cta-reveal"
+        style={{ '--cta-i': 6 } as React.CSSProperties}
+        aria-label="Your closet. Their next find."
+      >
+        <h2 className="final-moment-title final-moment-title--closet">
+          Your closet.
+          <br />
+          <span className="final-moment-title--muted">Their next find.</span>
+        </h2>
+      </div>
     </section>
   );
 };
