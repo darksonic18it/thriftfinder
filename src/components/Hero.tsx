@@ -121,7 +121,10 @@ const Hero: React.FC = () => {
 
           <div className="hero-giant" aria-hidden="true">
             {'ThriftFinder'.split('').map((ch, i) => (
-              <span key={i} className="hero-giant-letter">
+              <span
+                key={i}
+                className={`hero-giant-letter${i >= 6 ? ' hero-giant-letter--finder' : ''}`}
+              >
                 {ch}
               </span>
             ))}

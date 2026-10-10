@@ -96,6 +96,17 @@
   text-box: trim-both cap alphabetic;
 }
 
+/* Light mode only: "Finder" matches the logo's soft blue. */
+/* Eyedropped from your reference — tweak this one hex to match exactly. */
+.hero-giant-letter--finder {
+  color: #8fb8ff;
+}
+
+/* Dark theme stays luxury monochrome — force Finder back to primary. */
+[data-theme='dark'] .hero-giant-letter--finder {
+  color: var(--color-text-primary);
+}
+
 .text-gradient {
   background: linear-gradient(135deg, var(--color-primary), #8b5cf6, var(--color-primary-dark));
   -webkit-background-clip: text;
