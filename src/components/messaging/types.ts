@@ -1,16 +1,18 @@
 export type ConversationId = string
 
-/** A person you can message. Phase 2 will build this from the `profiles` table. */
+/** One thread in the inbox: a conversation about one listing with one other person. */
 export interface Conversation {
   id: ConversationId
   /** profiles.id of the other person (used for "View profile"). */
   userId: string
   fullName: string
-  username: string
   /** Resolved, displayable URL. null = show initials. */
   avatarUrl: string | null
-  /** Human-readable presence text, e.g. "Active 3h ago". */
-  lastActive: string
+  listingId: string
+  listingTitle: string
+  /** Preview of the newest message, or null for an empty thread. */
+  lastMessage: string | null
+  unreadCount: number
 }
 
 export interface ChatMessage {

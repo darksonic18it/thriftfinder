@@ -296,3 +296,41 @@ export interface ReviewableReservation {
   listing_title: string
   resolved_at: string | null
 }
+
+// ---------------------------------------------------------------------
+// Messaging (conversations + messages)
+// ---------------------------------------------------------------------
+
+export interface ConversationRow {
+  id: UUID
+  listing_id: UUID
+  buyer_id: UUID
+  seller_id: UUID
+  created_at: string
+  updated_at: string
+}
+
+export interface MessageRow {
+  id: UUID
+  conversation_id: UUID
+  sender_id: UUID
+  content: string
+  is_read: boolean
+  created_at: string
+  updated_at: string
+}
+
+/** One row of public.get_my_conversations() — the signed-in user's inbox. */
+export interface MyConversationRow {
+  conversation_id: UUID
+  listing_id: UUID
+  listing_title: string
+  other_user_id: UUID
+  other_user_name: string | null
+  other_user_avatar_path: string | null
+  last_message: string | null
+  last_message_at: string | null
+  last_message_sender_id: UUID | null
+  unread_count: number
+  updated_at: string
+}

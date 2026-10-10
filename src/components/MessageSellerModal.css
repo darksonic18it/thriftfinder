@@ -1,0 +1,59 @@
+.msgseller-modal {
+  max-width: 460px !important;
+  padding: 1.75rem !important;
+  gap: 1rem !important;
+  border-radius: var(--radius-xl) !important;
+}
+
+.msgseller-header {
+  text-align: left;
+  gap: 0.35rem !important;
+}
+
+.msgseller-title {
+  font-size: 1.25rem !important;
+  letter-spacing: -0.01em;
+}
+
+.msgseller-description {
+  font-size: 0.92rem !important;
+  color: var(--color-text-muted);
+}
+
+.msgseller-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.msgseller-item {
+  width: 100%;
+  min-height: 46px;
+  justify-content: flex-start !important;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.msgseller-item__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msgseller-item__price {
+  flex: none;
+  font-weight: 700;
+}
+
+.msgseller-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-danger, #ef4444);
+}

@@ -464,3 +464,62 @@
     transition: none;
   }
 }
+
+/* ---------- Live messaging additions ---------- */
+
+.fm-badge {
+  flex: none;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-danger, #ef4444);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+}
+
+.fm-badge--list {
+  margin-left: auto;
+}
+
+.fm-list__text {
+  flex: 1;
+}
+
+.fm-list__name--unread {
+  font-weight: 700;
+}
+
+.fm-list__listing {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.fm-list__preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-error {
+  margin: 0;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  color: var(--color-danger, #ef4444);
+}
+
+.fm-fab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fm-composer__input:disabled,
+.fm-send:disabled {
+  opacity: 0.6;
+}

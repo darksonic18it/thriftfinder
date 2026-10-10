@@ -25,6 +25,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ChatBuyerModal from '../components/ChatBuyerModal';
 import DeleteListingModal from '../components/DeleteListingModal';
+import MessageSellerModal from '../components/MessageSellerModal';
 import ReportSellerModal from '../components/ReportSellerModal';
 import SellerRatingWidget from '../components/SellerRatingWidget';
 import SellerReviewsList from '../components/SellerReviewsList';
@@ -34,6 +35,7 @@ import { supabase } from '../lib/supabaseClient';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
 import { listingService, type MyListingRow } from '../services/listingService';
+import { messageService, openMessagesWidget } from '../services/messageService';
 import { profileService, type ProfileDisplay } from '../services/profileService';
 import { reservationService } from '../services/reservationService';
 import { reviewService } from '../services/reviewService';
@@ -184,7 +186,18 @@ const memberSince = memberSinceDate
   const [myReservations, setMyReservations] = useState<ReservationWithListing[]>([]);
   const [incoming, setIncoming] = useState<ReservationWithListing[]>([]);
   const [buyerDisplays, setBuyerDisplays] = useState<Record<string, ProfileDisplay>>({});
-  const [chatModal, setChatModal] = useState<{ buyerName: string; listingTitle: string } | null>(null);
+  const [chatModal, setChatModal] = useState<{
+    buyerName: string;
+    listingTitle: string;
+    listingId: string;
+    buyerId: string;
+  } | null>(null);
+  const [messageSellerOpen, setMessageSellerOpen] = useState(false);
+  const [messageSellerBusyId, setMessageSellerBusyId] = useState<string | null>(null);
+  const [messageSellerBusy, setMessageSellerBusy] = useState(false);
+  const [messageSellerError, setMessageSellerError] = useState<string | null>(null);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
@@ -593,6 +606,54 @@ useEffect(() => {
     await loadAll();
   };
 
+  // Every conversation is about one listing, so "Message" on a seller's
+  // profile picks the listing first (see MessageSellerModal).
+  const startSellerConversation = async (listingId: string): Promise<string | null> => {
+    const { data, error } = await messageService.startConversation(listingId);
+    if (error || !data) return error?.message ?? 'Could not start the conversation.';
+    setMessageSellerOpen(false);
+    openMessagesWidget(data);
+    return null;
+  };
+
+  const handlePickSellerListing = async (listingId: string): Promise<void> => {
+    setMessageSellerBusyId(listingId);
+    setMessageSellerError(null);
+    const err = await startSellerConversation(listingId);
+    setMessageSellerBusyId(null);
+    if (err) setMessageSellerError(err);
+  };
+
+  const handleMessageSellerClick = async () => {
+    if (!userId || isOwner || messageSellerBusy) return;
+    if (!user) {
+      navigate('/login', { state: { from: `/profile/${userId}` } });
+      return;
+    }
+    setActionError(null);
+    setMessageSellerError(null);
+
+    // Several items: let the buyer choose which one they are asking about.
+    if (publicListings.length > 1) {
+      setMessageSellerOpen(true);
+      return;
+    }
+
+    setMessageSellerBusy(true);
+    let err: string | null = null;
+    if (publicListings.length === 1) {
+      err = await startSellerConversation(publicListings[0].id);
+    } else {
+      // No active listings: reopen an existing thread if there is one.
+      const existing = await messageService.findThreadWithSeller(userId);
+      if (existing.error) err = existing.error.message;
+      else if (existing.data) openMessagesWidget(existing.data);
+      else err = 'This seller has no active listings to message about right now.';
+    }
+    setMessageSellerBusy(false);
+    if (err) setActionError(err);
+  };
+
   const handleToggleFollow = async () => {
     if (!userId || isOwner || followBusy) return;
     if (!user) {
@@ -956,12 +1017,12 @@ const handleConfirmDelete = async () => {
                     <button
                       type="button"
                       className="profile-btn-sm-outline"
-                      disabled
-                      aria-disabled="true"
-                      title="Messaging is not available yet"
+                      onClick={() => void handleMessageSellerClick()}
+                      disabled={messageSellerBusy}
+                      aria-busy={messageSellerBusy}
                     >
                       <MessageSquare size={15} />
-                      <span>Message / Get in Touch</span>
+                      <span>{messageSellerBusy ? 'Opening…' : 'Message / Get in Touch'}</span>
                     </button>
                     <div className="profile-more-wrap" ref={moreMenuRef}>
                       <button
@@ -1119,7 +1180,13 @@ const handleConfirmDelete = async () => {
                             return;
                           }
                           await loadAll();
-                          setChatModal({ buyerName, listingTitle });
+                          setChatError(null);
+                          setChatModal({
+                            buyerName,
+                            listingTitle,
+                            listingId: reservation.listing_id,
+                            buyerId: reservation.buyer_id,
+                          });
                         }}
                       >
                         <span>Confirm</span>
@@ -1515,6 +1582,25 @@ const handleConfirmDelete = async () => {
         )}
             </div>
 
+      {!isOwner && viewingUserId ? (
+        <MessageSellerModal
+          open={messageSellerOpen}
+          onOpenChange={(open) => {
+            setMessageSellerOpen(open);
+            if (!open) setMessageSellerError(null);
+          }}
+          sellerName={profileName}
+          listings={publicListings.map((item) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+          }))}
+          busyListingId={messageSellerBusyId}
+          error={messageSellerError}
+          onPick={handlePickSellerListing}
+        />
+      ) : null}
+
       <ChatBuyerModal
         open={chatModal !== null}
         onOpenChange={(open) => {
@@ -1522,6 +1608,24 @@ const handleConfirmDelete = async () => {
         }}
         buyerName={chatModal?.buyerName ?? ''}
         listingTitle={chatModal?.listingTitle ?? ''}
+        busy={chatBusy}
+        error={chatError}
+        onMessageBuyer={async () => {
+          if (!chatModal) return;
+          setChatBusy(true);
+          setChatError(null);
+          const { data, error } = await messageService.startConversation(
+            chatModal.listingId,
+            chatModal.buyerId
+          );
+          setChatBusy(false);
+          if (error || !data) {
+            setChatError(error?.message ?? 'Could not open the conversation.');
+            return;
+          }
+          setChatModal(null);
+          openMessagesWidget(data);
+        }}
       />
       {!isOwner ? (
         <ReportSellerModal

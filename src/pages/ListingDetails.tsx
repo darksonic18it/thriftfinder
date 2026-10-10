@@ -1,6 +1,7 @@
+import { Archive, ArrowLeft, Flag, Heart, Loader2, MapPin, MessageSquare, Package, Pencil } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation, useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, MapPin, Package, Loader2, Pencil, Archive, Flag } from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button } from '../components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,12 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
-import { Button } from '../components/ui/button';
-import { listingService } from '../services/listingService';
-import { reservationService } from '../services/reservationService';
-import { favoriteService } from '../services/favoriteService';
-import { listingImageUrl, formatPeso, IMAGE_PLACEHOLDER } from '../lib/listingMappers';
 import { useAuth } from '../context/AuthContext';
+import { formatPeso, IMAGE_PLACEHOLDER, listingImageUrl } from '../lib/listingMappers';
+import { favoriteService } from '../services/favoriteService';
+import { listingService } from '../services/listingService';
+import { messageService, openMessagesWidget } from '../services/messageService';
+import { reservationService } from '../services/reservationService';
 import type { ListingDetail, ReservationStatus } from '../types/database';
 import './ListingDetails.css';
 
@@ -73,6 +74,7 @@ const ListingDetails: React.FC = () => {
 
   const [archiving, setArchiving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [messagingSeller, setMessagingSeller] = useState(false);
 
 
   const loadDetail = useCallback(async () => {
@@ -165,6 +167,22 @@ const ListingDetails: React.FC = () => {
     setIsSaved(next);
     const { error } = await favoriteService.toggleFavorite(listing.id, isSaved);
     if (error) setIsSaved(!next);
+  };
+
+  const handleMessageSeller = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+    setActionError(null);
+    setMessagingSeller(true);
+    const { data, error } = await messageService.startConversation(listing.id);
+    setMessagingSeller(false);
+    if (error || !data) {
+      setActionError(error?.message ?? 'Could not start the conversation.');
+      return;
+    }
+    openMessagesWidget(data);
   };
 
   const handleReserve = () => {
@@ -409,6 +427,16 @@ const ListingDetails: React.FC = () => {
                   className={`listing-heart ${isSaved ? 'listing-heart--active' : ''}`}
                 />
                 {isSaved ? 'Saved' : 'Save Item'}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="save-btn"
+                onClick={() => void handleMessageSeller()}
+                disabled={messagingSeller}
+              >
+                <MessageSquare size={20} />
+                {messagingSeller ? 'Opening…' : 'Message Seller'}
               </Button>
 
               {viewerHasActiveReservation ? (
