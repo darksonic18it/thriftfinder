@@ -1,6 +1,3 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
 import {
   Archive,
   ArchiveRestore,
@@ -10,6 +7,9 @@ import {
   TriangleAlert,
   UserPlus,
 } from 'lucide-react'
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useNotifications, type NotificationItem } from '../hooks/useNotifications'
 import type { NotificationType } from '../services/notificationService'
@@ -127,13 +127,21 @@ const NotificationBell: React.FC = () => {
     }
   }, [open])
 
-  const toggle = () => {
-    setOpen((prev) => {
-      const next = !prev
-      if (next) void refresh() // always show fresh data when opening
-      return next
-    })
+
+
+
+const toggle = () => {
+  const next = !open
+  setOpen(next)
+
+  if (next) {
+    void refresh()
+    void markAllRead()
   }
+}
+
+
+
 
   const openItem = (n: NotificationItem) => {
     markRead(n.id)

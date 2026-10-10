@@ -523,3 +523,309 @@
 .fm-send:disabled {
   opacity: 0.6;
 }
+
+/* ---------- Message rows and actions ---------- */
+
+.fm-message-row {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-width: 0;
+  gap: 3px;
+}
+
+.fm-message-row--me {
+  align-items: flex-end;
+}
+
+.fm-message-row--them {
+  align-items: flex-start;
+}
+
+.fm-bubble-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.fm-bubble-wrap--me {
+  flex-direction: row-reverse;
+}
+
+.fm-bubble-wrap--them {
+  flex-direction: row;
+}
+
+.fm-message-row .fm-bubble {
+  min-width: 0;
+  white-space: pre-wrap;
+}
+
+.fm-message-actions {
+  position: relative;
+  flex: none;
+}
+
+.fm-message-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+}
+
+.fm-message-menu-trigger:hover {
+  background: var(--button-ghost-bg-hover, rgba(0, 0, 0, 0.08));
+  color: var(--color-text-primary, #1a1a1a);
+}
+
+.fm-message-menu-trigger:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.fm-message-menu {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  bottom: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 190px;
+  padding: 5px;
+  border: 1px solid var(--color-border, #e5e5e0);
+  border-radius: 12px;
+  background: var(--color-bg-elevated, #f8fafc);
+  color: var(--color-text-primary, #1a1a1a);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.fm-message-menu button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fm-message-menu button:hover {
+  background: var(--button-ghost-bg-hover, rgba(0, 0, 0, 0.07));
+}
+
+.fm-message-menu button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.fm-message-menu .fm-message-menu__danger {
+  color: var(--color-danger, #ef4444);
+}
+
+.fm-message-status {
+  padding: 0 4px;
+  color: var(--color-text-muted, #94a3b8);
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.fm-message-status--seen {
+  color: var(--button-primary-bg, #4f46e5);
+  font-weight: 700;
+}
+
+.fm-message-deleting {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.fm-message-menu-trigger:focus-visible,
+.fm-message-menu button:focus-visible {
+  outline: 2px solid var(--button-ring, #020617);
+  outline-offset: 2px;
+}
+
+
+/* Fix message text wrapping inside chat bubbles */
+.fm-bubble {
+  width: fit-content;
+  max-width: min(75%, 320px);
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  flex-shrink: 1;
+}
+
+.fm-bubble-wrap {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.fm-bubble-wrap .fm-bubble {
+  flex: 0 1 auto;
+}
+
+/* Keep long URLs or unbroken strings from overflowing */
+.fm-bubble--me,
+.fm-bubble--them {
+  overflow-wrap: anywhere;
+}
+
+
+/* ---------- In-chat delete confirmation modal ---------- */
+
+.fm-delete-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+  animation: fm-delete-fade-in 0.16s ease-out;
+}
+
+.fm-delete-modal {
+  width: 100%;
+  max-width: 320px;
+  padding: 24px;
+  border: 1px solid var(--color-border, #e5e5e0);
+  border-radius: 20px;
+  background: var(--color-bg-elevated, #f8fafc);
+  color: var(--color-text-primary, #1a1a1a);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.28);
+  animation: fm-delete-pop-in 0.18s ease-out;
+}
+
+.fm-delete-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.fm-delete-modal h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.fm-delete-modal p {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.fm-delete-modal__preview {
+  max-height: 76px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--color-border, #e5e5e0);
+  border-radius: 10px;
+  background: var(--color-bg-tertiary, #f1f5f9);
+  font-size: 0.84rem;
+}
+
+.fm-delete-modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.fm-delete-modal__actions button {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.fm-delete-modal__cancel {
+  border: 1px solid var(--color-border, #e5e5e0);
+  background: transparent;
+  color: inherit;
+}
+
+.fm-delete-modal__cancel:hover {
+  background: var(--button-ghost-bg-hover, rgba(0, 0, 0, 0.06));
+}
+
+.fm-delete-modal__confirm {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.fm-delete-modal__confirm:hover {
+  background: #b91c1c;
+}
+
+.fm-delete-modal__actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fm-delete-modal__actions button:focus-visible {
+  outline: 2px solid var(--button-ring, #020617);
+  outline-offset: 3px;
+}
+
+@keyframes fm-delete-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fm-delete-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm-delete-overlay,
+  .fm-delete-modal {
+    animation: none;
+  }
+}
+

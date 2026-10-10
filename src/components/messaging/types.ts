@@ -20,4 +20,5 @@ export interface ChatMessage {
   from: 'me' | 'them'
   text: string
   sentAt: number
+  isRead: boolean
 }

@@ -16,7 +16,9 @@ import type {
  *   * threads are only created by start_conversation()
  *   * only the two participants can read or send
  *   * "email must be verified" (RLS + RPC)
- *   * messages are never edited or deleted by clients
+ *    *   * message deletion is controlled by RLS:
+ *       - delete for me uses message_hidden_for
+ *       - delete for everyone is restricted to the sender
  *   * new messages start unread; read status changes via mark_conversation_read()
  */
 
@@ -170,6 +172,95 @@ export const messageService = {
       return { data: null, error: describeError(error, 'Could not load this conversation.') }
     }
     return { data: ((data ?? []) as MessageRow[]).reverse(), error: null }
+  },
+
+    /**
+   * Hide a message only for the signed-in user.
+   * Duplicate hides are treated as success.
+   */
+  async deleteMessageForMe(
+    messageId: UUID
+  ): Promise<ServiceResult<null>> {
+    const { data: auth } = await supabase.auth.getUser()
+
+    if (!auth.user) {
+      return {
+        data: null,
+        error: { message: 'Sign in to delete messages.' },
+      }
+    }
+
+    const { error } = await supabase
+      .from('message_hidden_for')
+      .insert({
+        message_id: messageId,
+        user_id: auth.user.id,
+      })
+
+    // The message was already hidden for this user.
+    if (error?.code === '23505') {
+      return { data: null, error: null }
+    }
+
+    if (error) {
+      console.error('[messageService.deleteMessageForMe]', error)
+      return {
+        data: null,
+        error: {
+          message: 'Could not delete this message for you.',
+          code: error.code,
+        },
+      }
+    }
+
+    return { data: null, error: null }
+  },
+
+  /**
+   * Permanently delete a message.
+   * Supabase RLS must restrict this operation to the sender.
+   */
+  async deleteMessageForEveryone(
+    messageId: UUID
+  ): Promise<ServiceResult<null>> {
+    const { data: auth } = await supabase.auth.getUser()
+
+    if (!auth.user) {
+      return {
+        data: null,
+        error: { message: 'Sign in to delete messages.' },
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', messageId)
+      .eq('sender_id', auth.user.id)
+      .select('id')
+
+    if (error) {
+      console.error('[messageService.deleteMessageForEveryone]', error)
+      return {
+        data: null,
+        error: {
+          message: 'Could not delete this message for everyone.',
+          code: error.code,
+        },
+      }
+    }
+
+    // RLS can make a forbidden delete affect zero rows without an error.
+    if (!data || data.length === 0) {
+      return {
+        data: null,
+        error: {
+          message: 'Message not found or you are not allowed to delete it.',
+        },
+      }
+    }
+
+    return { data: null, error: null }
   },
 
   async sendMessage(conversationId: UUID, content: string): Promise<ServiceResult<MessageRow>> {
