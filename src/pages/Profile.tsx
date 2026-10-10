@@ -1,40 +1,42 @@
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Bell,
+  Calendar,
+  Camera,
+  Check,
+  ChevronRight,
+  Clock,
+  Flag,
+  History,
+  Inbox,
+  MapPin,
+  MessageSquare,
+  MoreHorizontal,
+  Package,
+  Pencil,
+  Plus,
+  Settings,
+  ShoppingBag,
+  Star,
+  Trash2,
+} from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import {
-  Check,
-  Calendar,
-  Clock,
-  Pencil,
-  Trash2,
-  Package,
-  Plus,
-  Star,
-  MessageSquare,
-   ShoppingBag,
-  Bell,
-  Settings,
-  ChevronRight,
-  History,
-  ArrowLeft,
-  Inbox,
-  Camera,
-  MapPin,
-  MoreHorizontal,
-  Flag,
-  BadgeCheck,
-} from 'lucide-react';
-import { listingService, type MyListingRow } from '../services/listingService';
-import { reservationService } from '../services/reservationService';
-import { profileService, type ProfileDisplay } from '../services/profileService';
 import ChatBuyerModal from '../components/ChatBuyerModal';
-import PeekRating from '../components/PeekRating';
 import DeleteListingModal from '../components/DeleteListingModal';
 import ReportSellerModal from '../components/ReportSellerModal';
+import SellerRatingWidget from '../components/SellerRatingWidget';
+import SellerReviewsList from '../components/SellerReviewsList';
+import { useAuth } from '../context/AuthContext';
+import { describeError, formatPeso, randomToken, sanitizeFileName } from '../lib/listingMappers';
+import { supabase } from '../lib/supabaseClient';
 import { favoriteService } from '../services/favoriteService';
 import { followService } from '../services/followService';
-import { supabase } from '../lib/supabaseClient';
-import { formatPeso, randomToken, sanitizeFileName, describeError } from '../lib/listingMappers';
+import { listingService, type MyListingRow } from '../services/listingService';
+import { profileService, type ProfileDisplay } from '../services/profileService';
+import { reservationService } from '../services/reservationService';
+import { reviewService } from '../services/reviewService';
 import {
   LISTING_PHOTOS_BUCKET,
   PROFILE_AVATARS_BUCKET,
@@ -143,9 +145,10 @@ const Profile: React.FC = () => {
   const [followError, setFollowError] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  // UI-only demo value for the reference PeekRating interaction
-  // (hover preview + click commit). No backend wiring.
-  const [peekRatingValue, setPeekRatingValue] = useState(0);
+  // Bumped after a review is posted/deleted so the rating widget and the
+  // reviews list reload together (FR-011).
+  const [reviewsVersion, setReviewsVersion] = useState(0);
+  const [ownReviewSummary, setOwnReviewSummary] = useState<{ average: number; count: number } | null>(null);
   const [bioDraft, setBioDraft] = useState('');
   const [locationDraft, setLocationDraft] = useState('');
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
@@ -337,6 +340,21 @@ const memberSince = memberSinceDate
     )
   );
 }, [isOwner, publicListings]);
+
+  useEffect(() => {
+    if (!isOwner || !user?.id) {
+      setOwnReviewSummary(null);
+      return;
+    }
+    let cancelled = false;
+    void reviewService.getSellerSummary(user.id).then((res) => {
+      if (cancelled || !res.data) return;
+      setOwnReviewSummary({ average: res.data.average_rating, count: res.data.review_count });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner, user?.id]);
 
     useEffect(() => {
     if (isOwner) {
@@ -823,19 +841,13 @@ const handleConfirmDelete = async () => {
                 <span>Member since {memberSince}</span>
               </span>
 
-              {!isOwner ? (
-                <span className="profile-summary__peek-rating" aria-label="Seller rating">
-                  <span className="profile-summary__peek-label">Rate:  {profileName}</span>
-                  <span className="profile-summary__peek-stars">
-                    <PeekRating
-                      value={peekRatingValue}
-                      onChange={setPeekRatingValue}
-                      count={5}
-                      shape="star"
-                      size={28}
-                    />
-                  </span>
-                </span>
+              {!isOwner && viewingUserId ? (
+                <SellerRatingWidget
+                  sellerId={viewingUserId}
+                  sellerName={profileName}
+                  refreshKey={reviewsVersion}
+                  onSubmitted={() => setReviewsVersion((v) => v + 1)}
+                />
               ) : null}
 
               <span className="profile-badge profile-badge--neutral">
@@ -1285,7 +1297,16 @@ const handleConfirmDelete = async () => {
                   <h2 className="profile-card__title">Seller ratings</h2>
                 </div>
               </div>
-              <p className="profile-empty-note">No reviews yet.</p>
+              {viewingUserId ? (
+                <SellerReviewsList
+                  sellerId={viewingUserId}
+                  currentUserId={user?.id ?? null}
+                  refreshKey={reviewsVersion}
+                  onChanged={() => setReviewsVersion((v) => v + 1)}
+                />
+              ) : (
+                <p className="profile-empty-note">No reviews yet.</p>
+              )}
             </section>
 
             {showFeatured ? (
@@ -1383,14 +1404,22 @@ const handleConfirmDelete = async () => {
         {/* Row 3: Four Small Stat Cards */}
         {isOwner && (
         <div className="profile-dashboard__row profile-dashboard__row--four-col" aria-label="Quick metrics">
-          {/* Card 1: Reviews — FR-011 is Low priority, not built yet */}
+          {/* Card 1: Reviews (FR-011) — the signed-in seller's own average */}
           <div className="profile-stat-card">
             <div className="profile-stat-card__icon-wrap profile-stat-card__icon-wrap--star">
               <Star size={18} className="profile-stat-icon" />
             </div>
             <div className="profile-stat-card__body">
-              <div className="profile-stat-card__primary-text">No reviews yet</div>
-              <div className="profile-stat-card__meta">Ratings arrive in a later release</div>
+              <div className="profile-stat-card__primary-text">
+                {ownReviewSummary && ownReviewSummary.count > 0
+                  ? `${ownReviewSummary.average.toFixed(1)} / 5`
+                  : 'No reviews yet'}
+              </div>
+              <div className="profile-stat-card__meta">
+                {ownReviewSummary && ownReviewSummary.count > 0
+                  ? `${ownReviewSummary.count} ${ownReviewSummary.count === 1 ? 'review' : 'reviews'} from buyers`
+                  : 'Buyers can rate you after a completed reservation'}
+              </div>
             </div>
           </div>
 

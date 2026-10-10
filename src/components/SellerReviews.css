@@ -1,0 +1,192 @@
+/* Seller ratings & reviews (FR-011). Uses the --profile-* tokens from Profile.css. */
+
+.profile-summary__peek-stars.seller-rating__stars--readonly {
+  margin-top: 0.35rem; /* read-only stars have no hover tip to pull up into */
+}
+
+.seller-rating__hint {
+  margin-top: 0.3rem;
+  max-width: 28rem;
+  color: var(--profile-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+.seller-rating__hint--success { color: var(--profile-success); }
+
+.seller-rating__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(26rem, 100%);
+  margin-top: 0.6rem;
+}
+
+.seller-rating__textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--profile-border-strong);
+  background: var(--profile-input);
+  color: var(--profile-text);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.seller-rating__textarea:focus-visible {
+  outline: 2px solid var(--profile-accent-border);
+  outline-offset: 1px;
+}
+
+.seller-rating__form-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.seller-rating__counter {
+  margin-right: auto;
+  color: var(--profile-faint);
+  font-size: 0.74rem;
+}
+
+.seller-rating__btn {
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--profile-border-strong);
+  background: var(--profile-text);
+  color: #02000d;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.seller-rating__btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.seller-rating__btn--ghost {
+  background: transparent;
+  color: var(--profile-text);
+}
+
+.seller-rating__error {
+  margin-top: 0.4rem;
+  color: var(--profile-danger);
+  font-size: 0.8rem;
+}
+
+/* ---- Reviews list ---- */
+.seller-reviews { display: flex; flex-direction: column; gap: 1.1rem; }
+
+.seller-reviews__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+.seller-reviews__score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+.seller-reviews__average {
+  color: var(--profile-text);
+  font-size: 2.4rem;
+  font-weight: 750;
+  line-height: 1;
+}
+.seller-reviews__total { color: var(--profile-muted); font-size: 0.8rem; }
+
+.seller-reviews__bars {
+  flex: 1 1 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.seller-reviews__bar-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--profile-muted);
+  font-size: 0.76rem;
+}
+.seller-reviews__bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--profile-surface-raised);
+  overflow: hidden;
+}
+.seller-reviews__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #f5b400;
+}
+.seller-reviews__bar-count { text-align: right; }
+
+.seller-reviews__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.seller-reviews__item {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--profile-border);
+}
+.seller-reviews__avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--profile-surface-hover);
+  color: var(--profile-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.seller-reviews__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+.seller-reviews__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+.seller-reviews__name { color: var(--profile-text); font-size: 0.9rem; font-weight: 650; }
+.seller-reviews__date { color: var(--profile-faint); font-size: 0.74rem; }
+.seller-reviews__listing { color: var(--profile-muted); font-size: 0.76rem; }
+.seller-reviews__comment {
+  margin: 0.15rem 0 0;
+  color: var(--profile-text-soft);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.seller-reviews__delete {
+  margin-top: 0.2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--profile-danger);
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.seller-reviews__delete:disabled { opacity: 0.55; cursor: not-allowed; }

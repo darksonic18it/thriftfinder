@@ -246,3 +246,53 @@ export type ServiceResult<T> =
 
 export const PROFILE_AVATARS_BUCKET = 'profile-avatars'
 export const PROFILE_COVERS_BUCKET = 'profile-covers'
+
+// ---------------------------------------------------------------------
+// Reviews (FR-011)
+// ---------------------------------------------------------------------
+
+export interface Review {
+  id: UUID
+  reservation_id: UUID
+  listing_id: UUID
+  reviewer_id: UUID
+  seller_id: UUID
+  /** 1..5 (smallint). */
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** The single row returned by public.get_seller_review_summary(uuid). */
+export interface SellerReviewSummary {
+  average_rating: number
+  review_count: number
+  count_1: number
+  count_2: number
+  count_3: number
+  count_4: number
+  count_5: number
+}
+
+/** One row of public.get_seller_reviews(...) — public-safe, includes reviewer name. */
+export interface SellerReviewRow {
+  id: UUID
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+  listing_id: UUID | null
+  listing_title: string | null
+  reviewer_id: UUID
+  reviewer_name: string | null
+  reviewer_avatar_path: string | null
+}
+
+/** One row of public.get_reviewable_reservations(...). */
+export interface ReviewableReservation {
+  reservation_id: UUID
+  listing_id: UUID
+  listing_title: string
+  resolved_at: string | null
+}
