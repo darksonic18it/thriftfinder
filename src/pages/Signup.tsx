@@ -1,6 +1,7 @@
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, ShoppingBag } from 'lucide-react';
+import BrandMark from '../components/BrandMark';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -87,9 +88,7 @@ const Signup: React.FC = () => {
           <aside className="signup-auth-aside" aria-hidden="true">
             <div className="signup-auth-aside-inner">
               <div className="signup-auth-brand">
-                <div className="signup-auth-brand-icon">
-                  <ShoppingBag size={22} color="#ffffff" />
-                </div>
+                <BrandMark size={44} />
                 <div className="signup-auth-brand-text">
                   <span className="signup-auth-brand-name">Thrift</span>
                   <span className="signup-auth-brand-accent">Finder</span>

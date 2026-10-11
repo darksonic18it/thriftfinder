@@ -1,0 +1,6 @@
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}

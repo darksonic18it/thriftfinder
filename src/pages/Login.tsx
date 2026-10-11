@@ -1,9 +1,9 @@
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, ShoppingBag } from 'lucide-react';
+import BrandMark from '../components/BrandMark';
+import EmailNotConfirmedModal from '../components/EmailNotConfirmedModal';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { useAuth } from '../context/AuthContext';
-import EmailNotConfirmedModal from '../components/EmailNotConfirmedModal';
 import './Login.css';
 
 type LoginErrors = Partial<Record<'email' | 'password', string>>;
@@ -169,9 +170,7 @@ const Login: React.FC = () => {
           <aside className="login-auth-aside" aria-hidden="true">
             <div className="login-auth-aside-inner">
               <div className="login-auth-brand">
-                <div className="login-auth-brand-icon">
-                  <ShoppingBag size={22} color="#ffffff" />
-                </div>
+                <BrandMark size={44} />
                 <div className="login-auth-brand-text">
                   <span className="login-auth-brand-name">Thrift</span>
                   <span className="login-auth-brand-accent">Finder</span>

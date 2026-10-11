@@ -186,14 +186,10 @@ const ListingDetails: React.FC = () => {
   };
 
   const handleReserve = () => {
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: location.pathname } });
-      return;
-    }
-    setReserveError(null);
-    setReservationConfirmed(false);
-    setShowReserveDialog(true);
-  };
+  setReserveError(null);
+  setReservationConfirmed(false);
+  setShowReserveDialog(true);
+};
 
   const handleConfirmReservation = async () => {
     setReserving(true);

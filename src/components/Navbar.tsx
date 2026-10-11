@@ -1,11 +1,12 @@
+import { gsap } from 'gsap';
+import { Menu, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Menu, X } from 'lucide-react';
-import { gsap } from 'gsap';
 
+import { useAuthGate } from '../context/AuthGateContext';
+import BrandMark from './BrandMark';
 import './Navbar.css';
 import ThemeToggle from './ThemeToggle';
-import { useAuthGate } from '../context/AuthGateContext';
 
 const NAV_SCROLL_DELTA_PX = 10;
 const NAV_TOGGLE_COOLDOWN_MS = 140;
@@ -194,9 +195,7 @@ const Navbar: React.FC = () => {
     <header className={`navbar${navHidden && !isMenuOpen ? ' navbar--hidden' : ''}`}>
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          <div className="logo-icon">
-            <ShoppingBag size={24} color="#ffffff" />
-          </div>
+          <BrandMark size={40} />
           <span className="logo-text">
             Thrift<span className="logo-accent">Finder</span>
           </span>

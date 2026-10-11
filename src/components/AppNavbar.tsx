@@ -1,24 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
 import {
   Heart,
   LifeBuoy,
-  LogOut,
   ListOrdered,
+  LogOut,
   MessageSquare,
   Search,
   Settings,
   SquarePlus,
-  ShoppingBag,
   User,
 } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 import { gsap } from 'gsap'
 
-import ThemeToggle from './ThemeToggle'
-import NotificationBell from './NotificationBell'
+import BrandMark from './BrandMark'
 import LogoutConfirmModal from './LogoutConfirmModal'
+import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 
 import './AppNavbar.css'
 
@@ -350,9 +350,7 @@ const AppNavbar: React.FC = () => {
       <div className="app-navbar-container">
         <div className="app-navbar-left">
           <Link to="/dashboard" className="app-navbar-logo" aria-label="ThriftFinder">
-            <div className="logo-icon" aria-hidden="true">
-              <ShoppingBag size={24} color="#ffffff" />
-            </div>
+            <BrandMark size={40} />
             <span className="logo-text">
               Thrift<span className="logo-accent">Finder</span>
             </span>

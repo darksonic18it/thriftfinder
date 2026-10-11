@@ -1,5 +1,6 @@
+import { Mail } from 'lucide-react';
 import React from 'react';
-import { ShoppingBag, Mail } from 'lucide-react';
+import BrandMark from './BrandMark';
 import './Footer.css';
 
 const Footer: React.FC = () => {
@@ -23,9 +24,7 @@ const Footer: React.FC = () => {
           {/* Brand Column */}
           <div className="footer-brand">
             <a href="/" className="footer-logo">
-              <div className="footer-logo-icon">
-                <ShoppingBag size={22} color="#ffffff" />
-              </div>
+              <BrandMark size={38} />
               <span className="footer-logo-text">
                 Thrift<span className="logo-accent">Finder</span>
               </span>
