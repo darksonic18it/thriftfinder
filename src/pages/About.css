@@ -389,13 +389,35 @@
 }
 
 .about-creed::before {
-  content: 'CIRCULATION';
+  content: none;
+}
+
+.about-creed__viewport {
+  overflow: hidden;
+}
+
+.about-creed__track2 {
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.about-creed__slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 0 0.15rem;
+  cursor: pointer;
+}
+
+.about-creed__giant {
   position: absolute;
-  top: 0.4rem;
+  top: -1.2rem;
   left: 0;
   right: 0;
   z-index: -1;
   white-space: nowrap;
+  overflow: hidden;
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: clamp(4rem, 11vw, 8.5rem);
@@ -404,6 +426,91 @@
   color: transparent;
   -webkit-text-stroke: 1px rgba(255, 255, 255, 0.13);
   pointer-events: none;
+}
+
+.about-creed__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.about-creed__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.about-creed__dot {
+  width: 2rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.3s ease, width 0.3s ease;
+}
+
+.about-creed__dot.is-active {
+  width: 3rem;
+  background: #f4f4f2;
+}
+
+.about-creed__arrows {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.about-creed__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.about-creed__arrow:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.about-creed .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .about-creed__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .about-creed__arrows {
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-creed__track2 {
+    transition: none;
+  }
 }
 
 .about-creed__top {

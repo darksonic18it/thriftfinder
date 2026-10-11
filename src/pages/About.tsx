@@ -2,10 +2,14 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarCheck,
+  ChevronLeft,
+  ChevronRight,
   Compass,
   Heart,
   Leaf,
   ListChecks,
+  Pause,
+  Play,
   Recycle,
   Search,
   ShoppingBag,
@@ -142,6 +146,38 @@ const VALUES = [
   },
 ] as const;
 
+const MANIFESTOS = [
+  {
+    index: '001',
+    label: 'Why it matters',
+    titleTop: <>Keep good <em>things</em></>,
+    titleBottom: 'in circulation.',
+    text: 'Every listing is one less thing made new — good for wallets, closets, and the planet.',
+    marquee: 'one less thing made new ✦ good for wallets ✦ good for closets ✦ good for the planet ✦ ',
+    giant: 'CIRCULATION',
+  },
+  {
+    index: '002',
+    label: 'How we show up',
+    titleTop: <>Made for the <em>community</em></>,
+    titleBottom: 'near you.',
+    text: 'Real people, real pickups, real second chances — buying secondhand should feel easy and human.',
+    marquee: 'real people ✦ real pickups ✦ real second chances ✦ buy secondhand first ✦ ',
+    giant: 'COMMUNITY',
+  },
+  {
+    index: '003',
+    label: 'What we believe',
+    titleTop: <>Secondhand <em>first</em></>,
+    titleBottom: 'not last resort.',
+    text: 'Choosing pre-loved saves money and reduces waste — small choices, compounded across a community.',
+    marquee: 'secondhand first ✦ save money ✦ reduce waste ✦ discover hidden gems ✦ ',
+    giant: 'SECONDHAND',
+  },
+] as const;
+
+const MANIFESTO_AUTOPLAY_MS = 6000;
+
 const useRevealGroup = () => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -171,6 +207,9 @@ const useRevealGroup = () => {
 const About: React.FC = () => {
   const heroRef = useRef<HTMLElement>(null);
   const [heroIn, setHeroIn] = useState(false);
+  const [manifestoIndex, setManifestoIndex] = useState(0);
+  const [manifestoPaused, setManifestoPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
   const introRef = useRevealGroup();
   const problemRef = useRevealGroup();
   const stepsRef = useRevealGroup();
@@ -183,6 +222,25 @@ const About: React.FC = () => {
     const frame = requestAnimationFrame(() => setHeroIn(true));
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  const goManifesto = (dir: 1 | -1) => {
+    setManifestoIndex((prev) => (prev + dir + MANIFESTOS.length) % MANIFESTOS.length);
+  };
+
+  const jumpManifesto = (index: number) => {
+    setManifestoIndex(index);
+  };
+
+  // Auto-play the manifesto deck; any manual override pauses it.
+  useEffect(() => {
+    if (manifestoPaused) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setTimeout(() => {
+      setManifestoIndex((prev) => (prev + 1) % MANIFESTOS.length);
+    }, MANIFESTO_AUTOPLAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [manifestoIndex, manifestoPaused]);
 
   // Subtle hero parallax — same pattern as CirculationCTA.
   useEffect(() => {
@@ -411,26 +469,118 @@ const About: React.FC = () => {
               className="about-reveal about-creed"
               style={{ '--about-i': 2 } as React.CSSProperties}
             >
-              <div className="about-creed__top">
-                <p className="about-creed__label">
-                  <Target size={14} aria-hidden="true" /> Why it matters
-                </p>
-                <span className="about-creed__pill" aria-hidden="true">
-                  ✦ manifesto — 001
-                </span>
+              <div
+                className="about-creed__viewport"
+                onTouchStart={(e) => {
+                  touchStartX.current = e.touches[0]?.clientX ?? null;
+                }}
+                onTouchEnd={(e) => {
+                  if (touchStartX.current == null) return;
+                  const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+                  touchStartX.current = null;
+                  if (Math.abs(dx) < 40) return;
+                  setManifestoPaused(true);
+                  goManifesto(dx < 0 ? 1 : -1);
+                }}
+              >
+                <div
+                  className="about-creed__track2"
+                  style={{ transform: `translateX(-${manifestoIndex * 100}%)` }}
+                >
+                  {MANIFESTOS.map((manifesto, i) => (
+                    <article
+                      key={manifesto.index}
+                      className={`about-creed__slide${i === manifestoIndex ? ' is-active' : ''}`}
+                      aria-hidden={i !== manifestoIndex}
+                      onClick={() => {
+                        if (i !== manifestoIndex) return;
+                        setManifestoPaused(true);
+                        goManifesto(1);
+                      }}
+                      title={i === manifestoIndex ? 'Click to reveal the next manifesto' : undefined}
+                    >
+                      <span className="about-creed__giant" aria-hidden="true">
+                        {manifesto.giant}
+                      </span>
+                      <div className="about-creed__top">
+                        <p className="about-creed__label">
+                          <Target size={14} aria-hidden="true" /> {manifesto.label}
+                        </p>
+                        <span className="about-creed__pill" aria-hidden="true">
+                          ✦ manifesto — {manifesto.index}
+                        </span>
+                      </div>
+                      <p className="about-creed__title">
+                        {manifesto.titleTop}
+                        <br />
+                        {manifesto.titleBottom}
+                      </p>
+                      <p className="about-creed__text">{manifesto.text}</p>
+                    </article>
+                  ))}
+                </div>
+                <div className="about-creed__controls">
+                  <div className="about-creed__dots" role="tablist" aria-label="Manifesto cards">
+                    {MANIFESTOS.map((manifesto, i) => (
+                      <button
+                        key={manifesto.index}
+                        type="button"
+                        role="tab"
+                        aria-selected={i === manifestoIndex}
+                        aria-label={`Show manifesto ${manifesto.index}`}
+                        className={`about-creed__dot${i === manifestoIndex ? ' is-active' : ''}`}
+                        onClick={() => {
+                          setManifestoPaused(true);
+                          jumpManifesto(i);
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="about-creed__arrows">
+                    <button
+                      type="button"
+                      className="about-creed__arrow"
+                      aria-label="Previous manifesto"
+                      onClick={() => {
+                        setManifestoPaused(true);
+                        goManifesto(-1);
+                      }}
+                    >
+                      <ChevronLeft size={18} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="about-creed__arrow"
+                      aria-label={manifestoPaused ? 'Resume auto-play' : 'Pause auto-play'}
+                      onClick={() => setManifestoPaused((prev) => !prev)}
+                    >
+                      {manifestoPaused ? (
+                        <Play size={16} aria-hidden="true" />
+                      ) : (
+                        <Pause size={16} aria-hidden="true" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="about-creed__arrow"
+                      aria-label="Next manifesto"
+                      onClick={() => {
+                        setManifestoPaused(true);
+                        goManifesto(1);
+                      }}
+                    >
+                      <ChevronRight size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <p className="about-creed__title">
-                Keep good <em>things</em>
-                <br />
-                in circulation.
-              </p>
-              <p className="about-creed__text">
-                Every listing is one less thing made new — good for wallets, closets, and the planet.
-              </p>
+              <div className="sr-only" aria-live="polite">
+                Showing manifesto {MANIFESTOS[manifestoIndex].index} of {MANIFESTOS.length}
+              </div>
               <div className="about-creed__marquee" aria-hidden="true">
-                <div className="about-creed__track">
-                  <span>one less thing made new ✦ good for wallets ✦ good for closets ✦ good for the planet ✦&nbsp;</span>
-                  <span>one less thing made new ✦ good for wallets ✦ good for closets ✦ good for the planet ✦&nbsp;</span>
+                <div className="about-creed__track" key={manifestoIndex}>
+                  <span>{MANIFESTOS[manifestoIndex].marquee}</span>
+                  <span>{MANIFESTOS[manifestoIndex].marquee}</span>
                 </div>
               </div>
             </div>

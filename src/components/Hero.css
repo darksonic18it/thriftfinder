@@ -96,14 +96,22 @@
   text-box: trim-both cap alphabetic;
 }
 
-/* Light mode only: "Finder" matches the logo's soft blue. */
-/* Eyedropped from your reference — tweak this one hex to match exactly. */
+/* Light mode: "Finder" uses the same palette as the Browse Items button
+   (forest -> indigo gradient). */
 .hero-giant-letter--finder {
-  color: #8fb8ff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* Dark theme stays luxury monochrome — force Finder back to primary. */
 [data-theme='dark'] .hero-giant-letter--finder {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: var(--color-text-primary);
   color: var(--color-text-primary);
 }
 
