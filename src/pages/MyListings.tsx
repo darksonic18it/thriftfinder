@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import {
   AlertCircle,
   Archive,
   ArchiveRestore,
+  CheckCircle,
   ListOrdered,
   Loader2,
   MapPin,
@@ -13,24 +13,26 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/ui/button';
-import { listingService, type MyListingRow } from '../services/listingService';
 import { asCondition, formatPeso, listingImageUrl } from '../lib/listingMappers';
+import { listingService, type MyListingRow } from '../services/listingService';
 import type { ListingCondition } from '../types/database';
 
-// Reuses the condition pills + product card tokens ProductCard already owns.
 import '../components/ProductCard.css';
 import './MyListings.css';
 
-type StatusTab = 'active' | 'archived';
+type StatusTab = 'active' | 'sold' | 'archived';
 
 const STATUS_TABS: { id: StatusTab; label: string }[] = [
   { id: 'active', label: 'Active' },
+  { id: 'sold', label: 'Sold' },
   { id: 'archived', label: 'Archived' },
 ];
 
-/** Same condition → class mapping ProductCard uses, so the pills match. */
+/** Same condition → class mapping ProductCard uses. */
 const CONDITION_CLASS: Record<ListingCondition, string> = {
   'Like New': 'condition-like-new',
   Excellent: 'condition-excellent',
@@ -38,11 +40,12 @@ const CONDITION_CLASS: Record<ListingCondition, string> = {
   Fair: 'condition-fair',
 };
 
-/** "Barangay, City" — the same join browseRowToProduct() performs. */
+/** "Barangay, City" location label. */
 function listingLocation(listing: MyListingRow): string {
   const parts = [listing.barangay, listing.city].filter(
     (part) => !!part && part.trim().length > 0
   );
+
   return parts.join(', ') || listing.city;
 }
 
@@ -53,18 +56,12 @@ interface MyListingCardProps {
   onOpen: (listing: MyListingRow) => void;
   onEdit: (listing: MyListingRow) => void;
   onToggleStatus: (listing: MyListingRow) => void;
+  onMarkSold: (listing: MyListingRow) => void;
   onDelete: (listing: MyListingRow) => void;
   onToggleFeatured: (listing: MyListingRow) => void;
 }
 
-/**
- * Owner-facing card.
- *
- * Deliberately separate from ProductCard: that card is built around the
- * buyer's favorite heart and a whole-card navigation, while this one needs
- * management actions — so ProductCard is reused visually (tokens, condition
- * pills) but left untouched.
- */
+/** Owner-facing listing management card. */
 const MyListingCard: React.FC<MyListingCardProps> = ({
   listing,
   busy,
@@ -72,10 +69,19 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
   onOpen,
   onEdit,
   onToggleStatus,
+  onMarkSold,
   onDelete,
   onToggleFeatured,
 }) => {
   const isActive = listing.status === 'active';
+  const isSold = listing.status === 'sold';
+
+  const statusLabel = isActive
+    ? 'Active'
+    : isSold
+      ? 'Sold'
+      : 'Archived';
+
   const condition = asCondition(listing.condition);
   const featuredBusy = featuredBusyId === listing.id;
 
@@ -99,7 +105,7 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
             isActive ? 'my-listings-card__status--active' : ''
           }`}
         >
-          {isActive ? 'Active' : 'Archived'}
+          {statusLabel}
         </span>
       </button>
 
@@ -120,7 +126,9 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
           </button>
         </h3>
 
-        <div className="my-listings-card__price">{formatPeso(listing.price)}</div>
+        <div className="my-listings-card__price">
+          {formatPeso(listing.price)}
+        </div>
 
         <div className="my-listings-card__location">
           <MapPin size={13} aria-hidden="true" />
@@ -139,20 +147,35 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
             Edit
           </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onToggleStatus(listing)}
-            disabled={busy}
-          >
-            {isActive ? (
-              <Archive aria-hidden="true" />
-            ) : (
-              <ArchiveRestore aria-hidden="true" />
-            )}
-            {isActive ? 'Archive' : 'Restore'}
-          </Button>
+          {!isSold && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onToggleStatus(listing)}
+              disabled={busy}
+            >
+              {isActive ? (
+                <Archive aria-hidden="true" />
+              ) : (
+                <ArchiveRestore aria-hidden="true" />
+              )}
+              {isActive ? 'Archive' : 'Restore'}
+            </Button>
+          )}
+
+          {isActive && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onMarkSold(listing)}
+              disabled={busy}
+            >
+              <CheckCircle aria-hidden="true" />
+              Mark as Sold
+            </Button>
+          )}
 
           <Button
             type="button"
@@ -170,7 +193,11 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
             }
           >
             <Star aria-hidden="true" />
-            {featuredBusy ? 'Working…' : listing.is_featured ? 'Featured' : 'Feature'}
+            {featuredBusy
+              ? 'Working…'
+              : listing.is_featured
+                ? 'Featured'
+                : 'Feature'}
           </Button>
 
           <Button
@@ -192,17 +219,14 @@ const MyListingCard: React.FC<MyListingCardProps> = ({
 };
 
 /**
- * My Listings (FR-002) — the signed-in seller's own listings.
- *
- * Ownership never comes from the URL: `listingService.getMyListings()`
- * resolves the user from the Supabase session and filters
- * `listings.seller_id = <auth user>`, so this route cannot be pointed at
- * another user's rows by changing the query string.
+ * My Listings — the signed-in seller's own listings.
+ * Listing ownership is enforced by listingService.getMyListings().
  */
 const MyListings: React.FC = () => {
   const navigate = useNavigate();
 
   const [activeListings, setActiveListings] = useState<MyListingRow[]>([]);
+  const [soldListings, setSoldListings] = useState<MyListingRow[]>([]);
   const [archivedListings, setArchivedListings] = useState<MyListingRow[]>([]);
 
   const [tab, setTab] = useState<StatusTab>('active');
@@ -218,17 +242,18 @@ const MyListings: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Each query is filtered server-side by status AND by the signed-in
-    // seller, so nothing is fetched and then filtered in the browser.
-    const [activeResult, archivedResult] = await Promise.all([
+    const [activeResult, soldResult, archivedResult] = await Promise.all([
       listingService.getMyListings({ status: 'active' }),
+      listingService.getMyListings({ status: 'sold' }),
       listingService.getMyListings({ status: 'archived' }),
     ]);
 
-    const failed = activeResult.error ?? archivedResult.error;
+    const failed =
+      activeResult.error ?? soldResult.error ?? archivedResult.error;
 
     if (failed) {
       setActiveListings([]);
+      setSoldListings([]);
       setArchivedListings([]);
       setError(failed.message);
       setLoading(false);
@@ -236,6 +261,7 @@ const MyListings: React.FC = () => {
     }
 
     setActiveListings(activeResult.data ?? []);
+    setSoldListings(soldResult.data ?? []);
     setArchivedListings(archivedResult.data ?? []);
     setLoading(false);
   }, []);
@@ -244,16 +270,28 @@ const MyListings: React.FC = () => {
     void loadMyListings();
   }, [loadMyListings]);
 
-  const listings = tab === 'active' ? activeListings : archivedListings;
-  const hasAnyListings = activeListings.length > 0 || archivedListings.length > 0;
+  const listings =
+    tab === 'active'
+      ? activeListings
+      : tab === 'sold'
+        ? soldListings
+        : archivedListings;
+
+  const hasAnyListings =
+    activeListings.length > 0 ||
+    soldListings.length > 0 ||
+    archivedListings.length > 0;
 
   const handleOpen = (listing: MyListingRow) => {
-    // `from` keeps the listing detail's own back button pointing here.
-    navigate(`/listing/${listing.id}`, { state: { from: '/my-listings' } });
+    navigate(`/listing/${listing.id}`, {
+      state: { from: '/my-listings' },
+    });
   };
 
   const handleEdit = (listing: MyListingRow) => {
-    navigate(`/edit-listing/${listing.id}`, { state: { from: '/my-listings' } });
+    navigate(`/edit-listing/${listing.id}`, {
+      state: { from: '/my-listings' },
+    });
   };
 
   const handleToggleStatus = async (listing: MyListingRow) => {
@@ -263,52 +301,107 @@ const MyListings: React.FC = () => {
     setActionError(null);
     setNotice(null);
 
-    const { error: toggleError } = isActive
-      ? await listingService.archiveListing(listing.id)
-      : await listingService.unarchiveListing(listing.id);
+    try {
+      const { error: toggleError } = isActive
+        ? await listingService.archiveListing(listing.id)
+        : await listingService.unarchiveListing(listing.id);
 
-    if (toggleError) {
+      if (toggleError) {
+        setActionError(toggleError.message);
+        return;
+      }
+
+      await loadMyListings();
+
+      setNotice(
+        isActive
+          ? 'Listing archived. You can restore it from the Archived tab anytime.'
+          : 'Listing restored — it is visible to buyers again.'
+      );
+    } finally {
       setBusyId(null);
-      setActionError(toggleError.message);
-      return;
     }
+  };
 
-    await loadMyListings();
-    setBusyId(null);
-    setNotice(
-      isActive
-        ? 'Listing archived. You can restore it from the Archived tab anytime.'
-        : 'Listing restored — it is visible to buyers again.'
+  const handleMarkSold = async (listing: MyListingRow) => {
+    const confirmed = window.confirm(
+      `Mark "${listing.title}" as sold?\n\n` +
+        'This listing will no longer be available to buyers. ' +
+        'Any pending reservations will be cancelled and affected buyers notified. ' +
+        'If a confirmed reservation exists, you must resolve it first.\n\n' +
+        'The listing will be automatically archived after 30 days and will not be automatically deleted.\n\n' +
+        'Continue?'
     );
+
+    if (!confirmed) return;
+
+    setBusyId(listing.id);
+    setActionError(null);
+    setNotice(null);
+
+    try {
+      const { data, error: soldError } =
+        await listingService.markListingSold(listing.id);
+
+      if (soldError) {
+        setActionError(soldError.message);
+        return;
+      }
+
+      await loadMyListings();
+
+      const cancelled = data?.cancelledReservations ?? 0;
+
+      setNotice(
+        cancelled > 0
+          ? `Listing marked as sold. ${cancelled} pending reservation(s) cancelled; affected buyers will be notified.`
+          : 'Listing marked as sold. It is no longer available to buyers.'
+      );
+
+      setTab('sold');
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : 'Something went wrong while marking this listing as sold.'
+      );
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const handleToggleFeatured = async (listing: MyListingRow) => {
     if (listing.status !== 'active') return;
+
     setFeaturedBusyId(listing.id);
     setActionError(null);
     setNotice(null);
 
-    const { error } = await listingService.setFeatured(listing.id, !listing.is_featured);
+    try {
+      const { error: featuredError } = await listingService.setFeatured(
+        listing.id,
+        !listing.is_featured
+      );
 
-    if (error) {
+      if (featuredError) {
+        setActionError(featuredError.message);
+        return;
+      }
+
+      await loadMyListings();
+
+      setNotice(
+        listing.is_featured
+          ? 'Listing removed from Featured Finds.'
+          : 'Listing pinned to Featured Finds on your public profile.'
+      );
+    } finally {
       setFeaturedBusyId(null);
-      setActionError(error.message);
-      return;
     }
-
-    await loadMyListings();
-    setFeaturedBusyId(null);
-    setNotice(
-      listing.is_featured
-        ? 'Listing removed from Featured Finds.'
-        : 'Listing pinned to Featured Finds on your public profile.'
-    );
   };
 
   /**
-   * Same safety flow the profile page already uses: check the listing for
-   * reservation history, confirm with the user, then delete through the
-   * existing service (which removes the Storage objects first).
+   * Check reservation history and ask for confirmation before permanent deletion.
    */
   const handleDelete = async (listing: MyListingRow) => {
     setBusyId(listing.id);
@@ -334,14 +427,14 @@ const MyListings: React.FC = () => {
         ? window.confirm(
             `⚠️ This listing has existing reservation history.\n\n` +
               `Deleting "${listing.title}" will permanently delete the listing, ` +
-              `all of its photos, and the associated reservation records.\n\n` +
-              `This action cannot be undone.\n\n` +
-              `Do you want to permanently delete this listing?`
+              'all of its photos, and the associated reservation records.\n\n' +
+              'This action cannot be undone.\n\n' +
+              'Do you want to permanently delete this listing?'
           )
         : window.confirm(
             `Delete "${listing.title}" permanently?\n\n` +
-              `This will permanently delete the listing and all of its photos. ` +
-              `This action cannot be undone.`
+              'This will permanently delete the listing and all of its photos. ' +
+              'This action cannot be undone.'
           );
 
       if (!confirmed) return;
@@ -357,12 +450,23 @@ const MyListings: React.FC = () => {
 
       await loadMyListings();
       setNotice('Listing deleted permanently.');
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : 'Something went wrong while deleting the listing.'
+      );
     } finally {
       setBusyId(null);
     }
   };
 
-  const selectedLabel = tab === 'active' ? 'Active Listings' : 'Archived Listings';
+  const selectedLabel =
+    tab === 'active'
+      ? 'Active Listings'
+      : tab === 'sold'
+        ? 'Sold Listings'
+        : 'Archived Listings';
 
   return (
     <div className="my-listings-page">
@@ -380,7 +484,6 @@ const MyListings: React.FC = () => {
           </div>
 
           <div className="my-listings-header-action">
-            {/* Text-only action — deliberately not a filled Button. */}
             <button
               type="button"
               className="my-listings-create-action"
@@ -441,7 +544,9 @@ const MyListings: React.FC = () => {
                   const count =
                     statusTab.id === 'active'
                       ? activeListings.length
-                      : archivedListings.length;
+                      : statusTab.id === 'sold'
+                        ? soldListings.length
+                        : archivedListings.length;
 
                   return (
                     <button
@@ -467,7 +572,9 @@ const MyListings: React.FC = () => {
                   <p className="my-listings-empty-note">
                     {tab === 'active'
                       ? 'You have no active listings right now.'
-                      : 'You have no archived listings.'}
+                      : tab === 'sold'
+                        ? 'You have no sold listings yet.'
+                        : 'You have no archived listings.'}
                   </p>
                 ) : (
                   <div className="my-listings-grid">
@@ -480,6 +587,7 @@ const MyListings: React.FC = () => {
                         onOpen={handleOpen}
                         onEdit={handleEdit}
                         onToggleStatus={handleToggleStatus}
+                        onMarkSold={handleMarkSold}
                         onDelete={handleDelete}
                         onToggleFeatured={handleToggleFeatured}
                       />

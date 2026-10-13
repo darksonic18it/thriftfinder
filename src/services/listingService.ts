@@ -1,6 +1,5 @@
-import { supabase } from '../lib/supabaseClient'
 import { describeError } from '../lib/listingMappers'
-import { listingImageService } from './listingImageService'
+import { supabase } from '../lib/supabaseClient'
 import type {
   BrowseListingRow,
   Listing,
@@ -12,6 +11,7 @@ import type {
   ServiceResult,
   UUID,
 } from '../types/database'
+import { listingImageService } from './listingImageService'
 
 /**
  * Listing service — the ONLY place the app talks to public.listings.
@@ -292,7 +292,9 @@ export const listingService = {
   // -------------------------------------------------------------------
   // READ — the signed-in seller's own listings (FR-002)
   // -------------------------------------------------------------------
-  async getMyListings(options: { status?: 'active' | 'archived' } = {}): Promise<
+  async getMyListings(
+  options: { status?: 'active' | 'sold' | 'archived' } = {}
+): Promise<
     ServiceResult<MyListingRow[]>
   > {
     const auth = await requireUserId()
@@ -579,6 +581,62 @@ export const listingService = {
    * Archive is still available for flows that need to preserve reservation
    * history without permanently removing the listing.
    */
+
+  
+  /**
+   * Mark an active listing as sold.
+   *
+   * The database function verifies ownership, blocks confirmed
+   * reservations, cancels pending reservations, and marks the
+   * listing sold in one transaction.
+   */
+  async markListingSold(
+    listingId: UUID
+  ): Promise<ServiceResult<{ success: boolean; cancelledReservations: number }>> {
+    const auth = await requireUserId()
+
+    if (auth.userId === null) {
+      return { data: null, error: auth.error }
+    }
+
+    const { data, error } = await supabase.rpc('mark_listing_sold', {
+      p_listing_id: listingId,
+    })
+
+    if (error) {
+      console.error('[listingService.markListingSold]', error)
+
+      return {
+        data: null,
+        error: describeError(
+          error,
+          'Could not mark this listing as sold.'
+        ),
+      }
+    }
+
+    const result = data as {
+      success?: boolean
+      cancelled_reservations?: number
+    } | null
+
+    if (!result?.success) {
+      return {
+        data: null,
+        error: { message: 'The listing could not be marked as sold.' },
+      }
+    }
+
+    return {
+      data: {
+        success: true,
+        cancelledReservations: result.cancelled_reservations ?? 0,
+      },
+      error: null,
+    }
+  },
+
+
   async archiveListing(listingId: UUID): Promise<ServiceResult<true>> {
     const auth = await requireUserId()
     if (auth.userId === null) return { data: null, error: auth.error }

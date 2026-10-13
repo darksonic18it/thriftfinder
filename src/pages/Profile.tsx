@@ -1276,14 +1276,28 @@ const handleConfirmDelete = async () => {
                     <button
                       type="button"
                       className="profile-reservation-item__name profile-linkish"
-                      onClick={() => navigate(`/listing/${item.id}`)}
+                      
+                      onClick={() =>
+                        navigate(`/listing/${item.id}`, {
+                          state: { from: '/profile' },
+                        })
+                      }
+
                     >
                       {item.title}
                     </button>
                   </div>
                   <span className="profile-status-pill">
                     <span className="profile-status-pill__dot" />
-                    {formatPeso(item.price)} · {item.status === 'active' ? 'Active' : 'Archived'}
+                    
+                    {formatPeso(item.price)} · {
+                      item.status === 'active'
+                        ? 'Active'
+                        : item.status === 'sold'
+                          ? 'Sold'
+                          : 'Archived'
+                    }
+
                   </span>
                   <div className="profile-listing-actions">
                       <button

@@ -254,7 +254,15 @@ const ListingDetails: React.FC = () => {
       <div className="breadcrumb-container">
         <Link to={backTo} className="breadcrumb-link">
           <ArrowLeft size={18} />
-          <span>Back to Browse</span>
+          
+          <span>
+            {backTo === '/profile'
+              ? 'Back to Profile'
+              : backTo === '/my-listings'
+                ? 'Back to My Listings'
+                : 'Back to Browse'}
+          </span>
+
         </Link>
       </div>
 
