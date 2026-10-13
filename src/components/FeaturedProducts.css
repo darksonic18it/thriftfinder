@@ -180,6 +180,55 @@
   color: #ef4444;
 }
 
+/* ---------- Multi-photo carousel (auto-enabled only for 2+ photos) ---------- */
+
+.ff-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.ff-carousel__arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+}
+
+.ff-carousel__arrow--prev {
+  left: 0.8rem;
+}
+
+.ff-carousel__arrow--next {
+  right: 0.8rem;
+}
+
+.ff-carousel__counter {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  z-index: 2;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(6px);
+  cursor: default;
+}
+
 .ff-card__body {
   padding: 1.25rem 0.15rem 0;
 }
@@ -348,6 +397,7 @@
 
 .ff-explore:focus-visible,
 .ff-heart:focus-visible,
+.ff-carousel__arrow:focus-visible,
 .ff-card__title a:focus-visible {
   outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
@@ -425,6 +475,12 @@
 /* ---------- Dark theme ---------- */
 
 [data-theme='dark'] .ff-heart {
+  background: rgba(2, 0, 13, 0.62);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .ff-carousel__arrow {
   background: rgba(2, 0, 13, 0.62);
   border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;

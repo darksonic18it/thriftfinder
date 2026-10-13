@@ -104,8 +104,8 @@ const FOUNDERS = [
     name: 'Khim Jay Evedientes',
     role: 'Project Manager and Backend Developer',
     bio: [
-      'With over a decade of experience in digital, creative and design agencies across the United States, Australia and Mexico, Oli has worked with companies leading their industry sectors around the globe, leading and unifying teams around creative vision.',
-      "Oli's design philosophy centres on purpose. If design doesn't solve a problem for users, it isn't doing its most important job: balancing functionality and aesthetics.",
+      'Khim Jay keeps the team locked in, turning ideas into working features while making sure everything behind the scenes runs smoothly. From managing the project to building the backend, he makes sure ThriftFinder isn’t just looking good but actually delivering.',
+      "His philosophy? Build with purpose, keep it functional, and make it work like it should. Because a great website isn’t just about the vibes—it’s about creating an experience that just makes sense.",
     ],
     linkedin: 'https://www.linkedin.com/',
     instagram: 'https://www.instagram.com/',
@@ -114,8 +114,8 @@ const FOUNDERS = [
     name: 'Cyrus Azhly Petalino',
     role: 'Frontend Developer and UI/UX Designer',
     bio: [
-      'Alejandro has worked in the Australian digital space for many years, helping well-established local and global companies design products from discovery to production. A creatively curious mind and knack for business make him a designer who sees the big picture while paying attention to detail.',
-      'Ale sees design as not simply an aesthetic pursuit but a tool to solve problems.',
+      'Cyrus brings ThriftFinder to life through clean interfaces, smooth interactions, and designs that just hit different. From crafting the user experience to building the frontend, he makes sure every click, scroll, and page feels intuitive and looks on point.',
+      'His design philosophy? Make it look good, make it feel right, and make it easy to use. Because good design isn’t just about the aesthetics—it’s about creating an experience users actually enjoy.',
     ],
     linkedin: 'https://www.linkedin.com/',
     instagram: 'https://www.instagram.com/',

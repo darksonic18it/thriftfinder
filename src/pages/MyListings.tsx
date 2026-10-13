@@ -17,6 +17,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/ui/button';
+import {
+  DeleteListingConfirmModal,
+  MarkAsSoldModal,
+} from '../components/ListingConfirmModals';
 import { asCondition, formatPeso, listingImageUrl } from '../lib/listingMappers';
 import { listingService, type MyListingRow } from '../services/listingService';
 import type { ListingCondition } from '../types/database';
@@ -237,6 +241,10 @@ const MyListings: React.FC = () => {
   const [notice, setNotice] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [featuredBusyId, setFeaturedBusyId] = useState<string | null>(null);
+  const [soldTarget, setSoldTarget] = useState<MyListingRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<
+    (MyListingRow & { hasReservations: boolean }) | null
+  >(null);
 
   const loadMyListings = useCallback(async () => {
     setLoading(true);
@@ -323,17 +331,15 @@ const MyListings: React.FC = () => {
     }
   };
 
-  const handleMarkSold = async (listing: MyListingRow) => {
-    const confirmed = window.confirm(
-      `Mark "${listing.title}" as sold?\n\n` +
-        'This listing will no longer be available to buyers. ' +
-        'Any pending reservations will be cancelled and affected buyers notified. ' +
-        'If a confirmed reservation exists, you must resolve it first.\n\n' +
-        'The listing will be automatically archived after 30 days and will not be automatically deleted.\n\n' +
-        'Continue?'
-    );
+  const handleMarkSold = (listing: MyListingRow) => {
+    setActionError(null);
+    setNotice(null);
+    setSoldTarget(listing);
+  };
 
-    if (!confirmed) return;
+  const handleConfirmMarkSold = async () => {
+    const listing = soldTarget;
+    if (!listing || busyId) return;
 
     setBusyId(listing.id);
     setActionError(null);
@@ -359,6 +365,7 @@ const MyListings: React.FC = () => {
       );
 
       setTab('sold');
+      setSoldTarget(null);
     } catch (caught) {
       setActionError(
         caught instanceof Error
@@ -401,9 +408,11 @@ const MyListings: React.FC = () => {
   };
 
   /**
-   * Check reservation history and ask for confirmation before permanent deletion.
+   * Step 1: verify reservation history, then open the delete modal.
+   * Step 2 (handleConfirmDelete): the permanent delete runs only on confirm.
    */
   const handleDelete = async (listing: MyListingRow) => {
+    if (busyId) return;
     setBusyId(listing.id);
     setActionError(null);
     setNotice(null);
@@ -421,24 +430,27 @@ const MyListings: React.FC = () => {
         return;
       }
 
-      const { hasReservations } = infoResult.data;
+      setDeleteTarget({ ...listing, hasReservations: infoResult.data.hasReservations });
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : 'Something went wrong while deleting the listing.'
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
 
-      const confirmed = hasReservations
-        ? window.confirm(
-            `⚠️ This listing has existing reservation history.\n\n` +
-              `Deleting "${listing.title}" will permanently delete the listing, ` +
-              'all of its photos, and the associated reservation records.\n\n' +
-              'This action cannot be undone.\n\n' +
-              'Do you want to permanently delete this listing?'
-          )
-        : window.confirm(
-            `Delete "${listing.title}" permanently?\n\n` +
-              'This will permanently delete the listing and all of its photos. ' +
-              'This action cannot be undone.'
-          );
+  const handleConfirmDelete = async () => {
+    const listing = deleteTarget;
+    if (!listing || busyId) return;
 
-      if (!confirmed) return;
+    setBusyId(listing.id);
+    setActionError(null);
+    setNotice(null);
 
+    try {
       const { error: deleteError } = await listingService.hardDeleteListing(
         listing.id
       );
@@ -449,6 +461,7 @@ const MyListings: React.FC = () => {
       }
 
       await loadMyListings();
+      setDeleteTarget(null);
       setNotice('Listing deleted permanently.');
     } catch (caught) {
       setActionError(
@@ -599,6 +612,27 @@ const MyListings: React.FC = () => {
           )}
         </div>
       </main>
+
+      <MarkAsSoldModal
+        open={soldTarget !== null}
+        listingTitle={soldTarget?.title ?? ''}
+        busy={soldTarget !== null && busyId === soldTarget.id}
+        onOpenChange={(open) => {
+          if (!open && !busyId) setSoldTarget(null);
+        }}
+        onConfirm={() => void handleConfirmMarkSold()}
+      />
+
+      <DeleteListingConfirmModal
+        open={deleteTarget !== null}
+        listingTitle={deleteTarget?.title ?? ''}
+        hasReservations={deleteTarget?.hasReservations ?? false}
+        busy={deleteTarget !== null && busyId === deleteTarget.id}
+        onOpenChange={(open) => {
+          if (!open && !busyId) setDeleteTarget(null);
+        }}
+        onConfirm={() => void handleConfirmDelete()}
+      />
     </div>
   );
 };

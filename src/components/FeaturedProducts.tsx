@@ -1,9 +1,10 @@
-import { ArrowUpRight, Heart, MapPin } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, ChevronRight, Heart, MapPin } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { browseRowToProduct } from '../lib/listingMappers';
+import { browseRowToProduct, listingImageUrl } from '../lib/listingMappers';
 import { favoriteService } from '../services/favoriteService';
+import { listingImageService } from '../services/listingImageService';
 import { listingService } from '../services/listingService';
 import './FeaturedProducts.css';
 import type { Product } from './ProductCard';
@@ -49,6 +50,9 @@ interface FindCardProps {
   onToggleFavorite: (productId: string, e: React.MouseEvent) => void;
 }
 
+/** Cache of listingId -> photo URLs so remounts don't refetch. */
+const carouselPhotoCache = new Map<string, string[]>();
+
 const FindCard: React.FC<FindCardProps> = ({
   product,
   index,
@@ -60,6 +64,54 @@ const FindCard: React.FC<FindCardProps> = ({
 
   const open = () => navigate(`/listing/${product.id}`, { state: { from: location.pathname } });
 
+  const coverImage = product.image;
+  const [photos, setPhotos] = useState<string[] | null>(() =>
+    carouselPhotoCache.has(product.id) ? carouselPhotoCache.get(product.id)! : null,
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Load real Supabase `listing_images` ordered by `sort_order` ascending.
+  // `listByListing` already orders; fall back to the cover image on failure.
+  useEffect(() => {
+    let active = true;
+    if (carouselPhotoCache.has(product.id)) {
+      setPhotos(carouselPhotoCache.get(product.id)!);
+      setActiveIndex(0);
+      return;
+    }
+    (async () => {
+      const { data } = await listingImageService.listByListing(product.id);
+      if (!active) return;
+      const urls = (data ?? [])
+        .map((row) => listingImageUrl(row.storage_path))
+        .filter((url) => !!url);
+      const resolved = urls.length > 0 ? urls : [coverImage];
+      carouselPhotoCache.set(product.id, resolved);
+      setPhotos(resolved);
+      setActiveIndex(0);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [product.id, coverImage]);
+
+  const displayPhotos = photos ?? [coverImage];
+  // Carousel auto-enables only when 2+ real photos exist. Single-photo
+  // listings keep the original static image with no arrows/counter.
+  const hasCarousel = (photos?.length ?? 0) >= 2;
+  const safeIndex = displayPhotos.length > 0 ? activeIndex % displayPhotos.length : 0;
+  const currentSrc = displayPhotos[safeIndex] ?? coverImage;
+
+  const goPrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIndex((i) => (i - 1 + displayPhotos.length) % displayPhotos.length);
+  };
+
+  const goNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIndex((i) => (i + 1) % displayPhotos.length);
+  };
+
   return (
     <article
       className="ff-card ff-reveal"
@@ -68,13 +120,46 @@ const FindCard: React.FC<FindCardProps> = ({
     >
       <div className="ff-card__media">
         <img
+          key={currentSrc}
           className="ff-card__img"
-          src={product.image}
+          src={currentSrc}
           alt={product.name}
           loading="lazy"
           draggable={false}
+          onError={(e) => {
+            // Fall back to the existing cover image if a photo fails to load.
+            if (e.currentTarget.src !== coverImage) e.currentTarget.src = coverImage;
+          }}
         />
         {product.tag ? <span className="ff-card__tag">{product.tag}</span> : null}
+        {hasCarousel ? (
+          <>
+            <button
+              type="button"
+              className="ff-carousel__arrow ff-carousel__arrow--prev"
+              onClick={goPrev}
+              aria-label={`Previous photo for ${product.name}`}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              className="ff-carousel__arrow ff-carousel__arrow--next"
+              onClick={goNext}
+              aria-label={`Next photo for ${product.name}`}
+            >
+              <ChevronRight size={18} />
+            </button>
+            <span
+              className="ff-carousel__counter"
+              aria-live="polite"
+              aria-label={`Photo ${safeIndex + 1} of ${displayPhotos.length}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {safeIndex + 1} / {displayPhotos.length}
+            </span>
+          </>
+        ) : null}
         <button
           type="button"
           className={`ff-heart${isFavorite ? ' active' : ''}`}
