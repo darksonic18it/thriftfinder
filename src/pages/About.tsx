@@ -101,8 +101,8 @@ const FOUNDERS_PHOTO =
 /** Temporary reference copy — swap names/bios/links any time. */
 const FOUNDERS = [
   {
-    name: 'Oliver Muñoz',
-    role: 'CO-FOUNDER AND VISUAL DESIGN DIRECTOR',
+    name: 'Khim Jay Evedientes',
+    role: 'Project Manager and Backend Developer',
     bio: [
       'With over a decade of experience in digital, creative and design agencies across the United States, Australia and Mexico, Oli has worked with companies leading their industry sectors around the globe, leading and unifying teams around creative vision.',
       "Oli's design philosophy centres on purpose. If design doesn't solve a problem for users, it isn't doing its most important job: balancing functionality and aesthetics.",
@@ -111,8 +111,8 @@ const FOUNDERS = [
     instagram: 'https://www.instagram.com/',
   },
   {
-    name: 'Alejandro Mejias',
-    role: 'CO-FOUNDER AND EXPERIENCE DESIGN DIRECTOR',
+    name: 'Cyrus Azhly Petalino',
+    role: 'Frontend Developer and UI/UX Designer',
     bio: [
       'Alejandro has worked in the Australian digital space for many years, helping well-established local and global companies design products from discovery to production. A creatively curious mind and knack for business make him a designer who sees the big picture while paying attention to detail.',
       'Ale sees design as not simply an aesthetic pursuit but a tool to solve problems.',
