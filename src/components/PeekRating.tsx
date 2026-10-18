@@ -187,7 +187,9 @@ const PeekRating: React.FC<PeekRatingProps> = ({
     rootRef.current?.removeAttribute('data-instant');
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
+    } catch {
+      /* setPointerCapture can throw when the pointer is already released; hover tracking still works. */
+    }
     st.current.pointerId = e.pointerId;
     st.current.pressing = true;
     measure();
