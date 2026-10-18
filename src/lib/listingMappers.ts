@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+
 import type { Product } from '../components/ProductCard'
 import {
   LISTING_PHOTOS_BUCKET,
@@ -6,6 +6,7 @@ import {
   type ListingCondition,
   type ServiceError,
 } from '../types/database'
+import { supabase } from './supabaseClient'
 
 /**
  * Small shared helpers used by the services and the pages.
@@ -116,6 +117,7 @@ export function browseRowToProduct(row: BrowseListingRow): Product {
     image: listingImageUrl(row.cover_image_path),
     // Reuses the existing `product-tag` pill instead of adding a new element.
     tag: row.is_reserved ? 'Reserved' : undefined,
+    distanceKm: row.distance_km == null ? undefined : toNumber(row.distance_km),
   }
 }
 

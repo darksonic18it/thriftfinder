@@ -1,0 +1,24 @@
+
+.nearby-location-field {
+  margin-top: 0.75rem;
+}
+
+.nearby-location-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.nearby-location-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nearby-location-status {
+  margin: 0.4rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}

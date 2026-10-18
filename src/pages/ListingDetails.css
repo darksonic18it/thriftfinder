@@ -127,7 +127,7 @@
 }
 
 /* Condition Badge */
-.condition-pill {
+.listing-details-page .condition-pill {
   display: inline-block;
   font-size: 0.8rem;
   font-weight: 600;
@@ -567,6 +567,21 @@
   background-color: rgba(245, 158, 11, 0.14);
   border-color: rgba(245, 158, 11, 0.45);
   color: #fbbf24;
+}
+
+
+.listing-distance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.listing-distance svg {
+  flex-shrink: 0;
 }
 
 

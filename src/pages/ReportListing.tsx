@@ -1,9 +1,9 @@
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { listingService } from '../services/listingService'
-import './Legalpage.css'
+import './LegalPage.css'
 import './ReportListing.css'
 
 /**

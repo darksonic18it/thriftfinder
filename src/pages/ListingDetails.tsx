@@ -12,6 +12,11 @@ import {
 } from '../components/ui/dialog';
 import { useAuth } from '../context/AuthContext';
 import { formatPeso, IMAGE_PLACEHOLDER, listingImageUrl } from '../lib/listingMappers';
+import {
+  calculateDistanceKm,
+  getBuyerLocation,
+  getCurrentGpsLocation,
+} from '../lib/nearbyLocation';
 import { favoriteService } from '../services/favoriteService';
 import { listingService } from '../services/listingService';
 import { messageService, openMessagesWidget } from '../services/messageService';
@@ -53,8 +58,18 @@ function formatDeadline(iso: string | null): string | null {
 }
 
 const ListingDetails: React.FC = () => {
-  const location = useLocation();
-  const backTo = (location.state as { from?: string } | null)?.from || '/browse';
+  
+const location = useLocation();
+
+const routeState = location.state as {
+  from?: string;
+  distanceKm?: number | null;
+  product?: {
+    distanceKm?: number | null;
+  };
+} | null;
+
+const backTo = routeState?.from || '/browse';
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -75,6 +90,7 @@ const ListingDetails: React.FC = () => {
   const [archiving, setArchiving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [messagingSeller, setMessagingSeller] = useState(false);
+  const [calculatedDistanceKm, setCalculatedDistanceKm] = useState<number | null>(null);
 
 
   const loadDetail = useCallback(async () => {
@@ -99,6 +115,48 @@ const ListingDetails: React.FC = () => {
   useEffect(() => {
     void loadDetail();
   }, [loadDetail]);
+
+  
+useEffect(() => {
+  let active = true;
+
+  setCalculatedDistanceKm(null);
+
+  if (!id) return;
+
+  const findDistance = async () => {
+    let buyerLocation = getBuyerLocation();
+
+    if (!buyerLocation) {
+      try {
+        buyerLocation = await getCurrentGpsLocation();
+      } catch {
+        // GPS denied or unavailable; don't show a fabricated distance.
+        return;
+      }
+    }
+
+    const result = await listingService.getListingCoordinates(id);
+
+    if (!active || result.error || !result.data) return;
+
+    const calculatedDistance = calculateDistanceKm(
+      buyerLocation,
+      result.data
+    );
+
+    if (active && Number.isFinite(calculatedDistance)) {
+      setCalculatedDistanceKm(calculatedDistance);
+    }
+  };
+
+  void findDistance();
+
+  return () => {
+    active = false;
+  };
+}, [id]);
+
 
   // Saved state (OPTIONAL favorites module — degrades to "not saved").
   useEffect(() => {
@@ -321,15 +379,36 @@ const ListingDetails: React.FC = () => {
           <div className="listing-price">{formatPeso(listing.price)}</div>
 
           {/* Location */}
-          <div className="listing-location">
-            <MapPin size={18} className="location-icon" />
-            <div className="location-text">
-              <span className="location-name">{listing.city}</span>
-              {listing.barangay ? (
-                <span className="location-proximity">{listing.barangay}</span>
-              ) : null}
+          
+            {/* Location */}
+            <div className="listing-location">
+              <MapPin size={18} className="location-icon" />
+
+              <div className="location-text">
+                <span className="location-name">{listing.city}</span>
+
+                {listing.barangay ? (
+                  <span className="location-proximity">
+                    {listing.barangay}
+                  </span>
+                ) : null}
+              </div>
             </div>
-          </div>
+            {calculatedDistanceKm !== null && (
+              <div className="listing-distance">
+                <MapPin size={18} aria-hidden="true" />
+                <span>
+                  Approximately{' '}
+                  {calculatedDistanceKm.toLocaleString('en-PH', {
+                    maximumFractionDigits: 1,
+                  })}{' '}
+                  km away
+                </span>
+              </div>
+            )}
+
+            {/* Approximate distance from the buyer */}
+
 
           {/* Reservation status (FR-005 / FR-007) */}
           {isArchived ? (

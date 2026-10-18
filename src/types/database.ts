@@ -170,6 +170,8 @@ export interface BrowseListingRow {
   cover_image_path: string | null
   image_count: number
   is_reserved: boolean
+  /** Present only for nearby_listings(); deliberately approximate. */
+  distance_km?: number | string
 }
 
 /** The single row returned by public.get_listing_detail(uuid) */

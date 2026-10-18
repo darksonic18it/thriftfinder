@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import AppNavbar from './components/AppNavbar';
 import CallToAction from './components/CallToAction';
@@ -10,32 +11,24 @@ import FloatingMessages from './components/messaging/FloatingMessages';
 import Navbar from './components/Navbar';
 import RequireAuth from './components/RequireAuth';
 import ScrollToTop from './components/ScrollToTop';
-import About from './pages/About';
-import Browse from './pages/Browse';
-import CreateListing from './pages/CreateListing';
-import ListingDetails from './pages/ListingDetails';
-import Login from './pages/Login';
-import MyListings from './pages/MyListings';
-import Privacy from './pages/Privacy';
-import Profile from './pages/Profile';
-import ReportListing from './pages/ReportListing';
-import SavedItems from './pages/SavedItems';
-import Signup from './pages/Signup';
-import Terms from './pages/Terms';
-import UITest from './pages/UITest';
 
 import SellAuthModal from './components/SellAuthModal';
 import { AuthGateProvider } from './context/AuthGateContext';
-// ...
-<Router>
-  <AuthGateProvider>
-    <ScrollToTop />
-    <AppShell />
-    <SellAuthModal />
-  </AuthGateProvider>
-</Router>
 
 import './App.css';
+const About = lazy(() => import('./pages/About'));
+const Browse = lazy(() => import('./pages/Browse'));
+const CreateListing = lazy(() => import('./pages/CreateListing'));
+const ListingDetails = lazy(() => import('./pages/ListingDetails'));
+const Login = lazy(() => import('./pages/Login'));
+const MyListings = lazy(() => import('./pages/MyListings'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ReportListing = lazy(() => import('./pages/ReportListing'));
+const SavedItems = lazy(() => import('./pages/SavedItems'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Terms = lazy(() => import('./pages/Terms'));
+const UITest = lazy(() => import('./pages/UITest'));
 
 function LandingPage() {
   return (
@@ -72,6 +65,7 @@ function AppShell() {
       {isAppShell ? <AppNavbar /> : isProfileRoute ? null : <Navbar />}
 
       <main>
+        <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
 
@@ -161,6 +155,7 @@ function AppShell() {
             }
           />
         </Routes>
+        </Suspense>
       </main>
 
        <FloatingMessages />

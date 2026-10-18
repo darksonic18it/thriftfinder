@@ -1,6 +1,7 @@
+
+import { Heart, MapPin, User } from 'lucide-react';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, User } from 'lucide-react';
 import './ProductCard.css';
 
 export interface Product {
@@ -12,15 +13,23 @@ export interface Product {
   seller: string;
   image: string;
   tag?: string;
+
+  /** Approximate straight-line distance supplied by nearby search. */
+  distanceKm?: number | null;
 }
 
 interface ProductCardProps {
   product: Product;
   isFavorite: boolean;
-  onToggleFavorite: (productId: string, e: React.MouseEvent) => void;
+  onToggleFavorite: (
+    productId: string,
+    e: React.MouseEvent
+  ) => void;
 }
 
-const getConditionClass = (condition: Product['condition']) => {
+const getConditionClass = (
+  condition: Product['condition']
+): string => {
   switch (condition) {
     case 'Like New':
       return 'condition-like-new';
@@ -35,17 +44,43 @@ const getConditionClass = (condition: Product['condition']) => {
   }
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggleFavorite }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  isFavorite,
+  onToggleFavorite,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleCardClick = () => {
-    navigate(`/listing/${product.id}`, { state: { from: location.pathname } });
+    navigate(`/listing/${product.id}`, {
+      state: {
+        from: location.pathname,
+        distanceKm: product.distanceKm ?? null,
+        product,
+      },
+    });
   };
 
+  const distanceKm = product.distanceKm;
+
+const formattedDistance =
+  typeof distanceKm === 'number' &&
+  Number.isFinite(distanceKm) &&
+  distanceKm >= 0
+    ? distanceKm.toLocaleString('en-PH', {
+        maximumFractionDigits: 1,
+      })
+    : null;
+
+const hasDistance = formattedDistance !== null;
+
   return (
-    <div className="product-card" onClick={handleCardClick}>
-      {/* Image Container */}
+    <div
+      className="product-card"
+      onClick={handleCardClick}
+    >
+      {/* Product Image */}
       <div className="product-image-container">
         <img
           src={product.image}
@@ -53,25 +88,45 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggle
           className="product-image"
           loading="lazy"
         />
+
         {product.tag && (
-          <span className="product-tag">{product.tag}</span>
+          <span className="product-tag">
+            {product.tag}
+          </span>
         )}
+
         <button
-          className={`product-heart-btn ${isFavorite ? 'active' : ''}`}
-          onClick={(e) => onToggleFavorite(product.id, e)}
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          type="button"
+          className={`product-heart-btn ${
+            isFavorite ? 'active' : ''
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(product.id, e);
+          }}
+          aria-label={
+            isFavorite
+              ? 'Remove from favorites'
+              : 'Add to favorites'
+          }
         >
           <Heart
             size={18}
-            className={`heart-icon ${isFavorite ? 'heart-icon--active' : ''}`}
+            className={`heart-icon ${
+              isFavorite ? 'heart-icon--active' : ''
+            }`}
           />
         </button>
       </div>
 
-      {/* Content Container */}
+      {/* Product Details */}
       <div className="product-body">
         <div className="product-meta-top">
-          <span className={`condition-pill ${getConditionClass(product.condition)}`}>
+          <span
+            className={`condition-pill ${getConditionClass(
+              product.condition
+            )}`}
+          >
             {product.condition}
           </span>
         </div>
@@ -81,7 +136,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggle
         </h3>
 
         <div className="product-price">
-          ₱{product.price.toLocaleString()}
+          ₱{product.price.toLocaleString('en-PH')}
         </div>
 
         <div className="product-footer">
@@ -89,9 +144,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isFavorite, onToggle
             <User size={13} className="meta-icon" />
             <span>{product.seller}</span>
           </div>
-          <div className="product-location">
+
+          <div
+            className="product-location"
+            aria-label={
+              hasDistance
+                ? `${product.location}, approximately ${formattedDistance} kilometres away`
+                : product.location
+            }
+          >
             <MapPin size={13} className="meta-icon" />
-            <span>{product.location}</span>
+
+            <span>
+              {product.location}
+
+              {hasDistance && (
+                <> · ~{formattedDistance} km away</>
+              )}
+            </span>
           </div>
         </div>
       </div>

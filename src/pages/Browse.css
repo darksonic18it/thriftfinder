@@ -1,3 +1,4 @@
+
 .browse-page {
   min-height: 100vh;
   background-color: var(--color-bg-secondary);
@@ -45,22 +46,31 @@
 
 /* Controls (Search & Category Filter) */
 .browse-controls {
-  background: var(--color-bg-elevated); /* was var(--color-bg-secondary), which is see-through in dark mode */
-  padding: 1.5rem;
+  background: var(--color-bg-elevated);
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+/* Sticky categories row. Glides up when the navbar hides. */
+.browse-categories-bar {
+  background: var(--color-bg-elevated);
+  padding: 0.75rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 70px;
   z-index: 900;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 220ms ease-out, opacity 220ms ease-out;
-  will-change: transform, opacity;
+  transition: transform 220ms ease-out;
+  will-change: transform;
 }
 
-/* Instagram-style hide-on-scroll — mirrors .navbar--hidden timing. */
-.browse-controls--hidden {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
+.browse-categories-bar--navhidden {
+  transform: translateY(-70px);
+}
+
+.browse-refine-bar {
+  background: var(--color-bg-elevated);
+  padding: 0 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .browse-controls-container {
@@ -156,9 +166,21 @@
     padding: 2.5rem 1.25rem 2rem;
   }
 
-  .browse-controls {
-    padding: 1.25rem 1rem;
+    .browse-controls {
+    padding: 1.25rem 1rem 0.75rem;
+  }
+
+  .browse-categories-bar {
+    padding: 0.6rem 1rem;
     top: 60px;
+  }
+
+  .browse-categories-bar--navhidden {
+    transform: translateY(-60px);
+  }
+
+  .browse-refine-bar {
+    padding: 0 1rem 1rem;
   }
 
   .browse-products {
@@ -173,36 +195,23 @@
   }
 }
 
-/* Dashboard-only: Browse search + category controls should scroll normally (not sticky). */
-.dashboard-browse-route .browse-controls {
+/* Dashboard-only: categories row scrolls normally (not sticky). */
+.dashboard-browse-route .browse-categories-bar {
   position: static;
   top: auto;
   z-index: auto;
   box-shadow: none;
   transition: none;
   transform: none;
-  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .browse-controls {
+  .browse-categories-bar {
     transition-duration: 0.001ms !important;
-  }
-
-  .browse-controls--hidden {
-    transform: none !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
   }
 }
 
-/* =====================================================================
-   Phase 2 additions — APPEND to the end of the existing src/pages/Browse.css
-   Do not replace the file; these are new rules only, for:
-     - the condition + price-range refine row (FR-004)
-     - loading / error / empty states
-   ===================================================================== */
-
+/* Phase 2 additions — condition + price filters and states. */
 .browse-refine-row {
   display: flex;
   flex-wrap: wrap;
@@ -279,12 +288,8 @@
 }
 
 @keyframes browse-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 640px) {
@@ -294,10 +299,7 @@
   }
 }
 
-/* ==========================================================================
-   DARK THEME — LUXURY MONOCHROME
-   ========================================================================== */
-
+/* DARK THEME — LUXURY MONOCHROME */
 [data-theme='dark'] .location-indicator {
   background-color: rgba(255, 255, 255, 0.08);
 }
@@ -306,10 +308,168 @@
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
 }
 
-/* Active pill is white in dark mode, so its label must be deep dark. */
 [data-theme='dark'] .category-btn.active {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-bg-main);
 }
 
+/* Items Near Me — GPS-first with manual barangay fallback. */
+.nearby-search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-main);
+}
+
+.nearby-search-actions,
+.nearby-active-location,
+.nearby-location-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.nearby-search-actions .category-btn,
+.nearby-location-actions .category-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nearby-search-actions button:disabled,
+.browse-load-more-wrap button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.nearby-active-location {
+  justify-content: space-between;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.nearby-active-location > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-wrap: anywhere;
+}
+
+.nearby-radius-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.nearby-radius-label select {
+  padding: 0.45rem 0.6rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.nearby-manual-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 760px;
+}
+
+.nearby-manual-picker > label {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.nearby-manual-input {
+  padding-left: 1rem;
+}
+
+.nearby-manual-results {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+}
+
+.nearby-manual-results button {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+}
+
+.nearby-manual-results button:last-child {
+  border-bottom: 0;
+}
+
+.nearby-manual-results button:hover,
+.nearby-manual-results button[aria-selected='true'] {
+  background: var(--color-bg-secondary);
+}
+
+.nearby-manual-results button svg {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.nearby-location-note,
+.nearby-location-message {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.nearby-location-message {
+  padding-top: 0.1rem;
+}
+
+.browse-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.nearby-location-field {
+  margin-top: 0.75rem;
+}
+
+.nearby-location-actions .nearby-location-clear {
+  color: var(--color-text-secondary);
+}
+
+.nearby-location-status {
+  margin: 0.4rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .nearby-search-panel {
+    padding: 0.75rem;
+  }
+
+  .nearby-active-location {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
