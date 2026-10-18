@@ -1,17 +1,14 @@
-import { supabase } from '../lib/supabaseClient';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
+  CheckCircle2,
   Image as ImageIcon,
   MapPin,
   Plus,
   Trash2,
-  CheckCircle2,
 } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -20,8 +17,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
-import { listingService } from '../services/listingService';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { listingImageUrl } from '../lib/listingMappers';
+import { findExactBarangayCoordinates } from '../lib/philippineBarangays';
+import { listingService, type ListingCoordinates } from '../services/listingService';
 import {
   LISTING_CATEGORIES,
   LISTING_CONDITIONS,
@@ -29,6 +29,7 @@ import {
   type ListingCondition,
 } from '../types/database';
 import './CreateListing.css';
+import './NearbyLocation.css';
 
 /**
  * One entry in the photo strip.
@@ -44,7 +45,7 @@ type PhotoItem =
   | { key: string; kind: 'existing'; url: string; imageId: string };
 
 type ListingFormErrors = Partial<
-  Record<'title' | 'description' | 'category' | 'condition' | 'price' | 'city' | 'photos', string>
+  Record<'title' | 'description' | 'category' | 'condition' | 'price' | 'city' | 'barangay' | 'photos', string>
 >;
 
 const CATEGORY_OPTIONS: ListingCategory[] = LISTING_CATEGORIES;
@@ -174,6 +175,9 @@ const CreateListing: React.FC = () => {
   const [price, setPrice] = useState('');
   const [city, setCity] = useState('');
   const [barangay, setBarangay] = useState('');
+  const [locationCoordinates, setLocationCoordinates] = useState<ListingCoordinates | null>(null);
+  const [hasNearbyLocation, setHasNearbyLocation] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<ListingFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -219,6 +223,9 @@ const CreateListing: React.FC = () => {
       setPrice(String(Number(data.listing.price)));
       setCity(data.listing.city);
       setBarangay(data.listing.barangay ?? '');
+      setHasNearbyLocation(data.hasNearbyLocation);
+      setLocationCoordinates(null);
+      setLocationStatus(data.hasNearbyLocation ? 'An approximate nearby-search location is saved for this listing.' : null);
       setPhotos(
         data.images.map((img) => ({
           key: img.id,
@@ -283,7 +290,8 @@ const CreateListing: React.FC = () => {
     const n = Number(price);
     if (!price.trim() || !Number.isFinite(n) || n <= 0) next.price = 'Please enter a price.';
 
-    if (!city.trim()) next.city = 'Please enter your location.';
+    if (!city.trim()) next.city = 'Please enter the city or municipality where the item is located.';
+    if (!barangay.trim()) next.barangay = 'Please enter the barangay where the item can be picked up.';
 
     // SRS 4.4: a listing without at least one photo cannot be published.
     if (photos.length === 0) next.photos = 'Add at least one photo.';
@@ -335,17 +343,88 @@ const CreateListing: React.FC = () => {
     });
   };
 
+  const captureNearbyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('This browser does not support GPS. Use the barangay-area option below instead.');
+      return;
+    }
+    setLocationStatus('Requesting location permission…');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationCoordinates({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setHasNearbyLocation(true);
+          setLocationStatus('GPS area ready. Only rounded coordinates are saved, not your exact GPS pin. Make sure this is the item pickup area.');
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'GPS permission was denied. You can use the barangay-area option instead.'
+          : error.code === error.TIMEOUT
+            ? 'GPS request timed out. Try again or use the barangay-area option.'
+            : 'Could not get GPS. Check device location settings or use the barangay-area option.';
+        setLocationStatus(message);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  };
+
+  const useBarangayArea = () => {
+    if (!city.trim() || !barangay.trim()) {
+      setLocationStatus('Enter both the city/municipality and barangay first.');
+      return;
+    }
+    const matches = findExactBarangayCoordinates(barangay, city);
+    if (matches.length === 1) {
+      setLocationCoordinates({ latitude: matches[0].latitude, longitude: matches[0].longitude });
+      setHasNearbyLocation(true);
+      setLocationStatus(`Approximate barangay reference selected: ${matches[0].label}. This is an area estimate, not an exact pickup pin.`);
+      return;
+    }
+    setLocationCoordinates(null);
+    setHasNearbyLocation(false);
+    setLocationStatus(matches.length > 1
+      ? 'This barangay name has multiple coordinate matches. Please clarify the city/municipality spelling or use GPS for the item pickup area.'
+      : 'No exact barangay/city match was found in the coordinate dataset. Check the spelling or use GPS for the item pickup area.');
+  };
+
+  const markLocationTextChanged = () => {
+    if (hasNearbyLocation || locationCoordinates) {
+      setLocationCoordinates(null);
+      setHasNearbyLocation(false);
+      setLocationStatus('Location text changed. Re-select the barangay area or capture GPS for the item pickup area.');
+    }
+  };
+
   // ---------------------------------------------------------------
   // Publish / Save
   // ---------------------------------------------------------------
   const handlePublish = useCallback(async () => {
-    const { data: sessionCheck, error: sessionErr } = await supabase.auth.getSession();
-    console.log('SESSION CHECK', sessionCheck?.session?.user?.id, sessionCheck?.session?.access_token?.slice(0, 20), sessionErr);
     const nextErrors = validate();
     setErrors(nextErrors);
     setSubmitError(null);
 
     if (Object.keys(nextErrors).length > 0) return;
+
+    // GPS is preferred when the seller explicitly captures it. Otherwise use
+    // only an exact, unambiguous barangay + city match from the prepared data.
+    let coordinatesToSave = locationCoordinates;
+    if (!coordinatesToSave && !(isEditMode && hasNearbyLocation)) {
+      const matches = findExactBarangayCoordinates(barangay, city);
+      if (matches.length === 1) {
+        coordinatesToSave = { latitude: matches[0].latitude, longitude: matches[0].longitude };
+        setLocationCoordinates(coordinatesToSave);
+        setHasNearbyLocation(true);
+          setLocationStatus(`Using approximate barangay reference: ${matches[0].label}. This is an area estimate, not an exact pickup pin.`);
+      } else {
+        setLocationStatus(matches.length > 1
+          ? 'The barangay/city combination is ambiguous in the coordinate dataset. Use GPS for the item pickup area or correct the location text.'
+          : 'A nearby-search location is required. Use GPS for the item pickup area or enter a barangay and city that match the coordinate dataset.');
+        setSubmitError('Add an approximate nearby-search location before publishing.');
+        return;
+      }
+    }
 
     setSubmitting(true);
 
@@ -360,7 +439,10 @@ const CreateListing: React.FC = () => {
     };
 
     if (isEditMode && routeListingId) {
-      const updateResult = await listingService.updateListing(routeListingId, commonFields);
+      const updateResult = await listingService.updateListing(routeListingId, {
+        ...commonFields,
+        locationCoordinates: coordinatesToSave,
+      });
       if (updateResult.error) {
         setSubmitting(false);
         setSubmitError(updateResult.error.message);
@@ -392,6 +474,7 @@ const CreateListing: React.FC = () => {
 
     const result = await listingService.createListing({
       ...commonFields,
+      locationCoordinates: coordinatesToSave,
       photos: photos
         .filter((p): p is Extract<PhotoItem, { kind: 'new' }> => p.kind === 'new')
         .map((p) => p.file),
@@ -419,6 +502,8 @@ const CreateListing: React.FC = () => {
     condition,
     description,
     isEditMode,
+    hasNearbyLocation,
+    locationCoordinates,
     photos,
     price,
     removedImageIds,
@@ -721,7 +806,7 @@ const CreateListing: React.FC = () => {
                 id="city"
                 placeholder="e.g. Davao City"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => { markLocationTextChanged(); setCity(e.target.value); }}
                 {...getFieldProps('city')}
               />
               {errors.city ? (
@@ -732,13 +817,32 @@ const CreateListing: React.FC = () => {
             </div>
 
             <div className="form-field">
-              <Label htmlFor="barangay">Barangay / Neighborhood (optional)</Label>
+              <Label htmlFor="barangay">Barangay</Label>
               <Input
                 id="barangay"
                 placeholder="e.g. Barangay 123"
                 value={barangay}
-                onChange={(e) => setBarangay(e.target.value)}
+                onChange={(e) => { markLocationTextChanged(); setBarangay(e.target.value); }}
+                {...getFieldProps('barangay')}
               />
+              {errors.barangay ? (
+                <div className="form-error" id="barangay-error" role="alert">{errors.barangay}</div>
+              ) : null}
+            </div>
+
+            <div className="form-field nearby-location-field">
+              <div className="nearby-location-actions">
+                <Button type="button" variant="secondary" onClick={captureNearbyLocation} disabled={submitting}>
+                  <MapPin size={16} /> Use GPS for item pickup area
+                </Button>
+                <Button type="button" variant="secondary" onClick={useBarangayArea} disabled={submitting}>
+                  <MapPin size={16} /> Use barangay area instead
+                </Button>
+              </div>
+              <p className="section-subhelp">
+                A nearby-search location is required. GPS is preferred; if unavailable, ThriftFinder can use an approximate reference point from the barangay dataset when the city and barangay match exactly. Exact GPS coordinates are rounded before saving, and distances are approximate.
+              </p>
+              {locationStatus ? <p className="nearby-location-status" role="status">{locationStatus}</p> : null}
             </div>
           </div>
 

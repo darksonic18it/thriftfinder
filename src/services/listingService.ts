@@ -32,6 +32,8 @@ export interface CreateListingInput {
   barangay: string
   /** Ordered: index 0 becomes the main photo. No maximum. */
   photos: File[]
+  /** Approximate location captured only after the seller opts in. */
+  locationCoordinates?: ListingCoordinates | null
 }
 
 export interface UpdateListingInput {
@@ -42,6 +44,13 @@ export interface UpdateListingInput {
   price: number
   city: string
   barangay: string
+  locationCoordinates?: ListingCoordinates | null
+  clearNearbyLocation?: boolean
+}
+
+export interface ListingCoordinates {
+  latitude: number
+  longitude: number
 }
 
 export interface BrowseFilters {
@@ -118,6 +127,37 @@ function toNumberSafe(value: unknown): number {
   return 0
 }
 
+/**
+ * Never persist precise seller GPS. Two-decimal coordinates are an approximate
+ * area reference (roughly kilometre-scale in the Philippines), not a meetup pin.
+ */
+function coarseCoordinates(value: ListingCoordinates): ListingCoordinates | null {
+  const { latitude, longitude } = value
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return null
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return null
+  const roundToHundredth = (coordinate: number) =>
+    Math.sign(coordinate) * Math.round(Math.abs(coordinate) * 100) / 100
+  return {
+    latitude: roundToHundredth(latitude),
+    longitude: roundToHundredth(longitude),
+  }
+}
+
+async function saveListingCoordinates(
+  listingId: UUID,
+  value: ListingCoordinates
+): Promise<{ message: string } | null> {
+  const coords = coarseCoordinates(value)
+  if (!coords) return { message: 'The location coordinates were invalid. Please try again.' }
+  const { error } = await supabase.from('listing_locations').upsert({
+    listing_id: listingId,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'listing_id' })
+  return error ? { message: describeError(error, 'Could not save the approximate location.').message } : null
+}
+
 function myListingSelect(): string {
   // is_featured only exists after the storefront migration; keep the base
   // select as the safe default and add the column opportunistically.
@@ -188,6 +228,9 @@ export const listingService = {
     if (input.photos.length === 0) {
       return { data: null, error: { message: 'Add at least one photo before publishing.' } }
     }
+    if (!input.locationCoordinates) {
+      return { data: null, error: { message: 'An approximate nearby-search location is required before publishing.' } }
+    }
 
     const { data: created, error: insertError } = await supabase
       .from('listings')
@@ -237,6 +280,14 @@ export const listingService = {
       return { data: null, error: rowsResult.error }
     }
 
+    if (input.locationCoordinates) {
+      const locationError = await saveListingCoordinates(listing.id, input.locationCoordinates)
+      if (locationError) {
+        await listingService.hardDeleteListing(listing.id)
+        return { data: null, error: { message: locationError.message } }
+      }
+    }
+
     return { data: listing, error: null }
   },
 
@@ -263,9 +314,88 @@ export const listingService = {
     return { data: (data ?? []) as BrowseListingRow[], error: null }
   },
 
+  /** Nearby search is paginated and filtered in Postgres, never over the first 48 rows. */
+  async browseNearby(
+    coordinates: ListingCoordinates,
+    radiusKm = 5,
+    filters: BrowseFilters = {}
+  ): Promise<ServiceResult<BrowseListingRow[]>> {
+    const { data, error } = await supabase.rpc('nearby_listings', {
+      p_latitude: coordinates.latitude,
+      p_longitude: coordinates.longitude,
+      p_radius_km: radiusKm,
+      p_search: filters.search?.trim() || null,
+      p_category: !filters.category || filters.category === 'All' ? null : filters.category,
+      p_condition: !filters.condition || filters.condition === 'All' ? null : filters.condition,
+      p_min_price: filters.minPrice ?? null,
+      p_max_price: filters.maxPrice ?? null,
+      p_limit: filters.limit ?? 48,
+      p_offset: filters.offset ?? 0,
+    })
+
+    if (error) {
+      console.error('[listingService.browseNearby]', error)
+      return { data: null, error: describeError(error, 'Could not load nearby listings.') }
+    }
+    return { data: (data ?? []) as BrowseListingRow[], error: null }
+  },
+
   // -------------------------------------------------------------------
   // READ — Listing detail (FR-005)
   // -------------------------------------------------------------------
+
+  
+  
+async getListingCoordinates(
+  listingId: UUID
+): Promise<ServiceResult<ListingCoordinates | null>> {
+  const { data, error } = await supabase
+    .rpc('get_active_listing_coordinates', {
+      p_listing_id: listingId,
+    })
+    .maybeSingle();
+
+  if (error) {
+    console.error('[listingService.getListingCoordinates]', error);
+    return {
+      data: null,
+      error: describeError(
+        error,
+        'Could not load this listing’s approximate location.'
+      ),
+    };
+  }
+
+  const coordinates = data as unknown as {
+    latitude: number | string;
+    longitude: number | string;
+  } | null;
+
+  if (!coordinates) {
+    return { data: null, error: null };
+  }
+
+  const latitude = Number(coordinates.latitude);
+  const longitude = Number(coordinates.longitude);
+
+  if (
+    !Number.isFinite(latitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    !Number.isFinite(longitude) ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return { data: null, error: null };
+  }
+
+  return {
+    data: { latitude, longitude },
+    error: null,
+  };
+},
+
+
   async getDetail(listingId: UUID): Promise<ServiceResult<ListingDetail>> {
     const { data, error } = await supabase.rpc('get_listing_detail', {
       p_listing_id: listingId,
@@ -426,7 +556,7 @@ export const listingService = {
 
   /** Raw row + images for the edit form. Owner only (checked here and by RLS). */
   async getForEdit(listingId: UUID): Promise<
-    ServiceResult<{ listing: Listing; images: { id: UUID; storage_path: string; sort_order: number }[] }>
+    ServiceResult<{ listing: Listing; images: { id: UUID; storage_path: string; sort_order: number }[]; hasNearbyLocation: boolean }>
   > {
     const auth = await requireUserId()
     if (auth.userId == null) return { data: null, error: auth.error }
@@ -453,6 +583,13 @@ export const listingService = {
     const imagesResult = await listingImageService.listByListing(listingId)
     if (imagesResult.error) return { data: null, error: imagesResult.error }
 
+    // Keep edit mode working if the feature migration has not been applied yet.
+    const locationResult = await supabase
+      .from('listing_locations')
+      .select('listing_id')
+      .eq('listing_id', listingId)
+      .maybeSingle()
+
     return {
       data: {
         listing,
@@ -461,6 +598,7 @@ export const listingService = {
           storage_path: img.storage_path,
           sort_order: img.sort_order,
         })),
+        hasNearbyLocation: !locationResult.error && !!locationResult.data,
       },
       error: null,
     }
@@ -475,6 +613,24 @@ export const listingService = {
   ): Promise<ServiceResult<Listing>> {
     const auth = await requireUserId()
     if (auth.userId === null) return { data: null, error: auth.error }
+
+    if (patch.clearNearbyLocation) {
+      return { data: null, error: { message: 'Every listing needs an approximate nearby-search location. Add GPS or a matching barangay area instead of removing it.' } }
+    }
+
+    if (!patch.locationCoordinates) {
+      const { data: existingLocation, error: existingLocationError } = await supabase
+        .from('listing_locations')
+        .select('listing_id')
+        .eq('listing_id', listingId)
+        .maybeSingle()
+      if (existingLocationError) {
+        return { data: null, error: describeError(existingLocationError, 'Could not verify this listing’s nearby-search location.') }
+      }
+      if (!existingLocation) {
+        return { data: null, error: { message: 'An approximate nearby-search location is required. Use GPS or select a matching barangay area.' } }
+      }
+    }
 
     const { data, error } = await supabase
       .from('listings')
@@ -501,6 +657,17 @@ export const listingService = {
         data: null,
         error: { message: 'You can only edit your own listings.', code: '42501' },
       }
+    }
+
+    if (patch.locationCoordinates) {
+      const locationError = await saveListingCoordinates(listingId, patch.locationCoordinates)
+      if (locationError) return { data: null, error: { message: `Listing details were saved, but the nearby location was not updated: ${locationError.message}` } }
+    } else if (patch.clearNearbyLocation) {
+      const { error: locationError } = await supabase
+        .from('listing_locations')
+        .delete()
+        .eq('listing_id', listingId)
+      if (locationError) return { data: null, error: { message: describeError(locationError, 'Listing details were saved, but the nearby location could not be cleared.').message } }
     }
 
     return { data: data as Listing, error: null }

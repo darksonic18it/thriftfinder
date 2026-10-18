@@ -1,20 +1,25 @@
+
+import { AlertCircle, Loader2, LocateFixed, MapPin, PackageOpen, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Loader2, PackageOpen, AlertCircle } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
-import { useHideOnScroll } from '../hooks/useHideOnScroll';
-import { listingService } from '../services/listingService';
-import { favoriteService } from '../services/favoriteService';
-import { browseRowToProduct } from '../lib/listingMappers';
 import { useAuth } from '../context/AuthContext';
+import { useHideOnScroll } from '../hooks/useHideOnScroll';
+import { browseRowToProduct } from '../lib/listingMappers';
+import { searchBarangayCoordinates, type BarangayCoordinate } from '../lib/philippineBarangays';
+import { favoriteService } from '../services/favoriteService';
+import { listingService } from '../services/listingService';
+
+import {
+  getBuyerLocation,
+  getCurrentGpsLocation,
+  saveBuyerLocation,
+} from '../lib/nearbyLocation';
+
 import { LISTING_CONDITIONS } from '../types/database';
 import './Browse.css';
+import './SavedItems.css';
 
-/**
- * Static UI configuration — NOT mock marketplace data. These labels drive the
- * category filter chips and are sent to browse_listings() as p_category.
- * They match src/types/database.ts LISTING_CATEGORIES (plus 'All').
- */
 const categories = [
   'All',
   'Clothing',
@@ -36,9 +41,6 @@ const Browse: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
 
-  // UI-only deep link: /browse?category=X&search=Y pre-fills the existing
-  // filters. Backend/services untouched — values flow into the same state
-  // that browse_listings() already consumes.
   const initialCategory = searchParams.get('category') ?? 'All';
   const initialSearch = searchParams.get('search') ?? '';
 
@@ -55,12 +57,23 @@ const Browse: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [nearbyOrigin, setNearbyOrigin] = useState<{ latitude: number; longitude: number; label: string; source: 'gps' | 'barangay' } | null>(null);
+  const [nearbyRadiusKm, setNearbyRadiusKm] = useState(5);
+  const [manualLocationQuery, setManualLocationQuery] = useState('');
+  const [showManualFallback, setShowManualFallback] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  // Instagram-style hide-on-scroll for the sticky search/filter bar —
-  // same DELTA + COOLDOWN + rAF throttle as Navbar so they move together.
+  const manualLocationResults = useMemo(
+    () => searchBarangayCoordinates(manualLocationQuery, 10),
+    [manualLocationQuery]
+  );
+
   const controlsHidden = useHideOnScroll(false);
 
-  // Debounce the keyword so typing doesn't fire a query per keystroke.
   const [debouncedSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -80,15 +93,26 @@ const Browse: React.FC = () => {
   const loadListings = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setLoadMoreError(null);
+    setHasMore(false);
 
-    const { data, error: loadError } = await listingService.browse({
+    const filters = {
       search: debouncedSearch,
       category: selectedCategory,
       condition: selectedCondition,
       minPrice: parsedMin,
       maxPrice: parsedMax,
       limit: 48,
-    });
+      offset: 0,
+    };
+    const result = nearbyOrigin
+      ? await listingService.browseNearby(
+          { latitude: nearbyOrigin.latitude, longitude: nearbyOrigin.longitude },
+          nearbyRadiusKm,
+          filters
+        )
+      : await listingService.browse(filters);
+    const { data, error: loadError } = result;
 
     if (loadError || !data) {
       setProducts([]);
@@ -98,16 +122,110 @@ const Browse: React.FC = () => {
     }
 
     setProducts(data.map(browseRowToProduct));
+    setHasMore(data.length === 48);
     setLoading(false);
-  }, [debouncedSearch, selectedCategory, selectedCondition, parsedMin, parsedMax]);
+  }, [debouncedSearch, selectedCategory, selectedCondition, parsedMin, parsedMax, nearbyOrigin, nearbyRadiusKm]);
+
+  const loadMoreListings = useCallback(async () => {
+    if (loadingMore || loading || !hasMore) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    const filters = {
+      search: debouncedSearch,
+      category: selectedCategory,
+      condition: selectedCondition,
+      minPrice: parsedMin,
+      maxPrice: parsedMax,
+      limit: 48,
+      offset: products.length,
+    };
+    const result = nearbyOrigin
+      ? await listingService.browseNearby(
+          { latitude: nearbyOrigin.latitude, longitude: nearbyOrigin.longitude },
+          nearbyRadiusKm,
+          filters
+        )
+      : await listingService.browse(filters);
+    if (result.error || !result.data) {
+      setLoadMoreError(result.error?.message ?? 'Could not load more listings.');
+      setLoadingMore(false);
+      return;
+    }
+    setProducts((previous) => [...previous, ...result.data!.map(browseRowToProduct)]);
+    setHasMore(result.data.length === 48);
+    setLoadingMore(false);
+  }, [loadingMore, loading, hasMore, debouncedSearch, selectedCategory, selectedCondition, parsedMin, parsedMax, products.length, nearbyOrigin, nearbyRadiusKm]);
+
+  
+const findNearbyWithGps = async () => {
+  setLocationMessage(null);
+  setLocating(true);
+
+  try {
+    // This helper also saves the GPS location for later use.
+    const buyerLocation = await getCurrentGpsLocation();
+
+    setNearbyOrigin(buyerLocation);
+    setShowManualFallback(false);
+    setLocationMessage(
+      'Using your current location. Distances are approximate because listing locations are rounded for privacy.'
+    );
+  } catch {
+    setShowManualFallback(true);
+    setLocationMessage(
+      'Could not get GPS. Search for your barangay below to continue.'
+    );
+  } finally {
+    setLocating(false);
+  }
+};
+
+
+  const chooseManualLocation = (place: BarangayCoordinate) => {
+  const buyerLocation = {
+    latitude: place.latitude,
+    longitude: place.longitude,
+    label: place.label,
+    source: 'barangay' as const,
+  };
+
+  saveBuyerLocation(buyerLocation);
+  setNearbyOrigin(buyerLocation);
+  setManualLocationQuery(place.label);
+  setShowManualFallback(false);
+
+  setLocationMessage(
+    'Using an approximate barangay reference point. Distances may be less precise.'
+  );
+};
+
+  const showAllListings = () => {
+    setNearbyOrigin(null);
+    setShowManualFallback(false);
+    setLocationMessage(null);
+    setManualLocationQuery('');
+  };
+
+  
+    
+useEffect(() => {
+  const savedLocation = getBuyerLocation();
+
+  if (!savedLocation) return;
+
+  setNearbyOrigin(savedLocation);
+
+  if (savedLocation.source === 'barangay') {
+    setManualLocationQuery(savedLocation.label);
+  }
+}, []);
+
+
 
   useEffect(() => {
     void loadListings();
   }, [loadListings]);
 
-  // Saved items (OPTIONAL module — requires migration 04 + favoriteService).
-  // If the favorites table is absent the call fails quietly and hearts simply
-  // stay unfilled, so Browse keeps working without it.
   useEffect(() => {
     let active = true;
     if (!isAuthenticated) {
@@ -135,7 +253,6 @@ const Browse: React.FC = () => {
     if (!isAuthenticated) return;
 
     const currentlySaved = !!favorites[productId];
-    // Optimistic flip, reverted if the database rejects it.
     setFavorites((prev) => ({ ...prev, [productId]: !currentlySaved }));
 
     const { error: toggleError } = await favoriteService.toggleFavorite(
@@ -153,11 +270,11 @@ const Browse: React.FC = () => {
     selectedCategory !== 'All' ||
     selectedCondition !== 'All' ||
     parsedMin !== null ||
-    parsedMax !== null;
+    parsedMax !== null ||
+    nearbyOrigin !== null;
 
   return (
     <div className="browse-page">
-      {/* Page Header */}
       <div className="browse-header">
         <div className="browse-header-container">
           <div className="location-indicator">
@@ -171,10 +288,8 @@ const Browse: React.FC = () => {
         </div>
       </div>
 
-      {/* Search & Filters Section */}
-      <div className={`browse-controls${controlsHidden ? ' browse-controls--hidden' : ''}`}>
+      <div className="browse-controls">
         <div className="browse-controls-container">
-          {/* Search Bar */}
           <div className="search-wrapper">
             <Search size={20} className="search-icon" />
             <input
@@ -186,7 +301,67 @@ const Browse: React.FC = () => {
             />
           </div>
 
-          {/* Category Filter */}
+          <div className="nearby-search-panel">
+            <div className="nearby-search-actions">
+              <button type="button" className="category-btn" onClick={findNearbyWithGps} disabled={locating}>
+                {locating ? <Loader2 size={15} className="browse-state-spinner" /> : <LocateFixed size={15} />}
+                {locating ? 'Finding you…' : 'Use my location'}
+              </button>
+              <button type="button" className={`category-btn${showManualFallback ? ' active' : ''}`} onClick={() => setShowManualFallback((open) => !open)}>
+                <MapPin size={15} /> Choose barangay manually
+              </button>
+              {nearbyOrigin ? (
+                <button type="button" className="category-btn" onClick={showAllListings}>Show all listings</button>
+              ) : null}
+            </div>
+
+            {nearbyOrigin ? (
+              <div className="nearby-active-location">
+                <span><MapPin size={14} /> Nearby: {nearbyOrigin.label}</span>
+                <label className="nearby-radius-label">
+                  Radius
+                  <select value={nearbyRadiusKm} onChange={(event) => setNearbyRadiusKm(Number(event.target.value))} aria-label="Nearby search radius">
+                    {[1, 5, 10, 20, 50].map((radius) => <option key={radius} value={radius}>{radius} km</option>)}
+                  </select>
+                </label>
+              </div>
+            ) : null}
+
+            {showManualFallback ? (
+              <div className="nearby-manual-picker">
+                <label htmlFor="nearby-location-query">Search barangay, city/municipality, or province</label>
+                <input
+                  id="nearby-location-query"
+                  className="search-input nearby-manual-input"
+                  type="search"
+                  placeholder="e.g. Matina, Davao City"
+                  value={manualLocationQuery}
+                  onChange={(event) => setManualLocationQuery(event.target.value)}
+                  autoComplete="off"
+                />
+                {manualLocationResults.length > 0 ? (
+                  <div className="nearby-manual-results" role="listbox" aria-label="Barangay location suggestions">
+                    {manualLocationResults.map((place) => (
+                      <button type="button" key={`${place.label}-${place.latitude}-${place.longitude}`} role="option" aria-selected={nearbyOrigin?.label === place.label} onClick={() => chooseManualLocation(place)}>
+                        <MapPin size={14} /> <span>{place.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : manualLocationQuery.trim().length >= 2 ? (
+                  <p className="nearby-location-note">No matching coordinate candidate found. Try the barangay or municipality name.</p>
+                ) : (
+                  <p className="nearby-location-note">Type at least 2 characters, then select the matching barangay and municipality.</p>
+                )}
+                <p className="nearby-location-note">Manual points are approximate reference coordinates, not exact addresses; some source points still need independent verification.</p>
+              </div>
+            ) : null}
+                        {locationMessage ? <p className="nearby-location-message" role="status">{locationMessage}</p> : null}
+          </div>
+        </div>
+      </div>
+
+      <div className={`browse-categories-bar${controlsHidden ? ' browse-categories-bar--navhidden' : ''}`}>
+        <div className="browse-controls-container">
           <div className="category-filter">
             {categories.map((category) => (
               <button
@@ -198,13 +373,11 @@ const Browse: React.FC = () => {
               </button>
             ))}
           </div>
+        </div>
+      </div>
 
-          {/*
-            SRS FR-004 requires filtering by keyword, category, PRICE RANGE and
-            CONDITION. The shipped UI only had keyword + category, so this row
-            is the minimum addition needed to satisfy the requirement. It reuses
-            the existing .category-btn chip styling.
-          */}
+      <div className="browse-refine-bar">
+        <div className="browse-controls-container">
           <div className="browse-refine-row">
             <div className="condition-filter">
               {conditions.map((c) => (
@@ -244,7 +417,6 @@ const Browse: React.FC = () => {
         </div>
       </div>
 
-      {/* Product Grid */}
       <div className="browse-products">
         <div className="browse-products-container">
           {loading ? (
@@ -264,22 +436,34 @@ const Browse: React.FC = () => {
             <div className="browse-state">
               <PackageOpen size={28} className="browse-state-icon" />
               <p>
-                {hasActiveFilters
+                {nearbyOrigin
+                  ? `No items with saved approximate locations were found within ${nearbyRadiusKm} km. Try a wider radius or choose another location.`
+                  : hasActiveFilters
                   ? 'No items match your search yet. Try a different keyword or filter.'
                   : 'No items have been listed yet. Be the first to sell something!'}
               </p>
             </div>
           ) : (
-            <div className="products-grid">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  isFavorite={!!favorites[product.id]}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
-            </div>
+            <>
+              <div className="products-grid">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isFavorite={!!favorites[product.id]}
+                    onToggleFavorite={toggleFavorite}
+                  />
+                ))}
+              </div>
+              {loadMoreError ? <p className="nearby-location-message" role="alert">{loadMoreError}</p> : null}
+              {hasMore ? (
+                <div className="browse-load-more-wrap">
+                  <button type="button" className="category-btn active" onClick={() => void loadMoreListings()} disabled={loadingMore}>
+                    {loadingMore ? 'Loading more…' : 'Load more listings'}
+                  </button>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
       </div>
