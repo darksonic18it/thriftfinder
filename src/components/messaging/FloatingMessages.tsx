@@ -24,6 +24,7 @@ import {
   MESSAGE_MAX_LENGTH,
   messageService,
   OPEN_MESSAGES_EVENT,
+  OPEN_MESSAGES_INBOX_EVENT,
   openMessagesWidget,
   type OpenMessagesDetail,
 } from '../../services/messageService'
@@ -229,6 +230,25 @@ const FloatingMessages: FC = () => {
 
     return () => window.removeEventListener(OPEN_MESSAGES_EVENT, onOpen)
   }, [loadConversations, loadThread])
+
+    // Lets other parts of the app (like the profile menu) open the inbox list.
+  useEffect(() => {
+    const onOpenInbox = () => {
+      void loadConversations()
+      setForced(true)
+      setExpanded(false)
+      setDraft('')
+      setSendError(null)
+      setDeleteConfirmation(null)
+      setMessageMenuId(null)
+      setActiveId(null)
+      setView('list')
+    }
+
+    window.addEventListener(OPEN_MESSAGES_INBOX_EVENT, onOpenInbox)
+
+    return () => window.removeEventListener(OPEN_MESSAGES_INBOX_EVENT, onOpenInbox)
+  }, [loadConversations])
 
   // Open a conversation requested by a notification link.
 useEffect(() => {

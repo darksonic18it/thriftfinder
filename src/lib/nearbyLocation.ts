@@ -41,6 +41,14 @@ export function saveBuyerLocation(location: BuyerLocation): void {
   }
 }
 
+export function clearBuyerLocation(): void {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore: storage may be unavailable.
+  }
+}
+
 export function getCurrentGpsLocation(): Promise<BuyerLocation> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {

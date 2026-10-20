@@ -1,0 +1,767 @@
+/* ==========================================================================
+   Settings modal
+   Uses the site-wide --color-* / --button-* tokens, so light and dark themes
+   follow the global theme toggle automatically.
+   ========================================================================== */
+
+.tfs-modal {
+  width: calc(100vw - 2rem) !important;
+  max-width: 900px !important;
+  height: min(680px, calc(100vh - 2rem)) !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border-radius: var(--radius-xl) !important;
+}
+
+.tfs-shell {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+/* ----------------------------- Sidebar ----------------------------------- */
+
+.tfs-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 16px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  overflow-y: auto;
+}
+
+.tfs-side__head {
+  padding: 0 10px;
+}
+
+.tfs-title {
+  font-size: 1.35rem !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.tfs-subtitle {
+  margin-top: 4px;
+  font-size: 0.82rem !important;
+  color: var(--color-text-secondary);
+}
+
+.tfs-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tfs-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tfs-tab:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.tfs-tab.is-active {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tfs-tab:focus-visible {
+  outline: 2px solid var(--button-ring, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* ----------------------------- Main / panel ------------------------------ */
+
+.tfs-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tfs-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 28px 32px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--color-text-primary);
+}
+
+.tfs-panel:focus {
+  outline: none;
+}
+
+.tfs-section-title h3 {
+  margin: 0;
+  padding-right: 28px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tfs-section-title p {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+
+/* ----------------------------- Rows / text ------------------------------- */
+
+.tfs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tfs-row__title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.tfs-row__desc {
+  margin: 3px 0 0;
+  max-width: 52ch;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.tfs-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted, var(--color-text-secondary));
+}
+
+.tfs-hint--tight {
+  margin-top: -8px;
+}
+
+/* ----------------------------- Switch ------------------------------------ */
+
+.tfs-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-muted, #94a3b8) 45%, var(--color-bg-tertiary));
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.tfs-switch[aria-checked='true'] {
+  background: var(--button-primary-bg, var(--color-primary));
+}
+
+.tfs-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.18s;
+}
+
+.tfs-switch[aria-checked='true'] .tfs-switch__thumb {
+  transform: translateX(18px);
+  background: var(--button-primary-fg, #ffffff);
+}
+
+.tfs-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tfs-switch:focus-visible {
+  outline: 2px solid var(--button-ring, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* ----------------------------- Fields ------------------------------------ */
+
+.tfs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+}
+
+.tfs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tfs-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tfs-field--select {
+  max-width: 260px;
+}
+
+.tfs-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-muted, var(--color-text-secondary));
+  transition: border-color 0.15s;
+}
+
+.tfs-input:focus-within {
+  border-color: var(--button-primary-bg, var(--color-primary));
+}
+
+.tfs-input.is-readonly {
+  background: var(--color-bg-secondary);
+}
+
+.tfs-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.tfs-input input::placeholder {
+  color: var(--color-text-muted, var(--color-text-secondary));
+}
+
+.tfs-input input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tfs-select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.tfs-select:focus {
+  outline: none;
+  border-color: var(--button-primary-bg, var(--color-primary));
+}
+
+/* ----------------------------- Account pieces ---------------------------- */
+
+.tfs-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.tfs-profile > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.tfs-profile__avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--button-primary-bg, var(--color-primary));
+  color: var(--button-primary-fg, #fff);
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tfs-profile__name {
+  margin: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tfs-profile__email {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tfs-card {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+}
+
+.tfs-card--danger {
+  border-color: color-mix(in srgb, #ef4444 35%, var(--color-border));
+}
+
+.tfs-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tfs-card__body {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.tfs-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.tfs-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tfs-link-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.tfs-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.tfs-card__body .tfs-note {
+  margin: 0;
+}
+
+.tfs-note--success {
+  background: color-mix(in srgb, #16a34a 14%, transparent);
+  color: #16a34a;
+}
+
+.tfs-note--error {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+}
+
+.tfs-danger-btn {
+  color: #ef4444 !important;
+  border-color: color-mix(in srgb, #ef4444 40%, var(--color-border)) !important;
+}
+
+.tfs-danger-btn--solid {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+/* ----------------------------- Notifications table ----------------------- */
+
+.tfs-table {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tfs-table.is-paused {
+  opacity: 0.6;
+}
+
+.tfs-table__head,
+.tfs-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px 64px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.tfs-table__head {
+  background: var(--color-bg-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.tfs-table__head span:not(:first-child) {
+  text-align: center;
+}
+
+.tfs-table__row {
+  border-top: 1px solid var(--color-border);
+}
+
+.tfs-table__row .tfs-switch {
+  justify-self: center;
+}
+
+/* ----------------------------- Callout / links --------------------------- */
+
+.tfs-callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.tfs-callout > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+}
+
+.tfs-callout__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.tfs-callout__links a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ----------------------------- Location radios --------------------------- */
+
+.tfs-radios {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tfs-radios legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tfs-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tfs-radio.is-active {
+  border-color: var(--button-primary-bg, var(--color-primary));
+  background: var(--color-bg-secondary);
+}
+
+.tfs-radio input {
+  margin-top: 3px;
+  accent-color: var(--button-primary-bg, var(--color-primary));
+}
+
+.tfs-radio span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tfs-radio strong {
+  font-size: 0.9rem;
+}
+
+.tfs-radio small {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+/* ----------------------------- Theme cards ------------------------------- */
+
+.tfs-themes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 520px;
+}
+
+.tfs-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.tfs-theme:hover {
+  border-color: var(--color-text-muted, var(--color-text-secondary));
+}
+
+.tfs-theme.is-active {
+  border-color: var(--button-primary-bg, var(--color-primary));
+}
+
+.tfs-theme__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  height: 92px;
+}
+
+.tfs-theme__preview i {
+  display: block;
+  height: 10px;
+  border-radius: 4px;
+}
+
+.tfs-theme__preview i:nth-child(1) {
+  width: 55%;
+}
+
+.tfs-theme__preview i:nth-child(2) {
+  width: 85%;
+}
+
+.tfs-theme__preview i:nth-child(3) {
+  width: 40%;
+}
+
+.tfs-theme__preview--light {
+  background: #fafaf8;
+  border: 1px solid #e5e5e0;
+}
+
+.tfs-theme__preview--light i {
+  background: #d4d4cc;
+}
+
+.tfs-theme__preview--light i:nth-child(1) {
+  background: #285943;
+}
+
+.tfs-theme__preview--dark {
+  background: #02000d;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.tfs-theme__preview--dark i {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tfs-theme__preview--dark i:nth-child(1) {
+  background: #ffffff;
+}
+
+.tfs-theme__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 2px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ----------------------------- Footer ------------------------------------ */
+
+.tfs-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 32px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+}
+
+.tfs-footer__status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.78rem;
+}
+
+.tfs-status--saved {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.tfs-status--dirty {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.tfs-preview {
+  color: var(--color-text-muted, var(--color-text-secondary));
+}
+
+.tfs-footer__actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ----------------------------- Responsive -------------------------------- */
+
+@media (max-width: 760px) {
+  .tfs-modal {
+    height: calc(100dvh - 1rem) !important;
+    width: calc(100vw - 1rem) !important;
+  }
+
+  .tfs-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .tfs-side {
+    gap: 10px;
+    padding: 16px 14px 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    overflow: visible;
+  }
+
+  .tfs-side__head {
+    padding: 0 40px 0 4px;
+  }
+
+  .tfs-subtitle {
+    display: none;
+  }
+
+  .tfs-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .tfs-tab {
+    width: auto;
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+
+  .tfs-panel {
+    padding: 20px 18px 16px;
+  }
+
+  .tfs-grid,
+  .tfs-themes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tfs-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 18px;
+  }
+
+  .tfs-footer__actions {
+    justify-content: flex-end;
+  }
+
+  .tfs-table__head,
+  .tfs-table__row {
+    grid-template-columns: minmax(0, 1fr) 52px 52px;
+    padding: 12px;
+  }
+
+  .tfs-card__head,
+  .tfs-profile {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tfs-switch,
+  .tfs-switch__thumb,
+  .tfs-tab,
+  .tfs-theme,
+  .tfs-radio {
+    transition: none;
+  }
+}

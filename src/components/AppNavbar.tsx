@@ -15,9 +15,12 @@ import { useAuth } from '../context/AuthContext'
 
 import { gsap } from 'gsap'
 
+import { openMessagesInbox } from '../services/messageService'
 import BrandMark from './BrandMark'
+import HelpSupportModal from './HelpSupportModal'
 import LogoutConfirmModal from './LogoutConfirmModal'
 import NotificationBell from './NotificationBell'
+import SettingsModal from './SettingsModal'
 import ThemeToggle from './ThemeToggle'
 
 import './AppNavbar.css'
@@ -44,6 +47,8 @@ const AppNavbar: React.FC = () => {
   const profileMenuOpenRef = useRef(false)
   const profileNameRevealRef = useRef(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -502,7 +507,8 @@ const AppNavbar: React.FC = () => {
               <DropdownMenuItem
                 onSelect={() => {
                   setProfileMenuOpen(false)
-                  navigate('/dashboard')
+                  // Wait for the dropdown to finish closing so it doesn't take focus back.
+                  window.setTimeout(() => openMessagesInbox(), getDropdownCloseDurationMs() + 40)
                 }}
                 className="app-navbar-profile-menu-item"
               >
@@ -511,9 +517,10 @@ const AppNavbar: React.FC = () => {
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                onSelect={() => {
+                onSelect={(e) => {
+                  e.preventDefault()
                   setProfileMenuOpen(false)
-                  navigate('/dashboard')
+                  setSettingsOpen(true)
                 }}
                 className="app-navbar-profile-menu-item"
               >
@@ -522,9 +529,10 @@ const AppNavbar: React.FC = () => {
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                onSelect={() => {
+              onSelect={(e) => {
+                  e.preventDefault()
                   setProfileMenuOpen(false)
-                  navigate('/dashboard')
+                  setHelpOpen(true)
                 }}
                 className="app-navbar-profile-menu-item"
               >
@@ -547,6 +555,8 @@ const AppNavbar: React.FC = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+          <HelpSupportModal open={helpOpen} onOpenChange={setHelpOpen} />
           <LogoutConfirmModal
               open={logoutConfirmOpen}
               onOpenChange={setLogoutConfirmOpen}

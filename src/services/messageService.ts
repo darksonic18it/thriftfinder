@@ -1,10 +1,10 @@
 import { describeError } from '../lib/listingMappers'
 import { supabase } from '../lib/supabaseClient'
 import type {
-    MessageRow,
-    MyConversationRow,
-    ServiceResult,
-    UUID,
+  MessageRow,
+  MyConversationRow,
+  ServiceResult,
+  UUID,
 } from '../types/database'
 
 /**
@@ -34,6 +34,13 @@ export function openMessagesWidget(conversationId: UUID): void {
   window.dispatchEvent(
     new CustomEvent<OpenMessagesDetail>(OPEN_MESSAGES_EVENT, { detail: { conversationId } })
   )
+}
+
+/** Window event that opens the Messages widget on the inbox list. */
+export const OPEN_MESSAGES_INBOX_EVENT = 'thriftfinder:open-messages-inbox'
+
+export function openMessagesInbox(): void {
+  window.dispatchEvent(new CustomEvent(OPEN_MESSAGES_INBOX_EVENT))
 }
 
 const MESSAGE_COLUMNS =

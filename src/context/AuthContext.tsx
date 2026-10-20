@@ -1,12 +1,12 @@
+import type { Session, User } from '@supabase/supabase-js'
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  useCallback,
 } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
 
 import { supabase } from '../lib/supabaseClient'
 import { profileService } from '../services/profileService'
@@ -21,7 +21,7 @@ type AuthContextValue = {
   /** True until the initial session check has finished. */
   loading: boolean
   isAuthenticated: boolean
-  /** Convenience: profile full_name, falling back to signup metadata, then email. */
+  /** Profile full_name, falling back to signup metadata, then email. */
   displayName: string
   displayEmail: string
   signUp: (
@@ -48,28 +48,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const user = session?.user ?? null
   const userId = user?.id ?? null
 
-  // 1) Restore any persisted session, then subscribe to auth changes.
+  // 1. Restore the existing session and subscribe to authentication changes.
   useEffect(() => {
     let active = true
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return
+
+      if (error) {
+        console.error('Failed to restore authentication session:', error.message)
+      }
+
       setSession(data.session ?? null)
       setLoading(false)
     })
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
       setLoading(false)
     })
 
     return () => {
       active = false
-      sub.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
   }, [])
 
-  // 2) Load the profile row whenever the signed-in user changes.
+  // 2. Load the user's profile whenever the authenticated user changes.
   useEffect(() => {
     let active = true
 
@@ -78,9 +85,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return
     }
 
-    profileService.getProfileById(userId).then((p) => {
-      if (active) setProfile(p)
-    })
+    profileService
+      .getProfileById(userId)
+      .then((nextProfile) => {
+        if (active) setProfile(nextProfile)
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load user profile:', error)
+        if (active) setProfile(null)
+      })
 
     return () => {
       active = false
@@ -92,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setProfile(null)
       return
     }
+
     setProfile(await profileService.getProfileById(userId))
   }, [userId])
 
@@ -107,13 +121,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       })
 
       if (error) {
-        return { error: error.message, needsEmailConfirmation: false }
+        return {
+          error: error.message,
+          needsEmailConfirmation: false,
+        }
       }
 
-      // When "Confirm email" is ON, Supabase returns a user but no session.
+      // With email confirmation enabled, Supabase returns no active session.
       const needsEmailConfirmation = !!data.user && !data.session
 
-      return { error: null, needsEmailConfirmation }
+      return {
+        error: null,
+        needsEmailConfirmation,
+      }
     },
     []
   )
@@ -123,7 +143,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       email: email.trim().toLowerCase(),
       password,
     })
-    return { error: error ? error.message : null }
+
+    return { error: error?.message ?? null }
   }, [])
 
   const signOut = useCallback(async () => {
@@ -132,21 +153,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setProfile(null)
   }, [])
 
+  // 3. Send password recovery emails to the dedicated reset-password route.
   const sendPasswordReset = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
-      { redirectTo: `${window.location.origin}/reset-password` }
+      {
+        redirectTo: `${window.location.origin}/reset-password`,
+      }
     )
-    return { error: error ? error.message : null }
+
+    return { error: error?.message ?? null }
   }, [])
 
   const resendConfirmation = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: `${window.location.origin}/login` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
     })
-    return { error: error ? error.message : null }
+
+    return { error: error?.message ?? null }
   }, [])
 
   const displayName =
@@ -189,11 +217,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     ]
   )
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
+
+  if (!ctx) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+
   return ctx
 }
