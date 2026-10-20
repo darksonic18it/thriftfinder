@@ -22,6 +22,7 @@ const Browse = lazy(() => import('./pages/Browse'));
 const CreateListing = lazy(() => import('./pages/CreateListing'));
 const ListingDetails = lazy(() => import('./pages/ListingDetails'));
 const Login = lazy(() => import('./pages/Login'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const MyListings = lazy(() => import('./pages/MyListings'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -133,6 +134,7 @@ function AppShell() {
             />
 
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route path="/signup" element={<Signup />} />
             <Route path="/terms" element={<Terms />} />
