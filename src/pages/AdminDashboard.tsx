@@ -1,52 +1,53 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-    AlertTriangle,
-    ArrowLeft,
-    ArrowUp,
-    Bell,
-    CalendarCheck,
-    CalendarDays,
-    CheckCircle2,
-    ChevronDown,
-    ChevronRight,
-    Flag,
-    Info,
-    LayoutDashboard,
-    ListChecks,
-    LogOut,
-    Menu,
-    ScrollText,
-    Search,
-    ShieldCheck,
-    ShoppingBag,
-    Tag,
-    User,
-    Users,
-    X,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowUp,
+  Bell,
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Flag,
+  Info,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
+  Menu,
+  ScrollText,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Tag,
+  User,
+  Users,
+  X,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { formatTimeAgo, numberFormat, pesoFormat } from '../components/admin/adminFormat'
 import {
-    AdminActivityView,
-    AdminListingsView,
-    AdminReportsView,
-    AdminReservationsView,
-    AdminUsersView,
+  AdminActivityView,
+  AdminListingsView,
+  AdminReportsView,
+  AdminReservationsView,
+  AdminUsersView,
 } from '../components/admin/AdminSections'
 import BrandMark from '../components/BrandMark'
 import ThemeToggle from '../components/ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import type {
-    AdminActivityPoint,
-    AdminAlertTone,
-    AdminDashboardData,
-    AdminListingStatus,
-    AdminStat,
+  AdminActivityPoint,
+  AdminAlertTone,
+  AdminDashboardData,
+  AdminListingStatus,
+  AdminStat,
 } from '../hooks/useAdminDashboard'
 import { useAdminDashboard } from '../hooks/useAdminDashboard'
-
+import type { AdminNotification } from '../hooks/useAdminNotifications'
+import { useAdminNotifications } from '../hooks/useAdminNotifications'
 import './AdminDashboard.css'
 
 /* ==========================================================================
@@ -719,20 +720,36 @@ const GlobalSearch: React.FC<{ onSearch: GoTo }> = ({ onSearch }) => {
   )
 }
 
-const BellMenu: React.FC<{ unread: number; onViewReports: () => void }> = ({
-  unread,
-  onViewReports,
-}) => {
+const NOTIF_ICONS: Record<string, LucideIcon> = {
+  error: Flag,
+  warning: AlertTriangle,
+  success: CheckCircle2,
+}
+
+const BellMenu: React.FC<{ goTo: GoTo; navigate: (to: string) => void }> = ({ goTo, navigate }) => {
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
   const ref = useDismiss<HTMLDivElement>(open, close)
+  const { items, unread, loading, markRead, markAllRead } = useAdminNotifications()
+
+  const openItem = (n: AdminNotification) => {
+    close()
+    if (!n.read_at) void markRead(n.id)
+    const link = n.link ?? ''
+    if (link.startsWith('/admin-dashboard')) {
+      const params = new URLSearchParams(link.split('?')[1] ?? '')
+      goTo(parseView(params.get('view')), params.get('q') ?? '')
+    } else if (link) {
+      navigate(link)
+    }
+  }
 
   return (
     <div className="ad-pop-wrap" ref={ref}>
       <button
         type="button"
         className="ad-icon-btn ad-bell"
-        aria-label="Notifications"
+        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -744,17 +761,49 @@ const BellMenu: React.FC<{ unread: number; onViewReports: () => void }> = ({
       {open ? (
         <div className="ad-pop ad-pop--right ad-pop--notifications">
           <p className="ad-pop__title">Notifications</p>
-          <EmptyState title="You&rsquo;re all caught up" hint="New alerts will appear here." />
-          <button
-            type="button"
-            className="ad-pop__footer"
-            onClick={() => {
-              close()
-              onViewReports()
-            }}
-          >
-            View reports
-          </button>
+
+          {items.length === 0 ? (
+            <EmptyState
+              title={loading ? 'Loading…' : 'You’re all caught up'}
+              hint={loading ? 'One moment.' : 'New reports will appear here.'}
+            />
+          ) : (
+            <ul className="ad-notif-list">
+              {items.map((n) => {
+                const known = n.type in NOTIF_ICONS
+                const Icon = known ? NOTIF_ICONS[n.type] : Info
+                return (
+                  <li key={n.id}>
+                    <button
+                      type="button"
+                      className={`ad-notif${n.read_at ? '' : ' is-unread'}`}
+                      onClick={() => openItem(n)}
+                    >
+                      <span className={`ad-notif__icon ad-notif__icon--${known ? n.type : 'info'}`}>
+                        <Icon size={16} aria-hidden="true" />
+                      </span>
+                      <span>
+                        <span className="ad-notif__title">{n.title}</span>
+                        <span className="ad-notif__msg">{n.message}</span>
+                      </span>
+                      <time className="ad-notif__time" dateTime={n.created_at}>
+                        {formatTimeAgo(n.created_at)}
+                      </time>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          <div className="ad-pop__actions">
+            <button type="button" className="ad-pop__footer" disabled={unread === 0} onClick={() => void markAllRead()}>
+              Mark all as read
+            </button>
+            <button type="button" className="ad-pop__footer" onClick={() => { close(); goTo('reports') }}>
+              View reports
+            </button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -956,7 +1005,7 @@ const AdminDashboard: React.FC = () => {
 
           <div className="ad-topbar__right">
             <ThemeToggle />
-            <BellMenu unread={data.unreadAlertCount} onViewReports={() => goTo('reports')} />
+            <BellMenu goTo={goTo} navigate={(to) => navigate(to)} />
             <UserMenu
               name={displayName}
               onBackToSite={() => navigate('/dashboard')}

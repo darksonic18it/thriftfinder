@@ -1,378 +1,147 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react';
 
-/* ==========================================================================
-   GUI-ONLY DATA LAYER
-   --------------------------------------------------------------------------
-   Every hook in this file returns EMPTY data. There is no backend yet.
-   The types describe exactly what each screen renders, so when you build the
-   backend you only have to make these hooks return real rows in the same
-   shape. Nothing in the UI files has to change.
-   ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/*  Shared types                                                               */
-/* -------------------------------------------------------------------------- */
+import { supabase } from '../lib/supabaseClient';
 
 export type AdminListingStatus = 'active' | 'sold' | 'archived'
-export type AdminUserRole = 'buyer' | 'seller'
 export type AdminAlertTone = 'danger' | 'warning' | 'info' | 'success'
 
-/** Page size used by every list screen. */
-export const ADMIN_PAGE_SIZE = 10
-
-/** What every list screen gets back from its hook. */
-export interface AdminSectionResult<Row, Tab extends string> {
-  rows: Row[]
-  /** Total rows matching the current filters (across all pages). */
-  total: number
-  /** Count shown next to each tab, ignoring the tab itself. */
-  tabCounts: Record<Tab, number>
-  loading: boolean
-}
-
-function zeroCounts<T extends string>(keys: readonly T[]): Record<T, number> {
-  return Object.fromEntries(keys.map((key) => [key, 0])) as Record<T, number>
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Overview                                                                   */
-/* -------------------------------------------------------------------------- */
-
-export interface AdminStat {
-  value: number
-  /** % change vs. the previous 7 days. null = not available yet. */
-  changePct: number | null
-}
-
-export interface AdminActivityPoint {
-  /** Local calendar day, YYYY-MM-DD. */
-  date: string
-  newUsers: number
-  newListings: number
-  reservations: number
-}
-
-export interface AdminAlert {
-  id: string
-  tone: AdminAlertTone
-  title: string
-  description: string
-  /** ISO timestamp. */
-  createdAt: string
-}
-
+export interface AdminStat { value: number; changePct: number | null }
+export interface AdminActivityPoint { date: string; newUsers: number; newListings: number; reservations: number }
 export interface AdminRecentListing {
-  id: string
-  /** Full, already-resolved image URL (not a storage path). */
-  imageUrl: string | null
-  title: string
-  /** e.g. "Clothing • Men" */
-  categoryLabel: string
-  /** Price in PHP. */
-  price: number
-  /** e.g. "@jhncrz" */
-  sellerHandle: string
-  status: AdminListingStatus
-  /** ISO timestamp. */
-  createdAt: string
+  id: string; title: string; categoryLabel: string; price: number; sellerHandle: string
+  status: AdminListingStatus; createdAt: string; imageUrl: string | null
 }
-
 export interface AdminRecentUser {
-  id: string
-  name: string
-  /** Full, already-resolved image URL (not a storage path). */
-  avatarUrl: string | null
-  role: AdminUserRole
-  /** ISO timestamp. */
-  joinedAt: string
+  id: string; name: string; avatarUrl: string | null; role: 'buyer' | 'seller'; joinedAt: string
 }
-
+export interface AdminAlert {
+  id: string; tone: AdminAlertTone; title: string; description: string; createdAt: string
+}
 export interface AdminDashboardData {
   totalUsers: AdminStat
   activeListings: AdminStat
   totalReservations: AdminStat
   pendingReports: AdminStat
-  /** Number shown on the bell badge. 0 hides the badge. */
-  unreadAlertCount: number
-  /** One point per day, oldest first (the chart expects 7). */
   activity: AdminActivityPoint[]
   listingStatus: Record<AdminListingStatus, number>
-  alerts: AdminAlert[]
   recentListings: AdminRecentListing[]
   recentUsers: AdminRecentUser[]
+  alerts: AdminAlert[]
+  unreadAlertCount: number
 }
 
-function toLocalDateKey(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+const ZERO: AdminStat = { value: 0, changePct: null }
+const EMPTY: AdminDashboardData = {
+  totalUsers: ZERO, activeListings: ZERO, totalReservations: ZERO, pendingReports: ZERO,
+  activity: [], listingStatus: { active: 0, sold: 0, archived: 0 },
+  recentListings: [], recentUsers: [], alerts: [], unreadAlertCount: 0,
 }
 
-function buildEmptyActivity(days: number): AdminActivityPoint[] {
-  const points: AdminActivityPoint[] = []
-  for (let i = days - 1; i >= 0; i -= 1) {
-    const day = new Date()
-    day.setDate(day.getDate() - i)
-    points.push({
-      date: toLocalDateKey(day),
-      newUsers: 0,
-      newListings: 0,
-      reservations: 0,
+interface RawStat { value: number; current: number; previous: number }
+interface RawDashboard {
+  total_users: RawStat; active_listings: RawStat; total_reservations: RawStat; pending_reports: RawStat
+  unreviewed_reports: number; overdue_reservations: number
+  listing_status: Record<AdminListingStatus, number>
+  activity: { date: string; new_users: number; new_listings: number; reservations: number }[]
+  recent_listings: { id: string; title: string; category: string; price: number; status: AdminListingStatus
+    created_at: string; seller_name: string | null; cover_path: string | null }[]
+  recent_users: { id: string; full_name: string; avatar_path: string | null; created_at: string
+    role: 'buyer' | 'seller' }[]
+  alerts: { id: string; target_type: 'listing' | 'user' | 'message'; reason: string
+    status: 'pending' | 'reviewing'; created_at: string
+    listing_title: string | null; reported_user_name: string | null }[]
+}
+
+// "% change in new items: last 7 days vs the 7 days before". null when there is nothing to compare.
+const pct = (cur: number, prev: number): number | null =>
+  Number(prev) === 0 ? null : Math.round(((Number(cur) - Number(prev)) / Number(prev)) * 100)
+const toStat = (s: RawStat): AdminStat => ({ value: Number(s.value), changePct: pct(s.current, s.previous) })
+
+const photoUrl = (path: string | null) =>
+  path ? supabase.storage.from('listing-photos').getPublicUrl(path).data.publicUrl : null
+
+// profile-avatars is private: signed URLs work only if the optional admin storage policy was applied.
+async function signAvatars(paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {}
+  try {
+    const { data, error } = await supabase.storage.from('profile-avatars').createSignedUrls(paths, 3600)
+    if (error || !data) return {}
+    const out: Record<string, string> = {}
+    data.forEach((d) => { if (d.path && d.signedUrl) out[d.path] = d.signedUrl })
+    return out
+  } catch { return {} }
+}
+
+async function map(raw: RawDashboard): Promise<AdminDashboardData> {
+  const avatars = await signAvatars(raw.recent_users.map((u) => u.avatar_path).filter((p): p is string => !!p))
+
+  const alerts: AdminAlert[] = raw.alerts.map((a) => {
+    const target =
+      a.target_type === 'listing' ? a.listing_title ?? 'a listing'
+      : a.target_type === 'user' ? a.reported_user_name ?? 'a user'
+      : 'a message'
+    return {
+      id: a.id,
+      tone: a.status === 'pending' ? 'danger' : 'warning',
+      title: `Report on ${a.target_type}`,
+      description: `${a.reason} · ${target}`,
+      createdAt: a.created_at,
+    }
+  })
+  if (Number(raw.overdue_reservations) > 0) {
+    alerts.push({
+      id: 'overdue-reservations', tone: 'warning',
+      title: `${raw.overdue_reservations} overdue reservation${Number(raw.overdue_reservations) === 1 ? '' : 's'}`,
+      description: 'Pending holds that passed their expiry time.',
+      createdAt: new Date().toISOString(),
     })
   }
-  return points
-}
 
-export function createEmptyDashboardData(): AdminDashboardData {
   return {
-    totalUsers: { value: 0, changePct: null },
-    activeListings: { value: 0, changePct: null },
-    totalReservations: { value: 0, changePct: null },
-    pendingReports: { value: 0, changePct: null },
-    unreadAlertCount: 0,
-    activity: buildEmptyActivity(7),
-    listingStatus: { active: 0, sold: 0, archived: 0 },
-    alerts: [],
-    recentListings: [],
-    recentUsers: [],
+    totalUsers: toStat(raw.total_users),
+    activeListings: toStat(raw.active_listings),
+    totalReservations: toStat(raw.total_reservations),
+    pendingReports: toStat(raw.pending_reports),
+    activity: raw.activity.map((p) => ({
+      date: p.date, newUsers: Number(p.new_users), newListings: Number(p.new_listings),
+      reservations: Number(p.reservations) })),
+    listingStatus: {
+      active: Number(raw.listing_status.active), sold: Number(raw.listing_status.sold),
+      archived: Number(raw.listing_status.archived) },
+    recentListings: raw.recent_listings.map((l) => ({
+      id: l.id, title: l.title, categoryLabel: l.category, price: Number(l.price),
+      sellerHandle: l.seller_name ?? 'Unknown seller', status: l.status,
+      createdAt: l.created_at, imageUrl: photoUrl(l.cover_path) })),
+    recentUsers: raw.recent_users.map((u) => ({
+      id: u.id, name: u.full_name || 'Unnamed user',
+      avatarUrl: u.avatar_path ? avatars[u.avatar_path] ?? null : null,
+      role: u.role, joinedAt: u.created_at })),
+    alerts,
+    unreadAlertCount: Number(raw.unreviewed_reports),
   }
 }
 
-interface UseAdminDashboardResult {
-  data: AdminDashboardData
-  loading: boolean
-  /** null until the first successful fetch. */
-  lastUpdated: Date | null
-}
+export function useAdminDashboard() {
+  const [data, setData] = useState<AdminDashboardData>(EMPTY)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-/**
- * TODO(backend): replace the body with real fetching (Supabase RPC / queries),
- * then set the data and lastUpdated. Keep the return shape.
- */
-export function useAdminDashboard(): UseAdminDashboardResult {
-  const [data] = useState<AdminDashboardData>(() => createEmptyDashboardData())
-  const [loading] = useState(false)
-  const [lastUpdated] = useState<Date | null>(null)
+  const load = useCallback(async () => {
+    const { data: raw, error: rpcError } = await supabase.rpc('admin_get_dashboard')
+    if (rpcError || !raw) {
+      setError(rpcError?.message ?? 'Could not load dashboard data')
+      return
+    }
+    setData(await map(raw as RawDashboard))
+    setLastUpdated(new Date())
+    setError(null)
+  }, [])
 
-  return { data, loading, lastUpdated }
-}
+  useEffect(() => {
+    void load()
+    const timer = window.setInterval(() => void load(), 60_000)
+    return () => window.clearInterval(timer)
+  }, [load])
 
-/* -------------------------------------------------------------------------- */
-/*  Listings                                                                   */
-/* -------------------------------------------------------------------------- */
-
-export const ADMIN_LISTING_TABS = ['all', 'active', 'sold', 'archived', 'reserved'] as const
-export type AdminListingTab = (typeof ADMIN_LISTING_TABS)[number]
-export type AdminListingSort = 'newest' | 'oldest' | 'price-high' | 'price-low'
-
-export interface AdminListingFilters {
-  tab: AdminListingTab
-  search: string
-  /** 'all' or a category name. */
-  category: string
-  sort: AdminListingSort
-  /** 1-based. */
-  page: number
-}
-
-export interface AdminListingRow {
-  id: string
-  imageUrl: string | null
-  title: string
-  categoryLabel: string
-  price: number
-  sellerHandle: string
-  status: AdminListingStatus
-  isReserved: boolean
-  /** ISO timestamp. */
-  createdAt: string
-}
-
-const EMPTY_LISTINGS: AdminSectionResult<AdminListingRow, AdminListingTab> = {
-  rows: [],
-  total: 0,
-  tabCounts: zeroCounts(ADMIN_LISTING_TABS),
-  loading: false,
-}
-
-/** TODO(backend): query listings using these filters. */
-export function useAdminListings(
-  _filters: AdminListingFilters,
-): AdminSectionResult<AdminListingRow, AdminListingTab> {
-  return EMPTY_LISTINGS
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Reports                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export const ADMIN_REPORT_TABS = ['pending', 'reviewing', 'resolved', 'dismissed'] as const
-export type AdminReportTab = (typeof ADMIN_REPORT_TABS)[number]
-export type AdminReportTarget = 'listing' | 'user' | 'message'
-export type AdminReportSort = 'newest' | 'oldest'
-
-export interface AdminReportFilters {
-  tab: AdminReportTab
-  search: string
-  /** 'all' or a target type. */
-  target: 'all' | AdminReportTarget
-  sort: AdminReportSort
-  page: number
-}
-
-export interface AdminReportRow {
-  id: string
-  targetType: AdminReportTarget
-  /** e.g. "Vintage Levi's Jacket" or "@user_742" */
-  targetLabel: string
-  reason: string
-  reportedBy: string
-  status: AdminReportTab
-  /** ISO timestamp. */
-  createdAt: string
-}
-
-const EMPTY_REPORTS: AdminSectionResult<AdminReportRow, AdminReportTab> = {
-  rows: [],
-  total: 0,
-  tabCounts: zeroCounts(ADMIN_REPORT_TABS),
-  loading: false,
-}
-
-/** TODO(backend): query reports using these filters. */
-export function useAdminReports(
-  _filters: AdminReportFilters,
-): AdminSectionResult<AdminReportRow, AdminReportTab> {
-  return EMPTY_REPORTS
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Reservations                                                               */
-/* -------------------------------------------------------------------------- */
-
-export const ADMIN_RESERVATION_TABS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'] as const
-export type AdminReservationTab = (typeof ADMIN_RESERVATION_TABS)[number]
-
-export interface AdminReservationFilters {
-  tab: AdminReservationTab
-  search: string
-  /** YYYY-MM-DD or ''. */
-  dateFrom: string
-  /** YYYY-MM-DD or ''. */
-  dateTo: string
-  page: number
-}
-
-export interface AdminReservationRow {
-  id: string
-  itemTitle: string
-  itemImageUrl: string | null
-  buyerName: string
-  sellerHandle: string
-  status: Exclude<AdminReservationTab, 'all'>
-  /** ISO timestamp. */
-  createdAt: string
-}
-
-const EMPTY_RESERVATIONS: AdminSectionResult<AdminReservationRow, AdminReservationTab> = {
-  rows: [],
-  total: 0,
-  tabCounts: zeroCounts(ADMIN_RESERVATION_TABS),
-  loading: false,
-}
-
-/** TODO(backend): query reservations using these filters. */
-export function useAdminReservations(
-  _filters: AdminReservationFilters,
-): AdminSectionResult<AdminReservationRow, AdminReservationTab> {
-  return EMPTY_RESERVATIONS
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Users                                                                      */
-/* -------------------------------------------------------------------------- */
-
-export const ADMIN_USER_TABS = ['all', 'buyer', 'seller'] as const
-export type AdminUserTab = (typeof ADMIN_USER_TABS)[number]
-export type AdminUserStatus = 'active' | 'suspended'
-export type AdminUserSort = 'newest' | 'oldest' | 'most-listings'
-
-export interface AdminUserFilters {
-  tab: AdminUserTab
-  search: string
-  /** 'all' or an account status. */
-  status: 'all' | AdminUserStatus
-  sort: AdminUserSort
-  page: number
-}
-
-export interface AdminUserRow {
-  id: string
-  name: string
-  email: string
-  avatarUrl: string | null
-  role: AdminUserRole
-  status: AdminUserStatus
-  listingCount: number
-  /** ISO timestamp. */
-  joinedAt: string
-}
-
-const EMPTY_USERS: AdminSectionResult<AdminUserRow, AdminUserTab> = {
-  rows: [],
-  total: 0,
-  tabCounts: zeroCounts(ADMIN_USER_TABS),
-  loading: false,
-}
-
-/** TODO(backend): query users using these filters. */
-export function useAdminUsers(
-  _filters: AdminUserFilters,
-): AdminSectionResult<AdminUserRow, AdminUserTab> {
-  return EMPTY_USERS
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Activity log                                                               */
-/* -------------------------------------------------------------------------- */
-
-export const ADMIN_ACTIVITY_TABS = ['all', 'admin', 'system'] as const
-export type AdminActivityTab = (typeof ADMIN_ACTIVITY_TABS)[number]
-
-export interface AdminActivityFilters {
-  tab: AdminActivityTab
-  search: string
-  /** YYYY-MM-DD or ''. */
-  dateFrom: string
-  /** YYYY-MM-DD or ''. */
-  dateTo: string
-  page: number
-}
-
-export interface AdminActivityRow {
-  id: string
-  kind: Exclude<AdminActivityTab, 'all'>
-  /** Who did it, e.g. "Admin" or "System". */
-  actor: string
-  /** e.g. "removed listing" */
-  action: string
-  /** e.g. "#L-1267" */
-  target: string | null
-  /** ISO timestamp. */
-  createdAt: string
-}
-
-const EMPTY_ACTIVITY: AdminSectionResult<AdminActivityRow, AdminActivityTab> = {
-  rows: [],
-  total: 0,
-  tabCounts: zeroCounts(ADMIN_ACTIVITY_TABS),
-  loading: false,
-}
-
-/** TODO(backend): query the activity log using these filters. */
-export function useAdminActivity(
-  _filters: AdminActivityFilters,
-): AdminSectionResult<AdminActivityRow, AdminActivityTab> {
-  return EMPTY_ACTIVITY
+  return { data, lastUpdated, error, reload: load }
 }

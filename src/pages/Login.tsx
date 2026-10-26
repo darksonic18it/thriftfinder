@@ -1,5 +1,5 @@
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import BrandMark from '../components/BrandMark';
 import EmailNotConfirmedModal from '../components/EmailNotConfirmedModal';
@@ -15,6 +15,8 @@ import {
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import { fetchAdminRole } from '../services/adminService';
 import './Login.css';
 
 type LoginErrors = Partial<Record<'email' | 'password', string>>;
@@ -34,7 +36,7 @@ function isValidEmail(email: string) {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, signOut, sendPasswordReset, resendConfirmation, displayName } = useAuth();
+  const { signIn, signOut, sendPasswordReset, resendConfirmation, displayName, user } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +47,7 @@ const Login: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [welcomeTitle, setWelcomeTitle] = useState<string>('');
+  const [adminRedirect, setAdminRedirect] = useState(false);
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -59,6 +62,14 @@ const Login: React.FC = () => {
   const [resendError, setResendError] = useState<string | null>(null);
 
   const errorSummaryId = useMemo(() => 'login-error-summary', []);
+
+  // Admin accounts go straight to the admin dashboard. We wait until AuthContext
+  // has the signed-in user so the route guards don't send us back to /login.
+  useEffect(() => {
+    if (adminRedirect && user) {
+      navigate('/admin-dashboard', { replace: true });
+    }
+  }, [adminRedirect, user, navigate]);
 
   const validate = (): LoginErrors => {
     const next: LoginErrors = {};
@@ -83,9 +94,9 @@ const Login: React.FC = () => {
 
     setSubmitting(true);
     const { error } = await signIn(email, password);
-    setSubmitting(false);
 
     if (error) {
+      setSubmitting(false);
       if (isEmailNotConfirmedError(error)) {
         setEmailConfirmAddress(email.trim());
         setResent(false);
@@ -99,6 +110,22 @@ const Login: React.FC = () => {
       return;
     }
 
+    // Is this an admin account? If the lookup fails, fall back to a normal login.
+    let isAdmin = false;
+    try {
+      const { data } = await supabase.auth.getUser();
+      isAdmin = data.user ? (await fetchAdminRole(data.user.id)) !== null : false;
+    } catch {
+      isAdmin = false;
+    }
+
+    if (isAdmin) {
+      // Keep the button disabled; the effect above navigates once the session is ready.
+      setAdminRedirect(true);
+      return;
+    }
+
+    setSubmitting(false);
     setWelcomeTitle(displayName ? `Welcome back, ${displayName}!` : 'Welcome back!');
     setSuccess(true);
   };
@@ -320,7 +347,7 @@ const Login: React.FC = () => {
                       className="login-secondary-btn"
                       onClick={handleDemoSignOut}
                     >
-                      Sign out (demo)
+                      Sign out
                     </Button>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
+import AdminRoute from './components/AdminRoute';
 import AppNavbar from './components/AppNavbar';
 import CallToAction from './components/CallToAction';
 import CirculationCTA from './components/CirculationCTA';
@@ -160,12 +161,14 @@ function AppShell() {
               }
             />
 
-            {/* Admin dashboard (UI only for now) */}
+            {/* Admin dashboard: must be signed in AND have an active admin account */}
             <Route
               path="/admin-dashboard"
               element={
                 <RequireAuth>
-                  <AdminDashboard />
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
                 </RequireAuth>
               }
             />

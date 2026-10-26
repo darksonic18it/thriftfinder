@@ -3,12 +3,13 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { listingService } from '../services/listingService'
+import { submitReport } from '../services/reportService'
 import './LegalPage.css'
 import './ReportListing.css'
 
 /**
- * Report reasons — UI only. Mirrors the taxonomy a future admin/reporting
- * system would use; nothing here is sent or persisted yet.
+ * Report reasons shown to the user. The chosen text is saved as the report's
+ * `reason`, and admins see it in the Reports tab of the admin dashboard.
  */
 const REPORT_REASONS = [
   'Scam or fraud',
@@ -38,6 +39,7 @@ const ReportListing: React.FC = () => {
   const [reason, setReason] = useState('')
   const [details, setDetails] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   // Only used to show which listing is being reported. Failure is harmless.
@@ -56,23 +58,40 @@ const ReportListing: React.FC = () => {
   const goBackToListing = () => navigate(listingPath, { state: location.state })
 
   /**
-   * UI ONLY — the submit button deliberately does not touch Supabase.
-   *
-   * A future `reportService.submitReport({ listingId: id, reason, details })`
-   * call belongs right here, followed by the same local success state until
-   * the backend/admin side exists.
+   * Saves the report to Supabase through reportService. The database enforces
+   * the rules (signed in, verified email, not your own listing, one open
+   * report per listing), and submitReport turns those failures into readable
+   * messages that we show in the error box below.
    */
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (submitting) return
 
     if (!reason) {
       setError('Please select a reason for reporting this listing.')
       return
     }
+    if (!id) {
+      setError('This listing could not be found.')
+      return
+    }
 
     setError(null)
-    setSubmitted(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setSubmitting(true)
+    try {
+      await submitReport({
+        targetType: 'listing',
+        targetId: id,
+        reason,
+        details,
+      })
+      setSubmitted(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not send your report. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -193,7 +212,9 @@ const ReportListing: React.FC = () => {
               <Button type="button" variant="outline" onClick={goBackToListing}>
                 Cancel
               </Button>
-              <Button type="submit">Submit Report</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Submitting…' : 'Submit Report'}
+              </Button>
             </div>
           </form>
         )}
