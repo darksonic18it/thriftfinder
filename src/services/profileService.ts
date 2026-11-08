@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient'
 import { describeError } from '../lib/listingMappers'
+import { supabase } from '../lib/supabaseClient'
 import type { Profile, ServiceResult, UUID } from '../types/database'
 
 /** Safe, public subset of a profile — never includes contact_phone. */
@@ -21,38 +21,15 @@ export const profileService = {
    * Returns null when no row exists yet (RLS also returns null for other users).
    * Tolerates databases before the storefront migration (no bio/location_city).
    */
-  async getProfileById(profileId: string): Promise<Profile | null> {
-    const withOptional = await supabase
-      .from('profiles')
-      .select('id, full_name, contact_phone, avatar_path, cover_path, bio, location_city, created_at, updated_at')
-      .eq('id', profileId)
-      .maybeSingle()
-
-    if (!withOptional.error) {
-      return normalizeProfile(withOptional.data as Record<string, unknown> | null)
-    }
-
-    const err = withOptional.error as { code?: string; message?: string }
-    const missingColumn =
-      err.code === '42703' ||
-      /bio|location_city|column|does not exist/i.test(err.message ?? '')
-    if (!missingColumn) {
-      console.error('[profileService.getProfileById]', err.message)
-      return null
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
-      .eq('id', profileId)
-      .maybeSingle()
-
+   async getProfileById(profileId: string): Promise<Profile | null> {
+    const { data, error } = await supabase.rpc('get_my_profile')
     if (error) {
       console.error('[profileService.getProfileById]', error.message)
       return null
     }
-
-    return normalizeProfile(data as unknown as Record<string, unknown> | null)
+    const row = ((data ?? []) as Array<Record<string, unknown>>)[0] ?? null
+    if (!row || row.id !== profileId) return null
+    return normalizeProfile(row)
   },
 
   /**
@@ -106,7 +83,7 @@ export const profileService = {
    * Update the signed-in user's own profile (FR-002).
    * RLS restricts this to id = auth.uid(); the .eq() is only for clarity.
    */
-  async updateMyProfile(
+    async updateMyProfile(
     patch: {
       full_name?: string
       contact_phone?: string | null
@@ -121,47 +98,20 @@ export const profileService = {
       return { data: null, error: { message: 'Sign in to update your profile.' } }
     }
 
-    const attempt = async (body: Record<string, unknown>) => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(body)
-        .eq('id', auth.user.id)
-        .select('id, full_name, contact_phone, avatar_path, cover_path, bio, location_city, created_at, updated_at')
-        .maybeSingle()
-      return { data, error }
-    }
-
-    let result = await attempt(patch as Record<string, unknown>)
-
-    if (result.error) {
-      const err = result.error as { code?: string; message?: string }
-      const missingColumn =
-        err.code === '42703' ||
-        /bio|location_city|column|does not exist/i.test(err.message ?? '')
-      if (missingColumn) {
-        const { bio: _bio, location_city: _city, ...rest } = patch as Record<string, unknown>
-        void _bio
-        void _city
-        result = await supabase
-          .from('profiles')
-          .update(rest)
-          .eq('id', auth.user.id)
-          .select('id, full_name, contact_phone, avatar_path, cover_path, created_at, updated_at')
-          .maybeSingle()
-      }
-    }
-
-    const { data, error } = result
+    // Don't ask UPDATE to return contact_phone (not readable via the table now).
+    const { error } = await supabase
+      .from('profiles')
+      .update(patch as Record<string, unknown>)
+      .eq('id', auth.user.id)
 
     if (error) {
       console.error('[profileService.updateMyProfile]', error)
       return { data: null, error: describeError(error, 'Could not save your profile.') }
     }
-    if (!data) {
-      return { data: null, error: { message: 'Profile not found.' } }
-    }
 
-    return { data: normalizeProfile(data as unknown as Record<string, unknown>) as Profile, error: null }
+    const fresh = await profileService.getProfileById(auth.user.id)
+    if (!fresh) return { data: null, error: { message: 'Profile not found.' } }
+    return { data: fresh, error: null }
   },
 }
 

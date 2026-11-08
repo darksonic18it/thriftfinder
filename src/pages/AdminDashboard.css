@@ -84,7 +84,7 @@
   list-style: none;
 }
 
-.ad button {
+.ad :where(button) {
   font: inherit;
   color: inherit;
 }
@@ -1831,4 +1831,40 @@
 .ad-pop__actions .ad-pop__footer:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* ----- Dark-mode fixes: solid surfaces, tabs scrollbar, native controls ----- */
+
+.ad {
+  --ad-solid: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] .ad {
+  --ad-solid: #15131f;
+  color-scheme: dark;
+}
+
+.ad-dialog,
+.ad-pop,
+.ad-notice {
+  background: var(--ad-solid);
+}
+
+.ad-dialog-scrim {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.ad-select option {
+  background: var(--ad-solid);
+  color: var(--ad-text);
+}
+
+.ad-tabs {
+  overflow-y: hidden;
+}
+
+.ad-tab.is-active::after {
+  bottom: 0;
 }
