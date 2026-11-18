@@ -1,7 +1,7 @@
 
 import { AlertCircle, Loader2, LocateFixed, MapPin, PackageOpen, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import ProductCard, { Product } from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
@@ -40,6 +40,7 @@ const conditions = ['All', ...LISTING_CONDITIONS];
 const Browse: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   const initialCategory = searchParams.get('category') ?? 'All';
   const initialSearch = searchParams.get('search') ?? '';
@@ -75,6 +76,15 @@ const Browse: React.FC = () => {
   const controlsHidden = useHideOnScroll(false);
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    // Keep filters in sync when the URL changes while this page is already
+  // mounted (e.g. searching from the navbar while on /dashboard).
+  useEffect(() => {
+    setSearchQuery(searchParams.get('search') ?? '');
+    const nextCategory = searchParams.get('category') ?? 'All';
+    setSelectedCategory(categories.includes(nextCategory) ? nextCategory : 'All');
+  }, [searchParams, location.key]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => window.clearTimeout(timer);

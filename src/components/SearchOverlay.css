@@ -1,0 +1,232 @@
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 1rem 1rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.search-overlay__panel {
+  width: min(640px, 100%);
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-main);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.search-overlay__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-overlay__bar-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.search-overlay__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.search-overlay__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-overlay__spinner {
+  color: var(--color-text-muted);
+  animation: search-overlay-spin 0.8s linear infinite;
+}
+
+@keyframes search-overlay-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.search-overlay__close {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.search-overlay__close:hover {
+  background: var(--color-bg-secondary);
+}
+
+.search-overlay__body {
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.search-overlay__section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.6rem 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.search-overlay__link-btn {
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.search-overlay__link-btn:hover {
+  text-decoration: underline;
+}
+
+.search-overlay__row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-overlay__row:hover,
+.search-overlay__row--active {
+  background: var(--color-bg-secondary);
+}
+
+.search-overlay__row--all {
+  margin-top: 0.25rem;
+  color: var(--color-text-secondary);
+}
+
+.search-overlay__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.search-overlay__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-overlay__row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.search-overlay__meta .search-overlay__row-title {
+  flex: none;
+}
+
+.search-overlay__sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.search-overlay__price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.search-overlay__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem 0.8rem;
+}
+
+.search-overlay__chip {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.search-overlay__chip:hover {
+  background: var(--color-bg-secondary);
+}
+
+.search-overlay__hint,
+.search-overlay__error {
+  margin: 0;
+  padding: 0.75rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.search-overlay__error {
+  color: #dc2626;
+}
+
+.search-overlay__footer {
+  display: flex;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 600px) {
+  .search-overlay {
+    padding-top: 6vh;
+  }
+  .search-overlay__footer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-overlay__spinner {
+    animation: none;
+  }
+}

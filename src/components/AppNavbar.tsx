@@ -20,6 +20,7 @@ import BrandMark from './BrandMark'
 import HelpSupportModal from './HelpSupportModal'
 import LogoutConfirmModal from './LogoutConfirmModal'
 import NotificationBell from './NotificationBell'
+import SearchOverlay from './SearchOverlay'
 import SettingsModal from './SettingsModal'
 import ThemeToggle from './ThemeToggle'
 
@@ -49,6 +50,25 @@ const AppNavbar: React.FC = () => {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+    const [searchOpen, setSearchOpen] = useState(false)
+  const searchBtnRef = useRef<HTMLButtonElement | null>(null)
+
+  // Ctrl/Cmd + K opens search
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  const closeSearch = () => {
+    setSearchOpen(false)
+    window.setTimeout(() => searchBtnRef.current?.focus(), 0)
+  }
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -364,11 +384,14 @@ const AppNavbar: React.FC = () => {
 
         <div className="app-navbar-center" aria-label="Primary navigation">
           <div className="app-navbar-icon-row">
-            <button
+                        <button
+              ref={searchBtnRef}
               type="button"
-              className="app-navbar-icon-btn"
-              onClick={() => {}}
+              className={`app-navbar-icon-btn ${searchOpen ? 'app-navbar-icon-btn--active' : ''}`}
+              onClick={() => setSearchOpen(true)}
               aria-label="Search"
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
             >
               <Search size={20} />
             </button>
@@ -565,6 +588,7 @@ const AppNavbar: React.FC = () => {
                 handleLogout()
               }}
             />
+            <SearchOverlay open={searchOpen} onClose={closeSearch} />
         </div>
       </div>
     </header>

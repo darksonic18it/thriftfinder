@@ -177,8 +177,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return { error: error?.message ?? null }
   }, [])
 
+  const currentProfile = profile && profile.id === userId ? profile : null
+
   const displayName =
-    profile?.full_name?.trim() ||
+    currentProfile?.full_name?.trim() ||
     (user?.user_metadata?.full_name as string | undefined)?.trim() ||
     user?.email?.split('@')[0] ||
     ''
@@ -189,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     () => ({
       session,
       user,
-      profile,
+      profile: currentProfile,
       loading,
       isAuthenticated: !!session,
       displayName,
@@ -204,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [
       session,
       user,
-      profile,
+      currentProfile,
       loading,
       displayName,
       displayEmail,

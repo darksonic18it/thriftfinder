@@ -46,7 +46,7 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [welcomeTitle, setWelcomeTitle] = useState<string>('');
+  const [signedInUserId, setSignedInUserId] = useState<string | null>(null);
   const [adminRedirect, setAdminRedirect] = useState(false);
 
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -62,6 +62,11 @@ const Login: React.FC = () => {
   const [resendError, setResendError] = useState<string | null>(null);
 
   const errorSummaryId = useMemo(() => 'login-error-summary', []);
+
+   const welcomeTitle =
+    user && user.id === signedInUserId && displayName
+      ? `Welcome back, ${displayName}!`
+      : 'Welcome back!';
 
   // Admin accounts go straight to the admin dashboard. We wait until AuthContext
   // has the signed-in user so the route guards don't send us back to /login.
@@ -110,10 +115,12 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Is this an admin account? If the lookup fails, fall back to a normal login.
+        // Is this an admin account? If the lookup fails, fall back to a normal login.
     let isAdmin = false;
+    let signedInId: string | null = null;
     try {
       const { data } = await supabase.auth.getUser();
+      signedInId = data.user?.id ?? null;
       isAdmin = data.user ? (await fetchAdminRole(data.user.id)) !== null : false;
     } catch {
       isAdmin = false;
@@ -126,7 +133,7 @@ const Login: React.FC = () => {
     }
 
     setSubmitting(false);
-    setWelcomeTitle(displayName ? `Welcome back, ${displayName}!` : 'Welcome back!');
+    setSignedInUserId(signedInId);
     setSuccess(true);
   };
 
@@ -185,7 +192,7 @@ const Login: React.FC = () => {
   const handleDemoSignOut = async () => {
     await signOut();
     setSuccess(false);
-    setWelcomeTitle('');
+    setSignedInUserId(null);
     setEmail('');
     setPassword('');
   };
