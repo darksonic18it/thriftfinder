@@ -829,3 +829,109 @@
   }
 }
 
+/* ---------- Photo messages ---------- */
+
+.fm-message-row .fm-bubble.fm-bubble--image {
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fm-bubble--image > span:not(.fm-image-placeholder) {
+  padding: 2px 10px 4px;
+}
+
+.fm-image-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.fm-image {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  max-height: 260px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.fm-image-placeholder {
+  display: block;
+  padding: 28px 36px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.fm-attachment {
+  position: relative;
+  margin: 6px 14px 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #e5e5e0);
+}
+
+.fm-attachment img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fm-attachment__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+
+.fm-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.fm-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.fm-lightbox__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+}

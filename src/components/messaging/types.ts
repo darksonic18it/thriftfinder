@@ -21,4 +21,5 @@ export interface ChatMessage {
   text: string
   sentAt: number
   isRead: boolean
+   imagePath?: string | null
 }

@@ -13,7 +13,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import type { FC } from 'react'
+import type { ChangeEvent, FC } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -21,11 +21,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 import {
+  CHAT_IMAGE_ACCEPT,
   MESSAGE_MAX_LENGTH,
   messageService,
   OPEN_MESSAGES_EVENT,
   OPEN_MESSAGES_INBOX_EVENT,
   openMessagesWidget,
+  validateChatImage,
   type OpenMessagesDetail,
 } from '../../services/messageService'
 
@@ -76,6 +78,7 @@ function toChatMessage(row: MessageRow, myId: string): ChatMessage {
     id: row.id,
     from: row.sender_id === myId ? 'me' : 'them',
     text: row.content,
+    imagePath: row.image_path ?? null,
     sentAt: Date.parse(row.created_at),
     isRead: row.is_read,
   } as ChatMessage
@@ -109,6 +112,13 @@ const FloatingMessages: FC = () => {
   const [threadLoading, setThreadLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+    const [pendingImage, setPendingImage] = useState<{
+    file: File
+    previewUrl: string
+  } | null>(null)
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [forced, setForced] = useState(false)
 
   const [messageMenuId, setMessageMenuId] = useState<string | null>(null)
@@ -129,6 +139,72 @@ const FloatingMessages: FC = () => {
   const active = conversations.find((c) => c.id === activeId) ?? null
   const thread = activeId ? threads[activeId] ?? [] : []
   const unreadTotal = conversations.reduce((n, c) => n + c.unreadCount, 0)
+
+    // Resolve signed URLs for photos in the open thread (cached in the service).
+  useEffect(() => {
+    const paths = thread
+      .map((m) => m.imagePath)
+      .filter((p): p is string => !!p)
+    if (paths.length === 0) return
+
+    let active = true
+    void messageService.getImageUrls(paths).then((urls) => {
+      if (!active) return
+      setImageUrls((prev) => {
+        const changed = Object.entries(urls).some(([p, u]) => prev[p] !== u)
+        return changed ? { ...prev, ...urls } : prev
+      })
+    })
+
+    return () => {
+      active = false
+    }
+  }, [thread])
+
+  // Drop an unsent photo when switching conversations.
+  useEffect(() => {
+    clearPendingImage()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId])
+
+  // Esc closes the full-size photo (and doesn't close the chat widget).
+  useEffect(() => {
+    if (!viewerUrl) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setViewerUrl(null)
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [viewerUrl])
+
+  function clearPendingImage() {
+    setPendingImage((current) => {
+      if (current) URL.revokeObjectURL(current.previewUrl)
+      return null
+    })
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function handlePickImage(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    const problem = validateChatImage(file)
+    if (problem) {
+      setSendError(problem)
+      return
+    }
+
+    setSendError(null)
+    setPendingImage((current) => {
+      if (current) URL.revokeObjectURL(current.previewUrl)
+      return { file, previewUrl: URL.createObjectURL(file) }
+    })
+  }
 
   const loadConversations = useCallback(async () => {
     const { data, error } = await messageService.getMyConversations()
@@ -337,10 +413,10 @@ useEffect(() => {
     void loadConversations()
   }
 
-  async function sendMessage() {
+    async function sendMessage() {
     const text = draft.trim()
 
-    if (!text || !activeId || !userId || sending) return
+    if ((!text && !pendingImage) || !activeId || !userId || sending) return
 
     const conversationId = activeId
 
@@ -348,10 +424,13 @@ useEffect(() => {
     setSendError(null)
 
     try {
-      const { data, error } = await messageService.sendMessage(
-        conversationId,
-        text
-      )
+      const { data, error } = pendingImage
+        ? await messageService.sendImageMessage(
+            conversationId,
+            pendingImage.file,
+            text
+          )
+        : await messageService.sendMessage(conversationId, text)
 
       if (error || !data) {
         setSendError(error?.message ?? 'Could not send your message.')
@@ -366,14 +445,12 @@ useEffect(() => {
 
         return {
           ...prev,
-          [conversationId]: [
-            ...current,
-            toChatMessage(data, userId),
-          ],
+          [conversationId]: [...current, toChatMessage(data, userId)],
         }
       })
 
       setDraft('')
+      clearPendingImage()
       void loadConversations()
     } catch (error) {
       setSendError(
@@ -639,6 +716,8 @@ useEffect(() => {
                       const ownMessage = message.from === 'me'
                       const messageWithRead = message as ChatMessageWithRead
                       const isDeleting = deletingMessageId === message.id
+                      const imagePath = message.imagePath ?? null
+                      const imageUrl = imagePath ? imageUrls[imagePath] : undefined
 
                       return (
                         <li
@@ -650,14 +729,34 @@ useEffect(() => {
                           }`}
                         >
                           <div className="fm-bubble-wrap">
-                            <div
+                                                        <div
                               className={`fm-bubble ${
                                 ownMessage
                                   ? 'fm-bubble--me'
                                   : 'fm-bubble--them'
-                              }`}
+                              } ${imagePath ? 'fm-bubble--image' : ''}`}
                             >
-                              {message.text}
+                              {imagePath &&
+                                (imageUrl ? (
+                                  <button
+                                    type="button"
+                                    className="fm-image-btn"
+                                    onClick={() => setViewerUrl(imageUrl)}
+                                    aria-label="View photo"
+                                  >
+                                    <img
+                                      className="fm-image"
+                                      src={imageUrl}
+                                      alt="Photo sent in chat"
+                                      loading="lazy"
+                                    />
+                                  </button>
+                                ) : (
+                                  <span className="fm-image-placeholder">
+                                    Loading photo…
+                                  </span>
+                                ))}
+                              {message.text && <span>{message.text}</span>}
                             </div>
 
                             {ownMessage && (
@@ -731,7 +830,30 @@ useEffect(() => {
                 </p>
               )}
 
+                            {pendingImage && (
+                <div className="fm-attachment">
+                  <img src={pendingImage.previewUrl} alt="Photo to send" />
+                  <button
+                    type="button"
+                    className="fm-attachment__remove"
+                    onClick={clearPendingImage}
+                    aria-label="Remove photo"
+                    disabled={sending}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               <div className="fm-composer">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={CHAT_IMAGE_ACCEPT}
+                  hidden
+                  onChange={handlePickImage}
+                />
+
                 <button
                   type="button"
                   className="fm-icon-btn"
@@ -740,10 +862,20 @@ useEffect(() => {
                   <Smile size={24} />
                 </button>
 
+                <button
+                  type="button"
+                  className="fm-icon-btn"
+                  aria-label="Send a photo"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                >
+                  <ImageIcon size={22} />
+                </button>
+
                 <input
                   className="fm-composer__input"
                   type="text"
-                  placeholder="Message..."
+                  placeholder={pendingImage ? 'Add a caption...' : 'Message...'}
                   value={draft}
                   maxLength={MESSAGE_MAX_LENGTH}
                   disabled={sending}
@@ -757,7 +889,7 @@ useEffect(() => {
                   aria-label={`Message ${active.fullName}`}
                 />
 
-                {draft.trim() ? (
+                {draft.trim() || pendingImage ? (
                   <button
                     type="button"
                     className="fm-send"
@@ -768,25 +900,41 @@ useEffect(() => {
                     <SendHorizontal size={18} />
                   </button>
                 ) : (
-                  <>
-                    <button
-                      type="button"
-                      className="fm-icon-btn"
-                      aria-label="Voice message"
-                    >
-                      <Mic size={22} />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="fm-icon-btn"
-                      aria-label="Send a photo"
-                    >
-                      <ImageIcon size={22} />
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    className="fm-icon-btn"
+                    aria-label="Voice message"
+                  >
+                    <Mic size={22} />
+                  </button>
                 )}
               </div>
+
+              {viewerUrl &&
+                createPortal(
+                  <div
+                    className="fm-lightbox"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Photo"
+                    onClick={() => setViewerUrl(null)}
+                  >
+                    <button
+                      type="button"
+                      className="fm-lightbox__close"
+                      aria-label="Close photo"
+                      onClick={() => setViewerUrl(null)}
+                    >
+                      <X size={22} />
+                    </button>
+                    <img
+                      src={viewerUrl}
+                      alt="Photo sent in chat"
+                      onClick={(event) => event.stopPropagation()}
+                    />
+                  </div>,
+                  document.body
+                )}
             </>
           )}
 

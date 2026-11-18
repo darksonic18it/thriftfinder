@@ -44,9 +44,44 @@ export function openMessagesInbox(): void {
 }
 
 const MESSAGE_COLUMNS =
-  'id, conversation_id, sender_id, content, is_read, created_at, updated_at'
+  'id, conversation_id, sender_id, content, image_path, is_read, created_at, updated_at'
 
 export const MESSAGE_MAX_LENGTH = 2000
+
+export const CHAT_IMAGE_BUCKET = 'chat-images'
+export const CHAT_IMAGE_MAX_BYTES = 5 * 1024 * 1024
+export const CHAT_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif'
+
+const CHAT_IMAGE_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
+
+/** Returns a user-readable problem, or null when the file can be sent. */
+export function validateChatImage(file: File): string | null {
+  if (!CHAT_IMAGE_EXTENSIONS[file.type]) return 'Choose a JPG, PNG, WebP, or GIF image.'
+  if (file.size > CHAT_IMAGE_MAX_BYTES) return 'Photos must be 5 MB or smaller.'
+  return null
+}
+
+function describeUploadError(error: { message?: string }): string {
+  const raw = error.message ?? ''
+  if (/exceeded the maximum|too large|payload/i.test(raw)) return 'Photos must be 5 MB or smaller.'
+  if (/mime type|not supported|invalid.*type/i.test(raw)) return 'Choose a JPG, PNG, WebP, or GIF image.'
+  if (/row-level security|unauthorized|not allowed/i.test(raw)) {
+    return 'You can’t send photos in this conversation. Check that your email is verified.'
+  }
+  if (/failed to fetch|network/i.test(raw)) {
+    return 'Could not upload the photo. Check your connection and try again.'
+  }
+  return 'Could not upload your photo.'
+}
+
+// Signed URLs for the private bucket, cached so polling doesn't re-sign photos.
+const SIGNED_URL_TTL_SECONDS = 60 * 60
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>()
 
 function toNumber(value: unknown): number {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
@@ -227,7 +262,7 @@ export const messageService = {
    * Permanently delete a message.
    * Supabase RLS must restrict this operation to the sender.
    */
-  async deleteMessageForEveryone(
+    async deleteMessageForEveryone(
     messageId: UUID
   ): Promise<ServiceResult<null>> {
     const { data: auth } = await supabase.auth.getUser()
@@ -244,7 +279,7 @@ export const messageService = {
       .delete()
       .eq('id', messageId)
       .eq('sender_id', auth.user.id)
-      .select('id')
+      .select('id, image_path')
 
     if (error) {
       console.error('[messageService.deleteMessageForEveryone]', error)
@@ -265,6 +300,18 @@ export const messageService = {
           message: 'Message not found or you are not allowed to delete it.',
         },
       }
+    }
+
+    // If it was a photo, remove the file too (best effort).
+    const imagePath = (data[0] as { image_path?: string | null }).image_path
+    if (imagePath) {
+      const { error: removeError } = await supabase.storage
+        .from(CHAT_IMAGE_BUCKET)
+        .remove([imagePath])
+      if (removeError) {
+        console.error('[messageService.deleteMessageForEveryone] photo cleanup', removeError)
+      }
+      signedUrlCache.delete(imagePath)
     }
 
     return { data: null, error: null }
@@ -302,6 +349,94 @@ export const messageService = {
       return { data: null, error: translateError(error, 'Could not send your message.') }
     }
     return { data: data as MessageRow, error: null }
+  },
+
+    /** Upload a photo and send it as a message (with an optional caption). */
+  async sendImageMessage(
+    conversationId: UUID,
+    file: File,
+    caption = ''
+  ): Promise<ServiceResult<MessageRow>> {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth?.user) {
+      return { data: null, error: { message: 'Sign in to send messages.' } }
+    }
+
+    const problem = validateChatImage(file)
+    if (problem) return { data: null, error: { message: problem } }
+
+    const text = caption.trim()
+    if (text.length > MESSAGE_MAX_LENGTH) {
+      return {
+        data: null,
+        error: { message: `Captions must be ${MESSAGE_MAX_LENGTH} characters or fewer.` },
+      }
+    }
+
+    const userId = auth.user.id
+    const path = `${conversationId}/${userId}/${crypto.randomUUID()}.${CHAT_IMAGE_EXTENSIONS[file.type]}`
+
+    const { error: uploadError } = await supabase.storage
+      .from(CHAT_IMAGE_BUCKET)
+      .upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false })
+
+    if (uploadError) {
+      console.error('[messageService.sendImageMessage] upload', uploadError)
+      return { data: null, error: { message: describeUploadError(uploadError) } }
+    }
+
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        sender_id: userId,
+        content: text,
+        image_path: path,
+      })
+      .select(MESSAGE_COLUMNS)
+      .single()
+
+    if (error) {
+      // Don't leave an orphaned file behind.
+      await supabase.storage.from(CHAT_IMAGE_BUCKET).remove([path])
+      console.error('[messageService.sendImageMessage] insert', error)
+      return { data: null, error: translateError(error, 'Could not send your photo.') }
+    }
+
+    return { data: data as MessageRow, error: null }
+  },
+
+  /** Short-lived signed URLs for private chat photos, keyed by storage path. */
+  async getImageUrls(paths: string[]): Promise<Record<string, string>> {
+    const now = Date.now()
+    const result: Record<string, string> = {}
+    const missing: string[] = []
+
+    for (const path of new Set(paths)) {
+      const cached = signedUrlCache.get(path)
+      if (cached && cached.expiresAt > now) result[path] = cached.url
+      else missing.push(path)
+    }
+
+    if (missing.length > 0) {
+      const { data, error } = await supabase.storage
+        .from(CHAT_IMAGE_BUCKET)
+        .createSignedUrls(missing, SIGNED_URL_TTL_SECONDS)
+
+      if (error) console.error('[messageService.getImageUrls]', error)
+
+      for (const item of data ?? []) {
+        if (item.path && item.signedUrl) {
+          signedUrlCache.set(item.path, {
+            url: item.signedUrl,
+            expiresAt: now + (SIGNED_URL_TTL_SECONDS - 300) * 1000,
+          })
+          result[item.path] = item.signedUrl
+        }
+      }
+    }
+
+    return result
   },
 
   /** Mark everything the other person sent in this thread as read. */

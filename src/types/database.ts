@@ -317,6 +317,7 @@ export interface MessageRow {
   conversation_id: UUID
   sender_id: UUID
   content: string
+  image_path: string | null
   is_read: boolean
   created_at: string
   updated_at: string
